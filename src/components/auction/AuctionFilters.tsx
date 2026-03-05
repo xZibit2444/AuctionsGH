@@ -81,11 +81,11 @@ export default function AuctionFilters({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
                 {/* Brand */}
-                <div>
+                <div className="min-w-0">
                     <select
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 px-3text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         {brands.map(b => (
@@ -95,11 +95,11 @@ export default function AuctionFilters({
                 </div>
 
                 {/* Condition */}
-                <div>
+                <div className="min-w-0">
                     <select
                         value={condition}
                         onChange={(e) => setCondition(e.target.value)}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         <option value="All">All Conditions</option>
@@ -110,11 +110,11 @@ export default function AuctionFilters({
                 </div>
 
                 {/* Storage */}
-                <div>
+                <div className="min-w-0">
                     <select
                         value={minStorage}
                         onChange={(e) => setMinStorage(Number(e.target.value))}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         {storageOptions.map(opt => (
@@ -124,11 +124,11 @@ export default function AuctionFilters({
                 </div>
 
                 {/* Sort */}
-                <div className="relative">
+                <div className="relative min-w-0">
                     <select
                         value={currentSortValue}
                         onChange={handleSortChange}
-                        className="block w-full text-black bg-gray-50 border border-gray-200 font-medium py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-gray-50 border border-gray-200 font-medium py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         <option value="ending_soon">Ending Soonest</option>

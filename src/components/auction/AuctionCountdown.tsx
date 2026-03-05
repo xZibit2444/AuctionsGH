@@ -2,19 +2,28 @@
 
 import { useCountdown } from '@/hooks/useCountdown';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 interface AuctionCountdownProps {
     endTime: string | Date;
     compact?: boolean;
     className?: string;
+    onEnd?: () => void;
 }
 
 export default function AuctionCountdown({
     endTime,
     compact = false,
     className,
+    onEnd,
 }: AuctionCountdownProps) {
     const { days, hours, minutes, seconds, isExpired, total } = useCountdown(endTime);
+
+    useEffect(() => {
+        if (isExpired && onEnd) {
+            onEnd();
+        }
+    }, [isExpired, onEnd]);
 
     if (isExpired) {
         return (

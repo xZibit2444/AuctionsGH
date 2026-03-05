@@ -405,15 +405,15 @@ export default function SettingsPage() {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <PhoneField
-                                                 value={profileForm.phone_number}
-                                                 onChange={(v) => setProfileForm({ ...profileForm, phone_number: v })}
-                                                 hint="Used for buyer/seller contact"
-                                             />
+                                                value={profileForm.phone_number}
+                                                onChange={(v) => setProfileForm({ ...profileForm, phone_number: v })}
+                                                hint="Used for buyer/seller contact"
+                                            />
                                             <SelectField
                                                 label="City / Region"
                                                 value={profileForm.location}
                                                 onChange={(v) => setProfileForm({ ...profileForm, location: v })}
-                                                
+
                                                 hint="Helps buyers know your location"
                                             />
                                         </div>
@@ -562,15 +562,6 @@ export default function SettingsPage() {
                                         </div>
                                         <button onClick={handleSignOut} className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline">Sign out all</button>
                                     </div>
-                                </div>
-
-                                <div className="px-5 sm:px-6 py-5 border-t border-gray-200">
-                                    <h3 className="text-xs font-black text-black uppercase tracking-widest mb-1">Danger Zone</h3>
-                                    <p className="text-xs text-gray-400 mb-4">Permanently delete your account and all data. This cannot be undone.</p>
-                                    <button className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50 transition-colors w-full sm:w-auto justify-center sm:justify-start">
-                                        <AlertTriangle className="h-4 w-4" />
-                                        Delete My Account
-                                    </button>
                                 </div>
                             </div>
                         )}

@@ -21,9 +21,9 @@ export function useAuction(auctionId: string) {
           auction_images (*),
           profiles!auctions_seller_id_fkey (
             id, username, avatar_url, location, is_verified
-          )
-        `
-                )
+          ),
+          orders(id, status)
+        `                )
                 .eq('id', auctionId)
                 .single();
 

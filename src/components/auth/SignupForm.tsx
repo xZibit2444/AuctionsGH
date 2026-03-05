@@ -52,36 +52,40 @@ export default function SignupForm() {
 
         setLoading(true);
 
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-        });
-
-        if (authError) {
-            setServerError(authError.message);
-            setLoading(false);
-            return;
-        }
-
-        if (authData.user) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: profileError } = await (supabase.from('profiles') as any).insert({
-                id: authData.user.id,
-                username: formData.username,
-                full_name: formData.full_name,
-                phone_number: formData.phone_number || null,
-                location: formData.location || null,
+        try {
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
             });
 
-            if (profileError) {
-                setServerError(profileError.message);
-                setLoading(false);
+            if (authError) {
+                setServerError(authError.message);
                 return;
             }
-        }
 
-        router.push('/');
-        router.refresh();
+            if (authData.user) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { error: profileError } = await (supabase.from('profiles') as any).insert({
+                    id: authData.user.id,
+                    username: formData.username,
+                    full_name: formData.full_name,
+                    phone_number: formData.phone_number || null,
+                    location: formData.location || null,
+                });
+
+                if (profileError) {
+                    setServerError(profileError.message);
+                    return;
+                }
+            }
+
+            router.push('/');
+            router.refresh();
+        } catch (err) {
+            setServerError('An unexpected error occurred. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const localPhone = formData.phone_number?.startsWith('+233')

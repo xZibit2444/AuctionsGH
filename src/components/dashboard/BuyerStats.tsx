@@ -25,6 +25,7 @@ interface BidRow {
         ends_at: string;
         current_price: number;
         winner_id: string | null;
+        orders?: { id: string; status: string } | { id: string; status: string }[] | null;
     } | null;
 }
 
@@ -50,12 +51,32 @@ export default function BuyerStats() {
             const { data } = await (supabase.from('bids') as any)
                 .select(`
                     id, amount, created_at,
-                    auctions ( id, title, status, ends_at, current_price, winner_id )
+                    auctions ( id, title, status, ends_at, current_price, winner_id, orders(id, status) )
                 `)
                 .eq('bidder_id', user.id)
                 .order('created_at', { ascending: false });
 
-            const bids = (data ?? []) as BidRow[];
+            const bidsRaw = (data ?? []) as BidRow[];
+
+            // 1. Filter out Lost/Ended bids older than 2 hours
+            const now = new Date();
+            const bids = bidsRaw.filter((b) => {
+                const auction = b.auctions;
+                if (!auction) return false;
+
+                // Keep all active
+                if (auction.status === 'active') return true;
+
+                // Keep if user won
+                if (auction.winner_id === user.id && auction.status === 'sold') return true;
+
+                // For lost/ended auctions, only keep if ended within the last 2 hours
+                const endTime = new Date(auction.ends_at);
+                const diffHours = (now.getTime() - endTime.getTime()) / (1000 * 60 * 60);
+
+                return diffHours <= 2;
+            });
+
             setRecentBids(bids.slice(0, 8));
 
             // Compute stats
@@ -146,6 +167,13 @@ export default function BuyerStats() {
                             {recentBids.map((bid) => {
                                 const isWinner = bid.auctions?.winner_id === user?.id;
                                 const status = bid.auctions?.status;
+                                const orderRaw = bid.auctions?.orders;
+                                const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+
+                                // 30 mins deadline: ends_at + 30 mins
+                                const endsAt = bid.auctions?.ends_at ? new Date(bid.auctions.ends_at).getTime() : 0;
+                                const isExpired = endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
+
                                 let badge = '';
                                 let badgeColor = '';
                                 if (status === 'sold' && isWinner) { badge = 'WON'; badgeColor = 'text-black bg-black/10'; }
@@ -154,23 +182,49 @@ export default function BuyerStats() {
                                 else { badge = 'ENDED'; badgeColor = 'text-gray-400 bg-gray-50'; }
 
                                 return (
-                                    <Link
+                                    <div
                                         key={bid.id}
-                                        href={`/auctions/${bid.auctions?.id}`}
-                                        className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 hover:bg-gray-50 transition-colors group"
+                                        className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 sm:py-3.5 hover:bg-gray-50 transition-colors group border-b border-gray-100 last:border-0"
                                     >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-black truncate group-hover:underline underline-offset-2">
-                                                {bid.auctions?.title ?? 'Auction'}
-                                            </p>
-                                            <p className="text-xs text-gray-400 mt-0.5">
-                                                Your bid: <span className="font-mono font-semibold text-black">{formatCurrency(bid.amount)}</span>
-                                            </p>
+                                        <Link href={`/auctions/${bid.auctions?.id}`} className="flex-1 min-w-0 flex items-center gap-3">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold text-black truncate group-hover:underline underline-offset-2">
+                                                    {bid.auctions?.title ?? 'Auction'}
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-0.5">
+                                                    Your bid: <span className="font-mono font-semibold text-black">{formatCurrency(bid.amount)}</span>
+                                                </p>
+                                            </div>
+                                        </Link>
+
+                                        <div className="flex items-center gap-3 shrink-0 mt-1 sm:mt-0">
+                                            {order ? (
+                                                <Link
+                                                    href={`/orders/${order.id}`}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
+                                                >
+                                                    Track Order
+                                                </Link>
+                                            ) : status === 'sold' && isWinner ? (
+                                                isExpired ? (
+                                                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 text-red-600 bg-red-50">
+                                                        VOID
+                                                    </span>
+                                                ) : (
+                                                    <Link
+                                                        href={`/checkout/${bid.auctions?.id}`}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                    >
+                                                        Complete Checkout
+                                                    </Link>
+                                                )
+                                            ) : (
+                                                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 ${badgeColor}`}>
+                                                    {badge}
+                                                </span>
+                                            )}
                                         </div>
-                                        <span className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-2 py-1 ${badgeColor}`}>
-                                            {badge}
-                                        </span>
-                                    </Link>
+                                    </div>
                                 );
                             })}
                         </div>

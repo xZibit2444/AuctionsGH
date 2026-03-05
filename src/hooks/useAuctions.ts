@@ -41,7 +41,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             const supabase = createClient();
             let query = supabase
                 .from('auctions')
-                .select('*, auction_images(url, position)');
+                .select('*, auction_images(url, position), orders(id, status)');
 
             if (status !== 'all') {
                 query = query.eq('status', status);

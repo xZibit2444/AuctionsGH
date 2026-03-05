@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Home, Search, Plus, Heart, LayoutDashboard } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const tabs = [
 
 export default function MobileNav() {
     const pathname = usePathname();
+    const { profile } = useAuth();
 
     if (pathname === '/login' || pathname === '/signup') return null;
 
@@ -22,6 +24,8 @@ export default function MobileNav() {
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 sm:hidden">
             <div className="flex items-center justify-around h-16 px-2">
                 {tabs.map((tab) => {
+                    if (tab.href === '/auctions/create' && !profile?.is_admin) return null;
+
                     const isActive =
                         tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href);
                     const Icon = tab.icon;

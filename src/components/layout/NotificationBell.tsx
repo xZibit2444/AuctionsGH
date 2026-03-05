@@ -58,9 +58,33 @@ export default function NotificationBell() {
         setUnread(items.filter((n) => !n.is_read).length);
     }, [user]);
 
+    // Fetch initially
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
+
+    // Subscribe to realtime inserts
+    useEffect(() => {
+        if (!user) return;
+        const supabase = createClient();
+
+        const channel = supabase
+            .channel('realtime:notifications')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+                (payload) => {
+                    const newNotif = payload.new as Notification;
+                    setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
+                    setUnread((prev) => prev + 1);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
 
     // Close on outside click
     useEffect(() => {
@@ -104,7 +128,8 @@ export default function NotificationBell() {
             >
                 <Bell className="h-5 w-5" />
                 {unread > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-black rounded-full flex items-center justify-center">
+                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-in zoom-in duration-300">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
                         {unread > 9 && (
                             <span className="sr-only">{unread} unread</span>
                         )}

@@ -46,7 +46,7 @@ export const createAuctionSchema = z.object({
     brand: z.enum(PHONE_BRANDS as unknown as [string, ...string[]]),
     model: z.string().min(1, 'Please enter the phone model'),
     storage_gb: z.coerce.number().positive().optional().or(z.literal(0)),
-    
+
     condition: z.enum(['new', 'like_new', 'good', 'fair', 'poor']),
     starting_price: z.coerce
         .number()
@@ -54,7 +54,8 @@ export const createAuctionSchema = z.object({
         .min(1, 'Minimum starting price is GHS 1')
         .max(999999, 'Maximum starting price is GHS 999,999'),
     min_increment: z.coerce.number().positive().default(5),
-    duration_hours: z.coerce.number().positive(),
+    duration_hours: z.coerce.number().min(0),
+    duration_minutes: z.coerce.number().min(0).max(59).optional(),
 });
 
 // ── Bid Schema ──

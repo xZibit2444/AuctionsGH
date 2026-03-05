@@ -67,6 +67,7 @@ export default function CreateAuctionForm() {
         starting_price: 0,
         min_increment: 50,
         duration_hours: 72,
+        duration_minutes: 0,
     });
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
@@ -74,6 +75,7 @@ export default function CreateAuctionForm() {
     const [submitting, setSubmitting] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
+    const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const update = (field: keyof CreateAuctionInput, value: unknown) =>
@@ -126,47 +128,60 @@ export default function CreateAuctionForm() {
 
         setSubmitting(true);
 
-        const endsAt = new Date(Date.now() + formData.duration_hours * 60 * 60 * 1000).toISOString();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: auction, error: auctionError } = await (supabase.from('auctions') as any)
-            .insert({
-                seller_id: user.id,
-                title: formData.title,
-                description: formData.description || null,
-                brand: formData.brand,
-                model: formData.model,
-                storage_gb: formData.storage_gb || null,
-                condition: formData.condition,
-                starting_price: formData.starting_price,
-                current_price: formData.starting_price,
-                min_increment: formData.min_increment,
-                ends_at: endsAt,
-            })
-            .select()
-            .single();
-
-        if (auctionError || !auction) {
-            console.error("DEBUG: Supabase Insert Error ->", auctionError);
-            setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
+        const totalHours = formData.duration_hours + (formData.duration_minutes || 0) / 60;
+        if (totalHours === 0) {
+            setErrors({ duration_hours: 'Total duration must be greater than 0.' });
+            setStep(3);
             setSubmitting(false);
             return;
         }
 
-        for (let i = 0; i < images.length; i++) {
-            const res = await uploadImage(images[i], user.id, (auction as { id: string }).id);
-            if (res) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (supabase.from('auction_images') as any).insert({
-                    auction_id: (auction as { id: string }).id,
-                    url: res.url,
-                    position: i,
-                });
-            }
-        }
+        const endsAt = new Date(Date.now() + totalHours * 60 * 60 * 1000).toISOString();
 
-        setSubmitting(false);
-        setPublishedAuctionId((auction as { id: string }).id);
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: auction, error: auctionError } = await (supabase.from('auctions') as any)
+                .insert({
+                    seller_id: user.id,
+                    title: formData.title,
+                    description: formData.description || null,
+                    brand: formData.brand,
+                    model: formData.model,
+                    storage_gb: formData.storage_gb || null,
+                    condition: formData.condition,
+                    starting_price: formData.starting_price,
+                    current_price: formData.starting_price,
+                    min_increment: formData.min_increment,
+                    ends_at: endsAt,
+                })
+                .select()
+                .single();
+
+            if (auctionError || !auction) {
+                console.error("DEBUG: Supabase Insert Error ->", auctionError);
+                setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
+                return;
+            }
+
+            for (let i = 0; i < images.length; i++) {
+                const res = await uploadImage(images[i], user.id, (auction as { id: string }).id);
+                if (res) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    await (supabase.from('auction_images') as any).insert({
+                        auction_id: (auction as { id: string }).id,
+                        url: res.url,
+                        position: i,
+                    });
+                }
+            }
+
+            setPublishedAuctionId((auction as { id: string }).id);
+        } catch (err) {
+            setErrors({ submit: 'An unexpected error occurred during publishing. Please try again.' });
+            console.error("DEBUG: Catch publish err ->", err);
+        } finally {
+            setSubmitting(false);
+        }
 
         // Refresh router data immediately so homepage cache updates before user clicks "View Listing" or "Home"
         router.refresh();
@@ -207,10 +222,10 @@ export default function CreateAuctionForm() {
                     <div key={label} className="flex items-center flex-1 last:flex-none">
                         <div className="flex items-center gap-2.5">
                             <div className={`h-8 w-8 flex items-center justify-center text-xs font-black shrink-0 transition-colors duration-300 ${step > i + 1
-                                    ? 'bg-black text-white'
-                                    : step === i + 1
-                                        ? 'bg-black text-white ring-4 ring-black/10'
-                                        : 'bg-gray-100 text-gray-400'
+                                ? 'bg-black text-white'
+                                : step === i + 1
+                                    ? 'bg-black text-white ring-4 ring-black/10'
+                                    : 'bg-gray-100 text-gray-400'
                                 }`}>
                                 {step > i + 1 ? <Check className="h-3.5 w-3.5" /> : i + 1}
                             </div>
@@ -290,8 +305,8 @@ export default function CreateAuctionForm() {
                                     type="button"
                                     onClick={() => update('condition', key)}
                                     className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.condition === key
-                                            ? 'border-black bg-black text-white'
-                                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                        ? 'border-black bg-black text-white'
+                                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                         }`}
                                 >
                                     {label}
@@ -331,8 +346,8 @@ export default function CreateAuctionForm() {
                         onDragLeave={() => setDragOver(false)}
                         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleImageAdd(e.dataTransfer.files); }}
                         className={`border-2 border-dashed p-10 text-center cursor-pointer transition-all duration-200 ${dragOver
-                                ? 'border-black bg-gray-50 scale-[1.01]'
-                                : 'border-gray-300 hover:border-black hover:bg-gray-50/50'
+                            ? 'border-black bg-gray-50 scale-[1.01]'
+                            : 'border-gray-300 hover:border-black hover:bg-gray-50/50'
                             }`}
                     >
                         <div className="w-12 h-12 border border-gray-200 flex items-center justify-center mx-auto mb-3">
@@ -447,21 +462,63 @@ export default function CreateAuctionForm() {
                     {/* Duration */}
                     <div>
                         <FieldLabel>Auction Duration</FieldLabel>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3">
                             {AUCTION_DURATIONS.map(({ label, hours }) => (
                                 <button
                                     key={hours}
                                     type="button"
-                                    onClick={() => update('duration_hours', hours)}
-                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.duration_hours === hours
-                                            ? 'border-black bg-black text-white'
-                                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                    onClick={() => { update('duration_hours', hours); setIsCustomDuration(false); }}
+                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${!isCustomDuration && formData.duration_hours === hours
+                                        ? 'border-black bg-black text-white'
+                                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                         }`}
                                 >
                                     {label}
                                 </button>
                             ))}
+                            <button
+                                type="button"
+                                onClick={() => setIsCustomDuration(true)}
+                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${isCustomDuration
+                                    ? 'border-black bg-black text-white'
+                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                            >
+                                Custom
+                            </button>
                         </div>
+                        {isCustomDuration && (
+                            <div className="flex gap-2 mb-2">
+                                <div className={`flex flex-1 border focus-within:border-black transition-colors ${errors.duration_hours ? 'border-red-400' : 'border-gray-200'}`}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.duration_hours === 0 ? '' : formData.duration_hours}
+                                        onChange={(e) => update('duration_hours', Number(e.target.value))}
+                                        placeholder="0"
+                                        className="flex-1 w-full px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                                    />
+                                    <div className="flex items-center px-3 bg-gray-50 border-l border-gray-200 shrink-0">
+                                        <span className="text-xs font-semibold text-gray-500">hrs</span>
+                                    </div>
+                                </div>
+                                <div className={`flex flex-1 border focus-within:border-black transition-colors ${errors.duration_minutes ? 'border-red-400' : 'border-gray-200'}`}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={formData.duration_minutes === 0 ? '' : formData.duration_minutes}
+                                        onChange={(e) => update('duration_minutes', Number(e.target.value))}
+                                        placeholder="0"
+                                        className="flex-1 w-full flex-grow min-w-[50px] px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                                    />
+                                    <div className="flex items-center px-3 bg-gray-50 border-l border-gray-200 shrink-0">
+                                        <span className="text-xs font-semibold text-gray-500">min</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {(errors.duration_hours || errors.duration_minutes) && <p className="text-[11px] text-red-500 mt-1">{errors.duration_hours || errors.duration_minutes}</p>}
                     </div>
 
                     {/* Summary box */}
@@ -484,6 +541,13 @@ export default function CreateAuctionForm() {
                             <span className="font-semibold text-black">{images.length}</span>
                         </div>
                     </div>
+
+                    {errors.submit && (
+                        <div className="flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            {errors.submit}
+                        </div>
+                    )}
 
                     <div className="flex gap-3">
                         <button

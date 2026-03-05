@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuctions } from '@/hooks/useAuctions';
 import AuctionGrid from '@/components/auction/AuctionGrid';
@@ -16,6 +16,14 @@ const SORT_OPTIONS = [
 ];
 
 export default function AuctionsPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" /></div>}>
+            <AuctionsContent />
+        </Suspense>
+    );
+}
+
+function AuctionsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -133,8 +141,8 @@ export default function AuctionsPage() {
                         key={b}
                         onClick={() => handleBrand(b)}
                         className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${brand === b
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                            ? 'bg-black text-white border-black'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
                             }`}
                     >
                         {b}

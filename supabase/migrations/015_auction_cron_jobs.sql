@@ -19,6 +19,16 @@ BEGIN
             UPDATE auctions 
             SET status = 'sold' 
             WHERE id = auction_record.id;
+            
+            -- Insert a winning notification for the buyer
+            INSERT INTO notifications (user_id, type, title, body, auction_id)
+            VALUES (
+                auction_record.winner_id,
+                'auction_won',
+                'You Won the Auction!',
+                'Click here to proceed to checkout and arrange payment/delivery.',
+                auction_record.id
+            );
         ELSE
             -- No bids were placed, set to 'ended'
             UPDATE auctions 

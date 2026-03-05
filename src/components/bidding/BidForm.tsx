@@ -42,26 +42,28 @@ export default function BidForm({
 
         setLoading(true);
 
-        // Call the server-side API route which validates session and calls
-        // the atomic place_bid DB function (row-locked to handle concurrency).
-        const res = await fetch('/api/bids', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ auction_id: auctionId, amount: numAmount }),
-        });
+        try {
+            const res = await fetch('/api/bids', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auction_id: auctionId, amount: numAmount }),
+            });
 
-        const json = await res.json();
+            const json = await res.json();
 
-        if (!res.ok || json.error) {
-            setError(json.error ?? 'Failed to place bid');
+            if (!res.ok || json.error) {
+                setError(json.error ?? 'Failed to place bid');
+                return;
+            }
+
+            setSuccess(true);
+            setAmount((numAmount + minIncrement).toFixed(2));
+            setTimeout(() => setSuccess(false), 3000);
+        } catch (err) {
+            setError('An unexpected error occurred. Please try again.');
+        } finally {
             setLoading(false);
-            return;
         }
-
-        setSuccess(true);
-        // Suggest next minimum bid
-        setAmount((numAmount + minIncrement).toFixed(2));
-        setLoading(false);
 
         setTimeout(() => setSuccess(false), 3000);
     };

@@ -14,9 +14,11 @@ import BidForm from '@/components/bidding/BidForm';
 import BidHistory from '@/components/bidding/BidHistory';
 import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
-import { Heart } from 'lucide-react';
+import { Heart, CheckCircle2 } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
+import { useRouter } from 'next/navigation';
 import type { AuctionStatus } from '@/types/database';
+import { finalizeAuctionAction } from '@/app/actions/finalizeAuction';
 
 interface AuctionDetailProps {
     auctionId: string;
@@ -29,6 +31,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const { savedIds, toggleSave } = useSavedAuctions();
     const [selectedImage, setSelectedImage] = useState(0);
     const [savePending, setSavePending] = useState(false);
+    const [showCongrats, setShowCongrats] = useState(false);
+    const router = useRouter();
 
     const isSaved = savedIds.has(auctionId);
 
@@ -57,14 +61,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const handleAuctionUpdate = useCallback(
         (payload: Record<string, unknown>) => {
             if (auction) {
+                const newStatus = payload.status as AuctionStatus;
+                const newWinnerId = payload.winner_id as string | null;
+
+                if (auction.status === 'active' && newStatus === 'sold' && newWinnerId === user?.id) {
+                    setShowCongrats(true);
+                }
+
                 setAuction({
                     ...auction,
-                    status: payload.status as AuctionStatus,
-                    winner_id: payload.winner_id as string | null,
+                    status: newStatus,
+                    winner_id: newWinnerId,
                 });
             }
         },
-        [auction, setAuction]
+        [auction, setAuction, user?.id]
     );
 
     useRealtimeBids({
@@ -72,6 +83,22 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         onNewBid: handleNewBid,
         onAuctionUpdate: handleAuctionUpdate,
     });
+
+    const handleCountdownEnd = useCallback(async () => {
+        if (auction?.status === 'active') {
+            const highestBidderId = bids[0]?.bidder_id;
+
+            // Fire the server action to instantly claim the win & notifications
+            await finalizeAuctionAction(auctionId);
+
+            // Instantly finalize on the client side UI
+            if (highestBidderId === user?.id) {
+                setShowCongrats(true);
+            }
+            // Transition status to hide the bid form instantly
+            setAuction((prev) => prev ? { ...prev, status: highestBidderId ? 'sold' : 'ended' } : prev);
+        }
+    }, [auction, bids, user?.id, setAuction, auctionId]);
 
     if (loading || !auction) {
         return (
@@ -84,12 +111,19 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const images = auction.auction_images?.sort((a, b) => a.position - b.position) ?? [];
     const isWinner = auction.winner_id === user?.id;
     const isSeller = auction.seller_id === user?.id;
+    const orderRaw = (auction as any).orders;
+    const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
 
     return (
         <div className="max-w-5xl mx-auto py-4 sm:py-8">
             {/* Winner Banner */}
             {isWinner && auction.status === 'sold' && (
-                <WinnerBanner auctionTitle={auction.title} amount={auction.current_price} />
+                <WinnerBanner
+                    auctionId={auction.id}
+                    auctionTitle={auction.title}
+                    amount={auction.current_price}
+                    orderId={order?.id}
+                />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
@@ -144,8 +178,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <button
                                 onClick={handleSave}
                                 className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${isSaved
-                                        ? 'border-black text-black bg-gray-50'
-                                        : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                                    ? 'border-black text-black bg-gray-50'
+                                    : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
                                     } ${savePending ? 'opacity-50' : ''}`}
                             >
                                 <Heart
@@ -213,7 +247,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         </div>
 
                         {auction.status === 'active' && (
-                            <AuctionCountdown endTime={auction.ends_at} />
+                            <AuctionCountdown endTime={auction.ends_at} onEnd={handleCountdownEnd} />
                         )}
                     </div>
 
@@ -248,6 +282,27 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <BidHistory bids={bids} loading={bidsLoading} />
                 </div>
             </div>
+
+            {/* Congrats Modal Overlay */}
+            {showCongrats && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white max-w-sm w-full p-8 text-center shadow-2xl animate-in zoom-in-95 duration-500 rounded-sm">
+                        <div className="mx-auto w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mb-6">
+                            <CheckCircle2 className="h-8 w-8" />
+                        </div>
+                        <h2 className="text-3xl font-black text-black tracking-tight mb-2">You Won!</h2>
+                        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+                            Congratulations! Your bid was the highest. You now have <span className="font-bold text-black">30 minutes</span> to complete checkout and secure the item.
+                        </p>
+                        <button
+                            onClick={() => router.push(`/checkout/${auction.id}`)}
+                            className="w-full flex justify-center py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 transition-colors uppercase tracking-widest mb-3"
+                        >
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

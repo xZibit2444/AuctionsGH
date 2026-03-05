@@ -94,12 +94,14 @@ export default function Navbar() {
                             <div className="h-8 w-16 bg-gray-100 animate-pulse" />
                         ) : user ? (
                             <>
-                                <Link href="/auctions/create">
-                                    <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
-                                        <Plus className="h-4 w-4" />
-                                        Sell
-                                    </button>
-                                </Link>
+                                {profile?.is_admin && (
+                                    <Link href="/auctions/create">
+                                        <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
+                                            <Plus className="h-4 w-4" />
+                                            Sell
+                                        </button>
+                                    </Link>
+                                )}
 
                                 <NotificationBell />
 

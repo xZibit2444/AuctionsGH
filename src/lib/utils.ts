@@ -64,8 +64,9 @@ export function timeAgo(date: string | Date): string {
  * Generate initials from a name (for avatar fallback).
  */
 export function getInitials(name: string): string {
-    return name
-        .split(' ')
+    const parts = name.split(/[\s_.-]+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return parts
         .map((n) => n[0])
         .join('')
         .toUpperCase()

@@ -34,14 +34,6 @@ export default function LoginPage() {
                     </p>
                     <div className="flex gap-6 pt-2">
                         <div>
-                            <p className="text-2xl font-black text-white">500+</p>
-                            <p className="text-[11px] text-gray-600 uppercase tracking-widest">Active Listings</p>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-black text-white">12K+</p>
-                            <p className="text-[11px] text-gray-600 uppercase tracking-widest">Registered Users</p>
-                        </div>
-                        <div>
                             <p className="text-2xl font-black text-white">Accra</p>
                             <p className="text-[11px] text-gray-600 uppercase tracking-widest">& Kumasi</p>
                         </div>

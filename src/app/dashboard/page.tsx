@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import AuthGuard from '@/components/auth/AuthGuard';
 import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
@@ -11,6 +12,7 @@ import { Settings, Plus } from 'lucide-react';
 type Tab = 'buyer' | 'seller';
 
 export default function DashboardPage() {
+    const { profile } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('buyer');
 
     return (
@@ -30,7 +32,7 @@ export default function DashboardPage() {
                         >
                             <Settings className="h-4 w-4" />
                         </Link>
-                        {activeTab === 'seller' && (
+                        {profile?.is_admin && activeTab === 'seller' && (
                             <Link
                                 href="/auctions/create"
                                 className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-black text-white text-xs sm:text-sm font-semibold hover:bg-gray-900 transition-colors"
@@ -43,26 +45,28 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Tab Switcher */}
-                <div className="flex border-b border-gray-200 mb-6 sm:mb-8">
-                    {([
-                        { id: 'buyer' as Tab, label: 'Buyer' },
-                        { id: 'seller' as Tab, label: 'Seller' },
-                    ]).map(({ id, label }) => (
-                        <button
-                            key={id}
-                            onClick={() => setActiveTab(id)}
-                            className={`px-5 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${activeTab === id
+                {profile?.is_admin && (
+                    <div className="flex border-b border-gray-200 mb-6 sm:mb-8">
+                        {([
+                            { id: 'buyer' as Tab, label: 'Buyer' },
+                            { id: 'seller' as Tab, label: 'Seller' },
+                        ]).map(({ id, label }) => (
+                            <button
+                                key={id}
+                                onClick={() => setActiveTab(id)}
+                                className={`px-5 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${activeTab === id
                                     ? 'border-black text-black'
                                     : 'border-transparent text-gray-400 hover:text-black'
-                                }`}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
+                                    }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {/* Tab Content */}
-                {activeTab === 'buyer' ? (
+                {!profile?.is_admin || activeTab === 'buyer' ? (
                     <BuyerStats />
                 ) : (
                     <div className="space-y-6 sm:space-y-8">

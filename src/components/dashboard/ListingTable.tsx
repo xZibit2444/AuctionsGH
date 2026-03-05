@@ -12,7 +12,7 @@ export default function ListingTable() {
     const { user } = useAuth();
     const { auctions, loading } = useAuctions({
         sellerId: user?.id,
-        status: undefined as unknown as 'active',
+        status: 'all',
         orderBy: 'created_at',
         ascending: false,
         limit: 50,
@@ -86,9 +86,39 @@ export default function ListingTable() {
                                 {auction.bid_count}
                             </td>
                             <td className="py-4 px-5 hidden sm:table-cell text-right">
-                                <Link href={`/auctions/${auction.id}`}>
-                                    <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors ml-auto" />
-                                </Link>
+                                <div className="flex justify-end items-center gap-4">
+                                    {(() => {
+                                        const orderRaw = (auction as any).orders;
+                                        const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+
+                                        const endsAt = auction.ends_at ? new Date(auction.ends_at).getTime() : 0;
+                                        const isExpired = endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
+
+                                        if (order) {
+                                            return (
+                                                <Link
+                                                    href={`/orders/${order.id}`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors px-2 py-1"
+                                                >
+                                                    Manage Order
+                                                </Link>
+                                            );
+                                        }
+
+                                        if (auction.status === 'sold' && isExpired) {
+                                            return (
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-1">
+                                                    VOID
+                                                </span>
+                                            );
+                                        }
+
+                                        return null;
+                                    })()}
+                                    <Link href={`/auctions/${auction.id}`}>
+                                        <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
+                                    </Link>
+                                </div>
                             </td>
                         </tr>
                     ))}

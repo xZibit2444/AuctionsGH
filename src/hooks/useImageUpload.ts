@@ -38,25 +38,31 @@ export function useImageUpload() {
         const fileExt = mimeToExt[file.type] ?? 'jpg';
         const filePath = `${userId}/${auctionId}/${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-            .from(AUCTION_IMAGES_BUCKET)
-            .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: false,
-            });
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from(AUCTION_IMAGES_BUCKET)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false,
+                });
 
-        if (uploadError) {
-            setError(uploadError.message);
-            setUploading(false);
+            if (uploadError) {
+                setError(uploadError.message);
+                return null;
+            }
+
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from(AUCTION_IMAGES_BUCKET).getPublicUrl(filePath);
+
+            return { url: publicUrl, path: filePath };
+        } catch (err) {
+            setError('An unexpected error occurred during image upload.');
+            console.error(err);
             return null;
+        } finally {
+            setUploading(false);
         }
-
-        const {
-            data: { publicUrl },
-        } = supabase.storage.from(AUCTION_IMAGES_BUCKET).getPublicUrl(filePath);
-
-        setUploading(false);
-        return { url: publicUrl, path: filePath };
     };
 
     const deleteImage = async (path: string) => {

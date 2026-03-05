@@ -31,15 +31,23 @@ export default function LoginForm() {
         }
 
         setLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({
-            email: formData.email,
-            password: formData.password,
-        });
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
 
-        if (error) {
-            setServerError(error.message);
+            if (error) {
+                setServerError(error.message);
+                return;
+            }
+
+            router.push('/');
+            router.refresh();
+        } catch (err) {
+            setServerError('An unexpected error occurred. Please try again.');
+        } finally {
             setLoading(false);
-            return;
         }
 
         router.push('/');
