@@ -138,8 +138,14 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     <div className="w-16 h-16 border-4 border-gray-100 rounded-full"></div>
                     <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
                 </div>
-                <h2 className="text-2xl font-black text-black tracking-tight mb-2">Processing Payment...</h2>
-                <p className="text-gray-500 font-medium">Please wait while we secure your escrow funds.</p>
+                <h2 className="text-2xl font-black text-black tracking-tight mb-2">
+                    {form.paymentMethod === 'cod' ? 'Confirming Order...' : 'Processing Payment...'}
+                </h2>
+                <p className="text-gray-500 font-medium">
+                    {form.paymentMethod === 'cod'
+                        ? 'Please wait while we set up your order details.'
+                        : 'Please wait while we secure your escrow funds.'}
+                </p>
                 <div className="mt-8 flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 border border-emerald-100">
                     <ShieldCheck className="w-4 h-4" />
                     Secure Connection

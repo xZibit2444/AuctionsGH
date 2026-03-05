@@ -14,7 +14,7 @@ interface OrderPageProps {
 
 export default function OrderPage({ params }: OrderPageProps) {
     const { id } = use(params);
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [pin, setPin] = useState('');
@@ -23,8 +23,14 @@ export default function OrderPage({ params }: OrderPageProps) {
     const [verifySuccess, setVerifySuccess] = useState(false);
 
     useEffect(() => {
-        const fetchOrder = async () => {
-            if (!user) return;
+        const fetchOrder = async (retryCount = 0) => {
+            if (authLoading) return;
+
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
             const supabase = createClient();
 
             const { data, error } = await supabase
@@ -40,17 +46,25 @@ export default function OrderPage({ params }: OrderPageProps) {
 
             if (!error && data) {
                 setOrder(data);
+                setLoading(false);
+            } else if (retryCount < 2) {
+                // Small delay before retry to handle potential race conditions
+                setTimeout(() => fetchOrder(retryCount + 1), 500);
+            } else {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchOrder();
-    }, [id, user, verifySuccess]);
+    }, [id, user, authLoading, verifySuccess]);
 
-    if (loading) {
+    if (loading || authLoading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Loading Order...</p>
+                </div>
             </div>
         );
     }
