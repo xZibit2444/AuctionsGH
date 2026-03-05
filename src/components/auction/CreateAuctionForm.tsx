@@ -10,12 +10,45 @@ import {
     PHONE_BRANDS,
     CONDITION_LABELS,
     STORAGE_OPTIONS,
-    RAM_OPTIONS,
     AUCTION_DURATIONS,
     MAX_IMAGES_PER_AUCTION,
 } from '@/lib/constants';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import {
+    Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2
+} from 'lucide-react';
+import Link from 'next/link';
+
+const STEPS = ['Phone Details', 'Photos', 'Pricing'];
+
+function FieldLabel({ children, optional }: { children: React.ReactNode; optional?: boolean }) {
+    return (
+        <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">
+            {children}
+            {optional && <span className="font-medium text-gray-400 normal-case ml-1">(optional)</span>}
+        </label>
+    );
+}
+
+function SelectInput({ value, onChange, children }: {
+    value: string | number; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; children: React.ReactNode;
+}) {
+    return (
+        <div className="relative">
+            <select
+                value={value}
+                onChange={onChange}
+                className="w-full border border-gray-200 px-4 py-3 text-sm text-black bg-white focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+            >
+                {children}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+        </div>
+    );
+}
 
 export default function CreateAuctionForm() {
     const router = useRouter();
@@ -30,32 +63,28 @@ export default function CreateAuctionForm() {
         brand: 'Apple',
         model: '',
         storage_gb: undefined,
-        ram_gb: undefined,
         condition: 'good',
         starting_price: 0,
-        min_increment: 5,
+        min_increment: 50,
         duration_hours: 72,
     });
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
+    const [dragOver, setDragOver] = useState(false);
+    const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const update = (field: keyof CreateAuctionInput, value: unknown) => {
+    const update = (field: keyof CreateAuctionInput, value: unknown) =>
         setFormData({ ...formData, [field]: value });
-    };
 
-    const handleImageAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files ?? []);
+    const handleImageAdd = (files: FileList | File[]) => {
+        const arr = Array.from(files);
         const remaining = MAX_IMAGES_PER_AUCTION - images.length;
-        const toAdd = files.slice(0, remaining);
-
+        const toAdd = arr.slice(0, remaining);
         setImages([...images, ...toAdd]);
-        setPreviews([
-            ...previews,
-            ...toAdd.map((f) => URL.createObjectURL(f)),
-        ]);
+        setPreviews([...previews, ...toAdd.map((f) => URL.createObjectURL(f))]);
     };
 
     const removeImage = (index: number) => {
@@ -67,25 +96,40 @@ export default function CreateAuctionForm() {
     const handleSubmit = async () => {
         setErrors({});
         const result = createAuctionSchema.safeParse(formData);
+
+        // Zod Validation Check
         if (!result.success) {
             const fieldErrors: Record<string, string> = {};
             result.error.issues.forEach((issue) => {
                 fieldErrors[issue.path[0] as string] = issue.message;
             });
+            console.error("DEBUG: Zod Validation failed blocking submission ->", fieldErrors);
             setErrors(fieldErrors);
+
+            // If validation fails on step 3 but the error is on step 1/2, jump back to it
+            if (fieldErrors.title || fieldErrors.model || fieldErrors.storage_gb) setStep(1);
+            else if (fieldErrors.images) setStep(2);
+
             return;
         }
 
-        if (!user) return;
+        if (!user) {
+            setErrors({ submit: 'You must be logged in to post an auction.' });
+            return;
+        }
+
+        if (images.length === 0) {
+            setErrors({ submit: 'Please add at least one photo of the phone.' });
+            setStep(2);
+            return;
+        }
+
         setSubmitting(true);
 
-        const endsAt = new Date(
-            Date.now() + formData.duration_hours * 60 * 60 * 1000
-        ).toISOString();
+        const endsAt = new Date(Date.now() + formData.duration_hours * 60 * 60 * 1000).toISOString();
 
-        // Create auction
-        const { data: auction, error: auctionError } = await supabase
-            .from('auctions')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: auction, error: auctionError } = await (supabase.from('auctions') as any)
             .insert({
                 seller_id: user.id,
                 title: formData.title,
@@ -93,146 +137,161 @@ export default function CreateAuctionForm() {
                 brand: formData.brand,
                 model: formData.model,
                 storage_gb: formData.storage_gb || null,
-                ram_gb: formData.ram_gb || null,
                 condition: formData.condition,
                 starting_price: formData.starting_price,
                 current_price: formData.starting_price,
                 min_increment: formData.min_increment,
                 ends_at: endsAt,
-            } as any)
+            })
             .select()
             .single();
 
         if (auctionError || !auction) {
+            console.error("DEBUG: Supabase Insert Error ->", auctionError);
             setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
             setSubmitting(false);
             return;
         }
 
-        // Upload images
         for (let i = 0; i < images.length; i++) {
-            const result = await uploadImage(images[i], user.id, (auction as any).id);
-            if (result) {
-                await supabase.from('auction_images').insert({
-                    auction_id: (auction as any).id,
-                    url: result.url,
+            const res = await uploadImage(images[i], user.id, (auction as { id: string }).id);
+            if (res) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (supabase.from('auction_images') as any).insert({
+                    auction_id: (auction as { id: string }).id,
+                    url: res.url,
                     position: i,
-                } as any);
+                });
             }
         }
 
         setSubmitting(false);
-        router.push(`/auctions/${(auction as any).id}`);
+        setPublishedAuctionId((auction as { id: string }).id);
+
+        // Refresh router data immediately so homepage cache updates before user clicks "View Listing" or "Home"
+        router.refresh();
     };
+
+    if (publishedAuctionId) {
+        return (
+            <div className="max-w-md mx-auto text-center py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <h2 className="text-3xl font-black text-black tracking-tight mb-2">Auction Published!</h2>
+                <p className="text-gray-500 mb-8">Your {formData.brand} {formData.model} is now live and accepting bids.</p>
+
+                <div className="space-y-3">
+                    <Link
+                        href={`/auctions/${publishedAuctionId}`}
+                        className="w-full flex items-center justify-center gap-2 bg-black text-white py-3.5 text-sm font-bold hover:bg-gray-900 transition-colors"
+                    >
+                        View Live Listing <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <Link
+                        href="/"
+                        className="w-full flex items-center justify-center border border-gray-200 py-3 text-sm font-bold text-black hover:border-black transition-colors"
+                    >
+                        Back to Home
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-2xl mx-auto">
             {/* Step indicator */}
-            <div className="flex items-center gap-2 mb-8">
-                {['Phone Details', 'Images', 'Pricing'].map((label, i) => (
-                    <div key={label} className="flex items-center gap-2 flex-1">
-                        <div
-                            className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${step > i + 1
-                                ? 'bg-emerald-600 text-white'
-                                : step === i + 1
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                    : 'bg-gray-100 text-gray-400 dark:bg-gray-800'
-                                }`}
-                        >
-                            {step > i + 1 ? '✓' : i + 1}
+            <div className="flex items-center mb-10">
+                {STEPS.map((label, i) => (
+                    <div key={label} className="flex items-center flex-1 last:flex-none">
+                        <div className="flex items-center gap-2.5">
+                            <div className={`h-8 w-8 flex items-center justify-center text-xs font-black shrink-0 transition-colors duration-300 ${step > i + 1
+                                    ? 'bg-black text-white'
+                                    : step === i + 1
+                                        ? 'bg-black text-white ring-4 ring-black/10'
+                                        : 'bg-gray-100 text-gray-400'
+                                }`}>
+                                {step > i + 1 ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                            </div>
+                            <span className={`text-xs font-semibold hidden sm:block transition-colors duration-200 ${step === i + 1 ? 'text-black' : 'text-gray-400'
+                                }`}>{label}</span>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                            {label}
-                        </span>
-                        {i < 2 && (
-                            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                        {i < STEPS.length - 1 && (
+                            <div className={`flex-1 h-px mx-3 transition-colors duration-500 ${step > i + 1 ? 'bg-black' : 'bg-gray-200'}`} />
                         )}
                     </div>
                 ))}
             </div>
 
             {errors.submit && (
-                <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 text-sm">
+                <div className="flex items-center gap-2 mb-5 border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
                     {errors.submit}
                 </div>
             )}
 
-            {/* Step 1: Phone Details */}
+            {/* ── Step 1: Phone Details ── */}
             {step === 1 && (
-                <div className="space-y-4">
-                    <Input
-                        id="title"
-                        label="Listing Title"
-                        placeholder="iPhone 14 Pro Max 256GB Deep Purple"
-                        value={formData.title}
-                        onChange={(e) => update('title', e.target.value)}
-                        error={errors.title}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
-                            <select
-                                value={formData.brand}
-                                onChange={(e) => update('brand', e.target.value)}
-                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-colors"
-                            >
-                                {PHONE_BRANDS.map((brand) => (
-                                    <option key={brand} value={brand}>{brand}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <Input
-                            id="model"
-                            label="Model"
-                            placeholder="14 Pro Max"
-                            value={formData.model}
-                            onChange={(e) => update('model', e.target.value)}
-                            error={errors.model}
+                <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                    {/* Title */}
+                    <div>
+                        <FieldLabel>Listing Title</FieldLabel>
+                        <input
+                            value={formData.title}
+                            onChange={(e) => update('title', e.target.value)}
+                            placeholder="iPhone 14 Pro Max 256GB Deep Purple"
+                            className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
                         />
+                        {errors.title && <p className="text-[11px] text-red-500 mt-1">{errors.title}</p>}
                     </div>
 
+                    {/* Brand + Model */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Storage</label>
-                            <select
-                                value={formData.storage_gb ?? ''}
-                                onChange={(e) => update('storage_gb', e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-colors"
-                            >
-                                <option value="">Select</option>
-                                {STORAGE_OPTIONS.map((gb) => (
-                                    <option key={gb} value={gb}>{gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`}</option>
-                                ))}
-                            </select>
+                        <div>
+                            <FieldLabel>Brand</FieldLabel>
+                            <SelectInput value={formData.brand} onChange={(e) => update('brand', e.target.value)}>
+                                {PHONE_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+                            </SelectInput>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">RAM</label>
-                            <select
-                                value={formData.ram_gb ?? ''}
-                                onChange={(e) => update('ram_gb', e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-colors"
-                            >
-                                <option value="">Select</option>
-                                {RAM_OPTIONS.map((gb) => (
-                                    <option key={gb} value={gb}>{gb} GB</option>
-                                ))}
-                            </select>
+                        <div>
+                            <FieldLabel>Model</FieldLabel>
+                            <input
+                                value={formData.model}
+                                onChange={(e) => update('model', e.target.value)}
+                                placeholder="14 Pro Max"
+                                className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.model ? 'border-red-400' : 'border-gray-200'}`}
+                            />
+                            {errors.model && <p className="text-[11px] text-red-500 mt-1">{errors.model}</p>}
                         </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Condition</label>
+                    {/* Storage */}
+                    <div>
+                        <FieldLabel optional>Storage</FieldLabel>
+                        <SelectInput
+                            value={formData.storage_gb ?? ''}
+                            onChange={(e) => update('storage_gb', e.target.value ? Number(e.target.value) : undefined)}
+                        >
+                            <option value="">Select storage</option>
+                            {STORAGE_OPTIONS.map((gb) => (
+                                <option key={gb} value={gb}>{gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`}</option>
+                            ))}
+                        </SelectInput>
+                    </div>
+
+                    {/* Condition */}
+                    <div>
+                        <FieldLabel>Condition</FieldLabel>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {Object.entries(CONDITION_LABELS).map(([key, label]) => (
                                 <button
                                     key={key}
                                     type="button"
                                     onClick={() => update('condition', key)}
-                                    className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${formData.condition === key
-                                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.condition === key
+                                            ? 'border-black bg-black text-white'
+                                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                         }`}
                                 >
                                     {label}
@@ -241,37 +300,50 @@ export default function CreateAuctionForm() {
                         </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description (optional)</label>
+                    {/* Description */}
+                    <div>
+                        <FieldLabel optional>Description</FieldLabel>
                         <textarea
-                            rows={4}
+                            rows={3}
                             value={formData.description ?? ''}
                             onChange={(e) => update('description', e.target.value)}
                             placeholder="Describe the phone's condition, accessories included, reason for selling..."
-                            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-colors resize-none"
+                            className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none"
                         />
                     </div>
 
-                    <Button onClick={() => setStep(2)} className="w-full">
-                        Next: Add Photos →
-                    </Button>
+                    <button
+                        onClick={() => setStep(2)}
+                        className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors"
+                    >
+                        Next: Add Photos <ArrowRight className="h-4 w-4" />
+                    </button>
                 </div>
             )}
 
-            {/* Step 2: Images */}
+            {/* ── Step 2: Images ── */}
             {step === 2 && (
-                <div className="space-y-4">
+                <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                    {/* Drop zone */}
                     <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center cursor-pointer hover:border-emerald-500 transition-colors"
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleImageAdd(e.dataTransfer.files); }}
+                        className={`border-2 border-dashed p-10 text-center cursor-pointer transition-all duration-200 ${dragOver
+                                ? 'border-black bg-gray-50 scale-[1.01]'
+                                : 'border-gray-300 hover:border-black hover:bg-gray-50/50'
+                            }`}
                     >
-                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Tap to add photos ({images.length}/{MAX_IMAGES_PER_AUCTION})
+                        <div className="w-12 h-12 border border-gray-200 flex items-center justify-center mx-auto mb-3">
+                            <ImagePlus className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
+                        </div>
+                        <p className="text-sm font-semibold text-black">
+                            {dragOver ? 'Drop to upload' : 'Click or drag photos here'}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, or WebP · Max 5 MB each</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {images.length}/{MAX_IMAGES_PER_AUCTION} photos · JPG, PNG or WebP · Max 5 MB each
+                        </p>
                     </div>
 
                     <input
@@ -280,81 +352,110 @@ export default function CreateAuctionForm() {
                         accept="image/jpeg,image/png,image/webp"
                         multiple
                         className="hidden"
-                        onChange={handleImageAdd}
+                        onChange={(e) => handleImageAdd(e.target.files!)}
                     />
 
                     {previews.length > 0 && (
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 gap-2">
                             {previews.map((src, i) => (
-                                <div key={i} className="relative group aspect-square rounded-xl overflow-hidden">
-                                    <img src={src} alt="" className="w-full h-full object-cover" />
+                                <div key={i} className="relative group aspect-square overflow-hidden bg-gray-100">
+                                    <img
+                                        src={src}
+                                        alt=""
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    />
                                     <button
                                         onClick={() => removeImage(i)}
-                                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-2 right-2 h-6 w-6 bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     >
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        <X className="h-3.5 w-3.5" />
                                     </button>
                                     {i === 0 && (
-                                        <span className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-lg">
+                                        <span className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
                                             Cover
                                         </span>
                                     )}
                                 </div>
                             ))}
+                            {images.length < MAX_IMAGES_PER_AUCTION && (
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="aspect-square border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-300 hover:border-black hover:text-black transition-colors duration-200"
+                                >
+                                    <Upload className="h-5 w-5" strokeWidth={1.5} />
+                                </button>
+                            )}
                         </div>
                     )}
 
                     <div className="flex gap-3">
-                        <Button variant="secondary" onClick={() => setStep(1)} className="flex-1">
-                            ← Back
-                        </Button>
-                        <Button onClick={() => setStep(3)} className="flex-1">
-                            Next: Set Price →
-                        </Button>
+                        <button
+                            onClick={() => setStep(1)}
+                            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 py-3 text-sm font-semibold text-black hover:border-black transition-colors"
+                        >
+                            <ArrowLeft className="h-4 w-4" /> Back
+                        </button>
+                        <button
+                            onClick={() => setStep(3)}
+                            className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors"
+                        >
+                            Next: Set Price <ArrowRight className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Step 3: Pricing */}
+            {/* ── Step 3: Pricing ── */}
             {step === 3 && (
-                <div className="space-y-4">
-                    <Input
-                        id="starting_price"
-                        type="number"
-                        label="Starting Price"
-                        prefix="₵"
-                        placeholder="100.00"
-                        value={formData.starting_price || ''}
-                        onChange={(e) => update('starting_price', e.target.value)}
-                        error={errors.starting_price}
-                    />
+                <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                    {/* Starting price */}
+                    <div>
+                        <FieldLabel>Starting Price</FieldLabel>
+                        <div className={`flex border focus-within:border-black transition-colors ${errors.starting_price ? 'border-red-400' : 'border-gray-200'}`}>
+                            <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 shrink-0">
+                                <span className="text-sm font-semibold text-gray-500">GHS</span>
+                            </div>
+                            <input
+                                type="number"
+                                value={formData.starting_price || ''}
+                                onChange={(e) => update('starting_price', Number(e.target.value))}
+                                placeholder="100.00"
+                                className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                            />
+                        </div>
+                        {errors.starting_price && <p className="text-[11px] text-red-500 mt-1">{errors.starting_price}</p>}
+                    </div>
 
-                    <Input
-                        id="min_increment"
-                        type="number"
-                        label="Minimum Bid Increment"
-                        prefix="₵"
-                        placeholder="5.00"
-                        value={formData.min_increment || ''}
-                        onChange={(e) => update('min_increment', e.target.value)}
-                        error={errors.min_increment}
-                    />
+                    {/* Min increment */}
+                    <div>
+                        <FieldLabel>Minimum Bid Increment</FieldLabel>
+                        <div className={`flex border focus-within:border-black transition-colors ${errors.min_increment ? 'border-red-400' : 'border-gray-200'}`}>
+                            <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 shrink-0">
+                                <span className="text-sm font-semibold text-gray-500">GHS</span>
+                            </div>
+                            <input
+                                type="number"
+                                value={formData.min_increment || ''}
+                                onChange={(e) => update('min_increment', Number(e.target.value))}
+                                placeholder="50.00"
+                                className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                            />
+                        </div>
+                        {errors.min_increment && <p className="text-[11px] text-red-500 mt-1">{errors.min_increment}</p>}
+                    </div>
 
-                    <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Auction Duration
-                        </label>
+                    {/* Duration */}
+                    <div>
+                        <FieldLabel>Auction Duration</FieldLabel>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {AUCTION_DURATIONS.map(({ label, hours }) => (
                                 <button
                                     key={hours}
                                     type="button"
                                     onClick={() => update('duration_hours', hours)}
-                                    className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${formData.duration_hours === hours
-                                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.duration_hours === hours
+                                            ? 'border-black bg-black text-white'
+                                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                         }`}
                                 >
                                     {label}
@@ -363,17 +464,44 @@ export default function CreateAuctionForm() {
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
-                        <Button variant="secondary" onClick={() => setStep(2)} className="flex-1">
-                            ← Back
-                        </Button>
-                        <Button
-                            onClick={handleSubmit}
-                            isLoading={submitting || uploading}
-                            className="flex-1"
+                    {/* Summary box */}
+                    <div className="border border-gray-200 p-4 space-y-2 bg-gray-50">
+                        <p className="text-[11px] font-black text-black uppercase tracking-widest mb-3">Listing Summary</p>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Phone</span>
+                            <span className="font-semibold text-black">{formData.brand} {formData.model || '—'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Condition</span>
+                            <span className="font-semibold text-black">{CONDITION_LABELS[formData.condition] ?? formData.condition}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Starting at</span>
+                            <span className="font-semibold text-black">GHS {formData.starting_price || '0'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Photos</span>
+                            <span className="font-semibold text-black">{images.length}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setStep(2)}
+                            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 py-3 text-sm font-semibold text-black hover:border-black transition-colors"
                         >
-                            🚀 Publish Auction
-                        </Button>
+                            <ArrowLeft className="h-4 w-4" /> Back
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={submitting || uploading}
+                            className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors disabled:opacity-60"
+                        >
+                            {submitting || uploading
+                                ? 'Publishing…'
+                                : <><span>Publish Auction</span><ArrowRight className="h-4 w-4" /></>
+                            }
+                        </button>
                     </div>
                 </div>
             )}

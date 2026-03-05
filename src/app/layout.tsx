@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/layout/Navbar';
-import MobileNav from '@/components/layout/MobileNav';
+import ConditionalNav from '@/components/layout/ConditionalNav';
 import Footer from '@/components/layout/Footer';
 import Providers from '@/components/layout/Providers';
 
@@ -24,12 +23,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
         <Providers>
-          <Navbar />
+          <ConditionalNav />
           <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
           <div className="hidden sm:block">
             <Footer />
           </div>
-          <MobileNav />
         </Providers>
       </body>
     </html>

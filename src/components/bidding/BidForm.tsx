@@ -91,13 +91,13 @@ export default function BidForm({
             </p>
 
             {error && (
-                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+                <div className="p-3 border border-red-200 bg-white text-red-600 font-medium text-sm">
                     {error}
                 </div>
             )}
 
             {success && (
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm">
+                <div className="p-3 border border-black bg-black text-white font-medium text-sm">
                     ✓ Bid placed successfully!
                 </div>
             )}

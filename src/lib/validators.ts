@@ -45,8 +45,8 @@ export const createAuctionSchema = z.object({
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
     brand: z.enum(PHONE_BRANDS as unknown as [string, ...string[]]),
     model: z.string().min(1, 'Please enter the phone model'),
-    storage_gb: z.coerce.number().positive().optional(),
-    ram_gb: z.coerce.number().positive().optional(),
+    storage_gb: z.coerce.number().positive().optional().or(z.literal(0)),
+    
     condition: z.enum(['new', 'like_new', 'good', 'fair', 'poor']),
     starting_price: z.coerce
         .number()

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
+import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
     const { user, profile, loading, signOut } = useAuth();
@@ -100,10 +101,7 @@ export default function Navbar() {
                                     </button>
                                 </Link>
 
-                                <button className="relative p-2 text-gray-400 hover:text-black transition-colors">
-                                    <Bell className="h-5 w-5" />
-                                    <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-black rounded-full" />
-                                </button>
+                                <NotificationBell />
 
                                 {/* Profile Dropdown */}
                                 <div className="relative" ref={dropdownRef}>
@@ -122,8 +120,11 @@ export default function Navbar() {
                                     {dropdownOpen && (
                                         <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 shadow-lg z-50">
                                             <div className="px-4 py-3 border-b border-gray-100">
-                                                <p className="text-xs font-black text-black truncate">
-                                                    {profile?.full_name || profile?.username || 'My Account'}
+                                                <p className="text-sm font-black text-black truncate">
+                                                    {profile?.full_name ||
+                                                        profile?.username ||
+                                                        (user.user_metadata?.full_name as string | undefined) ||
+                                                        user.email?.split('@')[0]}
                                                 </p>
                                                 <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
                                             </div>

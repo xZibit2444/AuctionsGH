@@ -48,11 +48,31 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to place bid. Please try again.' }, { status: 500 });
     }
 
-    const result = data as { success?: boolean; error?: string; bid_id?: string; new_price?: number };
+    const result = data as {
+        success?: boolean;
+        error?: string;
+        bid_id?: string;
+        new_price?: number;
+        outbid_user?: { user_id: string; email: string; name: string; auction_title: string }
+    };
 
     if (result.error) {
         // Business-rule rejection (e.g. bid too low, auction ended)
         return NextResponse.json({ error: result.error }, { status: 422 });
+    }
+
+    // Fire off the "Outbid" email notification in the background
+    if (result.outbid_user && result.outbid_user.email) {
+        // Dynamic import to avoid edge runtime issues if needed, but since it's standard Next API it's fine.
+        import('@/lib/email/sender').then(({ sendOutbidEmail }) => {
+            sendOutbidEmail(
+                result.outbid_user!.email,
+                result.outbid_user!.name,
+                result.outbid_user!.auction_title,
+                amount,
+                auction_id
+            ).catch(err => console.error("Failed to send outbid email async", err));
+        });
     }
 
     return NextResponse.json(

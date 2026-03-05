@@ -3,24 +3,32 @@
 import { useState } from 'react';
 import { useAuctions } from '@/hooks/useAuctions';
 import AuctionGrid from '@/components/auction/AuctionGrid';
-import { PHONE_BRANDS } from '@/lib/constants';
+import AuctionFilters from '@/components/auction/AuctionFilters';
 import { Flame } from 'lucide-react';
 
-const ALL = 'All';
-
 export default function HomePage() {
-  const [activeBrand, setActiveBrand] = useState<string>(ALL);
-  const { auctions, loading } = useAuctions({ status: 'active', orderBy: 'ends_at' });
+  const [search, setSearch] = useState('');
+  const [brand, setBrand] = useState('All');
+  const [condition, setCondition] = useState('All');
+  const [minStorage, setMinStorage] = useState(0);
+  const [sortBy, setSortBy] = useState<'current_price' | 'ends_at' | 'created_at'>('ends_at');
+  const [ascending, setAscending] = useState(true);
 
-  const brands = [ALL, ...PHONE_BRANDS.slice(0, 8)];
-
-  const filtered =
-    activeBrand === ALL ? auctions : auctions.filter((a) => a.brand === activeBrand);
+  // The hook now handles all the backend querying and sorting
+  const { auctions, loading } = useAuctions({
+    status: 'active',
+    search,
+    brand,
+    condition,
+    minStorage,
+    orderBy: sortBy,
+    ascending,
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       {/* Hero */}
-      <section className="mb-10 sm:mb-14">
+      <section className="mb-8">
         <h1 className="text-4xl sm:text-5xl font-black text-black tracking-tighter mb-2">
           Find Your Next Phone.
         </h1>
@@ -29,24 +37,21 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* Brand Filters */}
-      <section className="mb-10 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide select-none">
-        <div className="flex gap-2 pb-2">
-          {brands.map((brand) => (
-            <button
-              key={brand}
-              onClick={() => setActiveBrand(brand)}
-              className={
-                activeBrand === brand
-                  ? 'shrink-0 px-4 py-1.5 bg-black text-white text-sm font-semibold transition-colors'
-                  : 'shrink-0 px-4 py-1.5 bg-white border border-gray-200 text-gray-600 text-sm font-medium hover:border-black hover:text-black transition-colors'
-              }
-            >
-              {brand}
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* Advanced Filters */}
+      <AuctionFilters
+        search={search}
+        setSearch={setSearch}
+        brand={brand}
+        setBrand={setBrand}
+        condition={condition}
+        setCondition={setCondition}
+        minStorage={minStorage}
+        setMinStorage={setMinStorage}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        ascending={ascending}
+        setAscending={setAscending}
+      />
 
       {/* Live Auctions */}
       <section>
@@ -56,10 +61,10 @@ export default function HomePage() {
             Live Auctions
           </h2>
           <span className="text-sm font-mono font-semibold text-gray-500">
-            {filtered.length} active
+            {auctions.length} active
           </span>
         </div>
-        <AuctionGrid auctions={filtered} loading={loading} />
+        <AuctionGrid auctions={auctions} loading={loading} />
       </section>
     </div>
   );

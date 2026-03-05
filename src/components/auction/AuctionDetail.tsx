@@ -5,7 +5,8 @@ import { useAuction } from '@/hooks/useAuction';
 import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
-import { formatCurrency } from '@/lib/utils';
+import { useSavedAuctions } from '@/hooks/useSavedAuctions';
+import { formatCurrency, formatDisplayName } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -13,6 +14,7 @@ import BidForm from '@/components/bidding/BidForm';
 import BidHistory from '@/components/bidding/BidHistory';
 import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
+import { Heart } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import type { AuctionStatus } from '@/types/database';
 
@@ -24,7 +26,19 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const { auction, loading, setAuction } = useAuction(auctionId);
     const { bids, setBids, loading: bidsLoading } = useBids(auctionId);
     const { user } = useAuth();
+    const { savedIds, toggleSave } = useSavedAuctions();
     const [selectedImage, setSelectedImage] = useState(0);
+    const [savePending, setSavePending] = useState(false);
+
+    const isSaved = savedIds.has(auctionId);
+
+    const handleSave = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (savePending) return;
+        setSavePending(true);
+        await toggleSave(auctionId);
+        setSavePending(false);
+    };
 
     const handleNewBid = useCallback(
         (bid: BidWithBidder) => {
@@ -81,7 +95,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {/* Left — Images */}
                 <div className="space-y-4">
-                    <div className="aspect-square rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div className="aspect-square bg-gray-50 border border-gray-200">
                         {images.length > 0 ? (
                             <img
                                 src={images[selectedImage]?.url}
@@ -99,14 +113,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                     {/* Thumbnail strip */}
                     {images.length > 1 && (
-                        <div className="flex gap-2 overflow-x-auto pb-1">
+                        <div className="flex gap-2 overflow-x-auto pb-1 mt-4">
                             {images.map((img, i) => (
                                 <button
                                     key={img.id}
                                     onClick={() => setSelectedImage(i)}
-                                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${i === selectedImage
-                                        ? 'border-emerald-600'
-                                        : 'border-transparent hover:border-gray-300'
+                                    className={`flex-shrink-0 w-16 h-16 border-2 transition-colors ${i === selectedImage
+                                        ? 'border-black'
+                                        : 'border-transparent opacity-60 hover:opacity-100'
                                         }`}
                                 >
                                     <img
@@ -123,8 +137,26 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                 {/* Right — Details */}
                 <div className="space-y-5">
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center justify-between mb-2">
                             <AuctionStatusBadge status={auction.status} />
+
+                            {/* Save Button */}
+                            <button
+                                onClick={handleSave}
+                                className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${isSaved
+                                        ? 'border-black text-black bg-gray-50'
+                                        : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                                    } ${savePending ? 'opacity-50' : ''}`}
+                            >
+                                <Heart
+                                    className="h-4 w-4"
+                                    fill={isSaved ? 'currentColor' : 'none'}
+                                    strokeWidth={2}
+                                />
+                                <span className="text-xs font-bold uppercase tracking-wider">
+                                    {isSaved ? 'Saved' : 'Save'}
+                                </span>
+                            </button>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {auction.title}
@@ -134,13 +166,12 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     {/* Seller */}
                     <div className="flex items-center gap-3">
                         <Avatar
-                            src={auction.profiles?.avatar_url}
-                            name={auction.profiles?.username ?? 'Seller'}
+                            name={formatDisplayName(auction.profiles?.username ?? 'Seller')}
                             size="sm"
                         />
                         <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {auction.profiles?.username}
+                                {formatDisplayName(auction.profiles?.username)}
                                 {auction.profiles?.is_verified && (
                                     <span className="ml-1 text-emerald-600">✓</span>
                                 )}
@@ -158,24 +189,24 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
                             { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },
                         ].map(({ label, value }) => (
-                            <div key={label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm rounded-2xl px-4 py-3">
+                            <div key={label} className="bg-white border border-gray-200 px-4 py-3">
                                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">{label}</p>
-                                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{value}</p>
+                                <p className="text-sm font-bold text-black">{value}</p>
                             </div>
                         ))}
                     </div>
 
                     {/* Price + Countdown */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-900/20 dark:to-teal-900/10 rounded-3xl p-6 shadow-sm border border-emerald-100/50 dark:border-emerald-800/30 space-y-4">
+                    <div className="border border-gray-200 p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-semibold text-emerald-800/60 dark:text-emerald-400/80 uppercase tracking-wider mb-1">Current Bid</p>
-                                <p className="text-4xl font-extrabold text-emerald-700 dark:text-emerald-400 tracking-tight">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current Bid</p>
+                                <p className="text-4xl font-extrabold text-black tracking-tight">
                                     {formatCurrency(auction.current_price)}
                                 </p>
                             </div>
                             <div className="text-right">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                <p className="text-xs font-medium text-black bg-gray-100 px-2 py-1 inline-block mb-1 border border-gray-200">
                                     {auction.bid_count} bid{auction.bid_count !== 1 ? 's' : ''}
                                 </p>
                             </div>
@@ -203,11 +234,11 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                     {/* Description */}
                     {auction.description && (
-                        <div className="bg-gray-50/50 dark:bg-gray-900/50 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 mt-2">
-                            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2 uppercase tracking-wide">
+                        <div className="bg-gray-50 p-5 mt-2 border border-gray-200">
+                            <h2 className="text-sm font-bold text-black mb-2 uppercase tracking-wide">
                                 Description
                             </h2>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">
+                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                                 {auction.description}
                             </p>
                         </div>

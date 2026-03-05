@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthGuard from '@/components/auth/AuthGuard';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import {
     User, Bell, Shield, LogOut, Check, Eye, EyeOff,
-    AlertTriangle, BadgeCheck
+    AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin
 } from 'lucide-react';
 
 type Tab = 'profile' | 'notifications' | 'security';
@@ -17,57 +18,6 @@ const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'security', label: 'Security', icon: Shield },
 ];
 
-/* ─── Shared field components ─── */
-function Field({
-    label,
-    hint,
-    children,
-}: {
-    label: string;
-    hint?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div>
-            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">
-                {label}
-            </label>
-            {children}
-            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
-        </div>
-    );
-}
-
-function TextInput({
-    value,
-    onChange,
-    placeholder,
-    type = 'text',
-    disabled,
-    error,
-}: {
-    value: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-    type?: string;
-    disabled?: boolean;
-    error?: string;
-}) {
-    return (
-        <>
-            <input
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                disabled={disabled}
-                className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black focus:ring-2 focus:ring-black transition-colors disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed ${error ? 'border-red-400' : 'border-gray-200'}`}
-            />
-            {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
-        </>
-    );
-}
-
 /* ─── Toggle ─── */
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
     return (
@@ -77,28 +27,193 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
             className={`relative h-5 w-9 shrink-0 transition-colors ${on ? 'bg-black' : 'bg-gray-200'}`}
             aria-pressed={on}
         >
-            <span
-                className={`absolute top-0.5 h-4 w-4 bg-white block transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`}
-            />
+            <span className={`absolute top-0.5 h-4 w-4 bg-white block transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`} />
         </button>
     );
 }
 
-/* ═══════════════════════════════════════════════════════ */
+/* ─── Read-only field row ─── */
+function InfoRow({ label, value, placeholder }: { label: string; value: string; placeholder?: string }) {
+    return (
+        <div className="flex items-start justify-between py-3.5 border-b border-gray-100 last:border-0 gap-4">
+            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest shrink-0 pt-0.5 w-28">{label}</span>
+            <span className={`text-sm font-semibold text-right flex-1 truncate ${value ? 'text-black' : 'text-gray-300'}`}>
+                {value || placeholder || '—'}
+            </span>
+        </div>
+    );
+}
 
+/* ─── Edit field ─── */
+function EditField({
+    label, value, onChange, placeholder, type = 'text', hint
+}: {
+    label: string; value: string; onChange: (v: string) => void;
+    placeholder?: string; type?: string; hint?: string;
+}) {
+    return (
+        <div>
+            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">{label}</label>
+            <input
+                type={type}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
+            />
+            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+        </div>
+    );
+}
+
+/* ─── Select field — custom dropdown ─── */
+const CITIES = ['Accra', 'Kumasi'];
+
+function SelectField({
+    label, value, onChange, hint
+}: {
+    label: string; value: string; onChange: (v: string) => void; hint?: string;
+}) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    return (
+        <div>
+            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">{label}</label>
+            <div className="relative" ref={ref}>
+                <button
+                    type="button"
+                    onClick={() => setOpen(o => !o)}
+                    className={`w-full border px-4 py-3 text-sm text-left flex items-center justify-between transition-colors ${open ? 'border-black' : 'border-gray-200 hover:border-gray-400'
+                        } bg-white`}
+                >
+                    <div className="flex items-center gap-2">
+                        {value ? (
+                            <><MapPin className="h-4 w-4 text-gray-400" /><span className="font-semibold text-black">{value}</span></>
+                        ) : (
+                            <span className="text-gray-400">Select city</span>
+                        )}
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                </button>
+
+                {open && (
+                    <div className="absolute left-0 right-0 top-full z-50 bg-white border border-black shadow-sm mt-[-1px]">
+                        {CITIES.map((city) => (
+                            <button
+                                key={city}
+                                type="button"
+                                onClick={() => { onChange(city); setOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-gray-50 ${value === city ? 'font-black text-black bg-gray-50' : 'font-medium text-gray-700'
+                                    }`}
+                            >
+                                <MapPin className={`h-4 w-4 shrink-0 ${value === city ? 'text-black' : 'text-gray-300'}`} />
+                                <div>
+                                    <p className="leading-none">{city}</p>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">
+                                        {city === 'Accra' ? 'Greater Accra Region' : 'Ashanti Region'}
+                                    </p>
+                                </div>
+                                {value === city && <Check className="h-3.5 w-3.5 ml-auto shrink-0" />}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+        </div>
+    );
+}
+
+/* ─── Phone field with +233 prefix ─── */
+function PhoneField({
+    value, onChange, hint
+}: { value: string; onChange: (v: string) => void; hint?: string }) {
+    // Strip +233 prefix if stored with it, work with the local part
+    const local = value.startsWith('+233') ? value.slice(4).trimStart() : value;
+
+    const handleChange = (raw: string) => {
+        // Only allow digits and spaces
+        const cleaned = raw.replace(/[^0-9 ]/g, '');
+        onChange(cleaned ? `+233 ${cleaned}` : '');
+    };
+
+    return (
+        <div>
+            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Phone Number</label>
+            <div className="flex border border-gray-200 focus-within:border-black transition-colors">
+                <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-50 border-r border-gray-200 shrink-0">
+                    <span className="text-sm font-bold text-black">GH</span>
+                    <span className="text-sm font-semibold text-black">+233</span>
+                </div>
+                <input
+                    type="tel"
+                    value={local}
+                    onChange={(e) => handleChange(e.target.value)}
+                    placeholder="XX XXX XXXX"
+                    maxLength={12}
+                    className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                />
+            </div>
+            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+        </div>
+    );
+}
+
+/* ═══════════════════════════════════════════════════════ */
 export default function SettingsPage() {
     const { user, profile, signOut } = useAuth();
+    const router = useRouter();
+
+    const handleSignOut = async () => {
+        await signOut();
+        router.push('/');
+    };
+
     const [activeTab, setActiveTab] = useState<Tab>('profile');
 
     /* ── Profile ── */
+    const [editing, setEditing] = useState(false);
     const [profileForm, setProfileForm] = useState({
-        full_name: profile?.full_name ?? '',
-        username: profile?.username ?? '',
-        phone_number: profile?.phone_number ?? '',
-        location: profile?.location ?? '',
+        full_name: '',
+        username: '',
+        phone_number: '',
+        location: '',
     });
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState('');
+
+    // Sync form when profile loads
+    useEffect(() => {
+        if (profile) {
+            setProfileForm({
+                full_name: profile.full_name ?? '',
+                username: profile.username ?? '',
+                phone_number: profile.phone_number ?? '',
+                location: profile.location ?? '',
+            });
+        }
+    }, [profile]);
+
+    const handleEditCancel = () => {
+        // Reset to original
+        setProfileForm({
+            full_name: profile?.full_name ?? '',
+            username: profile?.username ?? '',
+            phone_number: profile?.phone_number ?? '',
+            location: profile?.location ?? '',
+        });
+        setProfileError('');
+        setEditing(false);
+    };
 
     const handleProfileSave = async () => {
         if (!user) return;
@@ -115,9 +230,10 @@ export default function SettingsPage() {
                 })
                 .eq('id', user.id);
             setProfileSaved(true);
+            setEditing(false);
             setTimeout(() => setProfileSaved(false), 2500);
         } catch {
-            setProfileError('Failed to save changes. Please try again.');
+            setProfileError('Failed to save. Please try again.');
         }
     };
 
@@ -133,11 +249,7 @@ export default function SettingsPage() {
         setNotifSettings((s) => ({ ...s, [key]: !s[key] }));
 
     /* ── Security ── */
-    const [pwForm, setPwForm] = useState({
-        current: '',
-        newPw: '',
-        confirm: '',
-    });
+    const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [pwError, setPwError] = useState('');
@@ -166,30 +278,26 @@ export default function SettingsPage() {
     };
 
     const initials =
-        profileForm.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) ||
-        user?.email?.[0]?.toUpperCase() ||
-        'U';
+        (profile?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)) ||
+        user?.email?.[0]?.toUpperCase() || 'U';
 
     return (
         <AuthGuard>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
                     <h1 className="text-2xl font-black text-black tracking-tight">Settings</h1>
-                    <p className="text-sm text-gray-400 mt-0.5">Manage your account preferences</p>
+                    <p className="text-sm text-gray-400 mt-0.5">Manage your account</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:gap-8">
-                    {/* ── Tab Nav ── */}
+                    {/* Tab Nav */}
                     <nav className="flex sm:flex-col gap-1 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 sm:w-44 sm:shrink-0">
                         {tabs.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
-                                onClick={() => setActiveTab(id)}
-                                className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors shrink-0 text-left sm:w-full ${activeTab === id
-                                    ? 'bg-black text-white'
-                                    : 'text-gray-500 hover:text-black hover:bg-gray-50'
-                                    }`}
+                                onClick={() => { setActiveTab(id); setEditing(false); }}
+                                className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors shrink-0 text-left sm:w-full ${activeTab === id ? 'bg-black text-white' : 'text-gray-500 hover:text-black hover:bg-gray-50'}`}
                             >
                                 <Icon className="h-4 w-4" strokeWidth={1.5} />
                                 {label}
@@ -197,7 +305,7 @@ export default function SettingsPage() {
                         ))}
                         <div className="hidden sm:block pt-6 border-t border-gray-100 mt-4">
                             <button
-                                onClick={signOut}
+                                onClick={handleSignOut}
                                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-left text-gray-400 hover:text-black hover:bg-gray-50 transition-colors"
                             >
                                 <LogOut className="h-4 w-4" strokeWidth={1.5} />
@@ -206,19 +314,38 @@ export default function SettingsPage() {
                         </div>
                     </nav>
 
-                    {/* ── Content ── */}
+                    {/* Content Panel */}
                     <div className="flex-1 border border-gray-200 mt-2 sm:mt-0 min-w-0">
 
                         {/* ══ PROFILE TAB ══ */}
                         {activeTab === 'profile' && (
                             <div>
                                 {/* Section header */}
-                                <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
-                                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Profile</h2>
-                                    <p className="text-xs text-gray-400 mt-0.5">Your public seller information</p>
+                                <div className="px-5 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-xs font-black text-black uppercase tracking-widest">Profile</h2>
+                                        <p className="text-xs text-gray-400 mt-0.5">Your public seller information</p>
+                                    </div>
+                                    {!editing ? (
+                                        <button
+                                            onClick={() => setEditing(true)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-xs font-semibold text-black hover:border-black transition-colors"
+                                        >
+                                            <Pencil className="h-3 w-3" />
+                                            Edit
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleEditCancel}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-xs font-semibold text-gray-500 hover:border-black hover:text-black transition-colors"
+                                        >
+                                            <X className="h-3 w-3" />
+                                            Cancel
+                                        </button>
+                                    )}
                                 </div>
 
-                                {/* Avatar + identity */}
+                                {/* Avatar identity */}
                                 <div className="px-5 sm:px-6 py-5 border-b border-gray-200 flex items-center gap-4">
                                     <div className="h-14 w-14 shrink-0 bg-black text-white flex items-center justify-center text-xl font-black select-none">
                                         {initials}
@@ -226,11 +353,9 @@ export default function SettingsPage() {
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <p className="text-sm font-black text-black truncate">
-                                                {profileForm.full_name || profileForm.username || 'No name set'}
+                                                {profile?.full_name || profile?.username || 'No name set'}
                                             </p>
-                                            {profile?.is_verified && (
-                                                <BadgeCheck className="h-4 w-4 text-black shrink-0" />
-                                            )}
+                                            {profile?.is_verified && <BadgeCheck className="h-4 w-4 text-black shrink-0" />}
                                         </div>
                                         <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                                         <p className="text-[11px] text-gray-400 mt-0.5">
@@ -239,68 +364,83 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
 
-                                {/* Form fields */}
-                                <div className="px-5 sm:px-6 py-6 space-y-5">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <Field label="Full Name">
-                                            <TextInput
+                                {/* READ-ONLY view */}
+                                {!editing && (
+                                    <div className="px-5 sm:px-6 py-2">
+                                        <InfoRow label="Full Name" value={profile?.full_name ?? ''} placeholder="Not set" />
+                                        <InfoRow label="Username" value={profile?.username ?? ''} placeholder="Not set" />
+                                        <InfoRow label="Email" value={user?.email ?? ''} />
+                                        <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
+                                        <InfoRow label="Location" value={profile?.location ?? ''} placeholder="Not set" />
+                                    </div>
+                                )}
+
+                                {/* EDIT view */}
+                                {editing && (
+                                    <div className="px-5 sm:px-6 py-6 space-y-5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <EditField
+                                                label="Full Name"
                                                 value={profileForm.full_name}
-                                                onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
+                                                onChange={(v) => setProfileForm({ ...profileForm, full_name: v })}
                                                 placeholder="Kwame Mensah"
                                             />
-                                        </Field>
-                                        <Field label="Username" hint="Shown publicly on listings">
-                                            <TextInput
+                                            <EditField
+                                                label="Username"
                                                 value={profileForm.username}
-                                                onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                                                onChange={(v) => setProfileForm({ ...profileForm, username: v })}
                                                 placeholder="kwame_m"
+                                                hint="Shown publicly on listings"
                                             />
-                                        </Field>
-                                    </div>
-
-                                    <Field label="Email Address" hint="Managed through your account login — contact support to change.">
-                                        <TextInput
-                                            value={user?.email ?? ''}
-                                            disabled
-                                        />
-                                    </Field>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <Field label="Phone Number" hint="Used for buyer/seller contact">
-                                            <TextInput
-                                                value={profileForm.phone_number}
-                                                onChange={(e) => setProfileForm({ ...profileForm, phone_number: e.target.value })}
-                                                placeholder="+233 XX XXX XXXX"
-                                                type="tel"
-                                            />
-                                        </Field>
-                                        <Field label="City / Region" hint="Helps buyers know your location">
-                                            <TextInput
-                                                value={profileForm.location}
-                                                onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
-                                                placeholder="Accra, Greater Accra"
-                                            />
-                                        </Field>
-                                    </div>
-
-                                    {profileError && (
-                                        <div className="flex items-center gap-2 text-red-500 text-xs">
-                                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                                            {profileError}
                                         </div>
-                                    )}
 
-                                    <div className="pt-1 flex flex-col sm:flex-row gap-3">
-                                        <button
-                                            onClick={handleProfileSave}
-                                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto"
-                                        >
-                                            {profileSaved ? (
-                                                <><Check className="h-4 w-4" /> Saved</>
-                                            ) : 'Save Changes'}
-                                        </button>
+                                        {/* Email — read only, no edit */}
+                                        <div>
+                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Email</label>
+                                            <div className="w-full border border-gray-100 px-4 py-3 text-sm text-gray-400 bg-gray-50 flex items-center justify-between">
+                                                <span>{user?.email}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 ml-2 shrink-0">Cannot change</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <PhoneField
+                                                 value={profileForm.phone_number}
+                                                 onChange={(v) => setProfileForm({ ...profileForm, phone_number: v })}
+                                                 hint="Used for buyer/seller contact"
+                                             />
+                                            <SelectField
+                                                label="City / Region"
+                                                value={profileForm.location}
+                                                onChange={(v) => setProfileForm({ ...profileForm, location: v })}
+                                                
+                                                hint="Helps buyers know your location"
+                                            />
+                                        </div>
+
+                                        {profileError && (
+                                            <div className="flex items-center gap-2 text-red-500 text-xs">
+                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                {profileError}
+                                            </div>
+                                        )}
+
+                                        <div className="pt-1 flex flex-col sm:flex-row gap-3">
+                                            <button
+                                                onClick={handleProfileSave}
+                                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto"
+                                            >
+                                                {profileSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Changes'}
+                                            </button>
+                                            <button
+                                                onClick={handleEditCancel}
+                                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors w-full sm:w-auto"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         )}
 
@@ -311,7 +451,6 @@ export default function SettingsPage() {
                                     <h2 className="text-xs font-black text-black uppercase tracking-widest">Notifications</h2>
                                     <p className="text-xs text-gray-400 mt-0.5">Choose when you get notified</p>
                                 </div>
-
                                 <div className="divide-y divide-gray-100">
                                     {([
                                         { key: 'new_bid', label: 'New bid on your listing', sub: 'When someone places a bid on an item you listed' },
@@ -329,10 +468,9 @@ export default function SettingsPage() {
                                         </div>
                                     ))}
                                 </div>
-
                                 <div className="px-5 sm:px-6 py-4 border-t border-gray-200">
                                     <p className="text-xs text-gray-400">
-                                        Notifications are sent to <span className="font-semibold text-black">{user?.email}</span>
+                                        Sent to <span className="font-semibold text-black">{user?.email}</span>
                                     </p>
                                 </div>
                             </div>
@@ -341,77 +479,57 @@ export default function SettingsPage() {
                         {/* ══ SECURITY TAB ══ */}
                         {activeTab === 'security' && (
                             <div>
-                                {/* Change Password */}
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
                                     <h2 className="text-xs font-black text-black uppercase tracking-widest">Change Password</h2>
                                     <p className="text-xs text-gray-400 mt-0.5">Update your login password</p>
                                 </div>
-
                                 <div className="px-5 sm:px-6 py-6 space-y-5">
-                                    <Field label="Current Password">
+                                    <div>
+                                        <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Current Password</label>
                                         <div className="relative">
-                                            <TextInput
-                                                type={showCurrent ? 'text' : 'password'}
-                                                value={pwForm.current}
+                                            <input type={showCurrent ? 'text' : 'password'} value={pwForm.current}
                                                 onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
                                                 placeholder="Enter current password"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCurrent((v) => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                                            >
+                                                className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                            <button type="button" onClick={() => setShowCurrent(v => !v)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
                                                 {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                             </button>
                                         </div>
-                                    </Field>
-
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <Field label="New Password" hint="Minimum 8 characters">
+                                        <div>
+                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">New Password</label>
                                             <div className="relative">
-                                                <TextInput
-                                                    type={showNew ? 'text' : 'password'}
-                                                    value={pwForm.newPw}
+                                                <input type={showNew ? 'text' : 'password'} value={pwForm.newPw}
                                                     onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
-                                                    placeholder="New password"
-                                                    error={pwError && pwForm.newPw.length > 0 && pwForm.newPw.length < 8 ? 'Too short' : undefined}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowNew((v) => !v)}
-                                                    className="absolute right-3 top-3 text-gray-400 hover:text-black transition-colors"
-                                                >
+                                                    placeholder="Min. 8 characters"
+                                                    className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                                <button type="button" onClick={() => setShowNew(v => !v)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
                                                     {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
-                                        </Field>
-                                        <Field label="Confirm New Password">
-                                            <TextInput
-                                                type="password"
-                                                value={pwForm.confirm}
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Confirm Password</label>
+                                            <input type="password" value={pwForm.confirm}
                                                 onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
                                                 placeholder="Repeat new password"
-                                                error={pwForm.confirm && pwForm.confirm !== pwForm.newPw ? 'Doesn\'t match' : undefined}
-                                            />
-                                        </Field>
+                                                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                        </div>
                                     </div>
 
-                                    {/* Password strength bar */}
                                     {pwForm.newPw.length > 0 && (
                                         <div>
                                             <div className="flex gap-1 mb-1">
                                                 {[...Array(4)].map((_, i) => {
                                                     const strength = Math.min(Math.floor(pwForm.newPw.length / 3), 4);
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            className={`h-1 flex-1 transition-colors ${i < strength ? 'bg-black' : 'bg-gray-200'}`}
-                                                        />
-                                                    );
+                                                    return <div key={i} className={`h-1 flex-1 transition-colors ${i < strength ? 'bg-black' : 'bg-gray-200'}`} />;
                                                 })}
                                             </div>
                                             <p className="text-[11px] text-gray-400">
-                                                {pwForm.newPw.length < 8 ? 'Weak' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
+                                                {pwForm.newPw.length < 8 ? 'Too short' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
                                             </p>
                                         </div>
                                     )}
@@ -422,26 +540,18 @@ export default function SettingsPage() {
                                             {pwError}
                                         </div>
                                     )}
-
-                                    <div className="pt-1">
-                                        <button
-                                            onClick={handlePasswordChange}
-                                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto"
-                                        >
-                                            {pwSaved ? (
-                                                <><Check className="h-4 w-4" /> Password Updated</>
-                                            ) : 'Update Password'}
-                                        </button>
-                                    </div>
+                                    <button onClick={handlePasswordChange}
+                                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto">
+                                        {pwSaved ? <><Check className="h-4 w-4" /> Updated</> : 'Update Password'}
+                                    </button>
                                 </div>
 
-                                {/* Account info */}
                                 <div className="px-5 sm:px-6 py-5 border-t border-gray-200 space-y-3">
                                     <h3 className="text-xs font-black text-black uppercase tracking-widest">Account</h3>
                                     <div className="flex items-center justify-between py-1">
                                         <div>
                                             <p className="text-sm font-semibold text-black">Two-Factor Authentication</p>
-                                            <p className="text-xs text-gray-400">Add an extra layer of security to your account</p>
+                                            <p className="text-xs text-gray-400">Extra layer of security</p>
                                         </div>
                                         <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-gray-100 text-gray-500">Coming soon</span>
                                     </div>
@@ -450,21 +560,13 @@ export default function SettingsPage() {
                                             <p className="text-sm font-semibold text-black">Active sessions</p>
                                             <p className="text-xs text-gray-400">Signed in on this device</p>
                                         </div>
-                                        <button
-                                            onClick={signOut}
-                                            className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline transition-all"
-                                        >
-                                            Sign out all
-                                        </button>
+                                        <button onClick={handleSignOut} className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline">Sign out all</button>
                                     </div>
                                 </div>
 
-                                {/* Danger zone */}
                                 <div className="px-5 sm:px-6 py-5 border-t border-gray-200">
                                     <h3 className="text-xs font-black text-black uppercase tracking-widest mb-1">Danger Zone</h3>
-                                    <p className="text-xs text-gray-400 mb-4">
-                                        Permanently delete your account. All listings, bids, and data will be removed. This cannot be undone.
-                                    </p>
+                                    <p className="text-xs text-gray-400 mb-4">Permanently delete your account and all data. This cannot be undone.</p>
                                     <button className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50 transition-colors w-full sm:w-auto justify-center sm:justify-start">
                                         <AlertTriangle className="h-4 w-4" />
                                         Delete My Account
@@ -477,10 +579,7 @@ export default function SettingsPage() {
 
                 {/* Mobile sign out */}
                 <div className="sm:hidden mt-6 border-t border-gray-200 pt-4">
-                    <button
-                        onClick={signOut}
-                        className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-black transition-colors"
-                    >
+                    <button onClick={handleSignOut} className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-black transition-colors">
                         <LogOut className="h-4 w-4" strokeWidth={1.5} />
                         Sign out
                     </button>
