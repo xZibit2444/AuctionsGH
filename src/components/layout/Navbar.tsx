@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
@@ -40,9 +41,14 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-14 gap-3">
                     {/* Logo */}
                     <Link href="/" className="shrink-0">
-                        <span className="text-xl font-black tracking-tighter text-black">
-                            AUCTIONS<span className="text-gray-400">GH</span>
-                        </span>
+                        <Image
+                            src="/logo.png"
+                            alt="AuctionsGH"
+                            width={120}
+                            height={40}
+                            className="h-10 w-auto object-contain"
+                            priority
+                        />
                     </Link>
 
                     {/* Desktop nav links */}
