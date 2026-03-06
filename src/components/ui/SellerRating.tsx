@@ -14,13 +14,13 @@ export default function SellerRating({ sellerId }: SellerRatingProps) {
 
     useEffect(() => {
         const supabase = createClient();
-        supabase
+        (supabase as any)
             .from('user_reviews')
             .select('rating')
             .eq('reviewee_id', sellerId)
-            .then(({ data }) => {
+            .then(({ data }: { data: { rating: number }[] | null }) => {
                 if (data && data.length > 0) {
-                    const sum = data.reduce((a, r) => a + r.rating, 0);
+                    const sum = data.reduce((a: number, r: { rating: number }) => a + r.rating, 0);
                     setAvg(Math.round((sum / data.length) * 10) / 10);
                     setCount(data.length);
                 }

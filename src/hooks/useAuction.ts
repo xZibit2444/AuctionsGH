@@ -39,13 +39,13 @@ export function useAuction(auctionId: string) {
                 };
 
                 // Best-effort fetch for optional winner note. This should never block checkout/details.
-                const { data: noteData } = await supabase
+                const { data: noteData } = await (supabase as any)
                     .from('auction_winner_notes')
                     .select('note')
                     .eq('auction_id', auctionId)
                     .maybeSingle();
 
-                if (noteData?.note) {
+                if ((noteData as any)?.note) {
                     baseAuction.auction_winner_notes = [{ note: noteData.note }];
                 }
 

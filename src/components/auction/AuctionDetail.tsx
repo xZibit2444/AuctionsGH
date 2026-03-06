@@ -222,7 +222,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     {/* Seller */}
                     <div className="flex items-center gap-3">
                         <Avatar
-                            name={auction.profiles?.full_name ?? auction.profiles?.username ?? 'Seller'}
+                            name={(auction.profiles as any)?.full_name ?? auction.profiles?.username ?? 'Seller'}
                             size="sm"
                         />
                         <div>

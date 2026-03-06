@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const { order_id, reviewee_id, rating, comment } = parsed.data;
 
     // Verify the order exists, is complete, and this user is a party to it
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await (supabase as any)
         .from('orders')
         .select('id, buyer_id, seller_id, status')
         .eq('id', order_id)
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid reviewee' }, { status: 400 });
     }
 
-    const { error: insertError } = await supabase.from('user_reviews').insert({
+    const { error: insertError } = await (supabase as any).from('user_reviews').insert({
         order_id,
         reviewer_id: user.id,
         reviewee_id,
