@@ -66,37 +66,32 @@ export default function SignupForm() {
         setLoading(true);
 
         try {
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: formData.email,
-                password: formData.password,
-                options: {
-                    data: {
-                        username: formData.username,
-                        full_name: formData.full_name,
-                        phone_number: formData.phone_number,
-                        location: formData.location,
-                    },
-                },
+            // Create the user server-side (no confirmation email sent)
+            const res = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
             });
 
-            if (authError) {
-                const msg = authError.message.toLowerCase();
-                if (msg.includes('already registered') || msg.includes('already in use') || msg.includes('user already exists')) {
+            const json = await res.json();
+
+            if (!res.ok) {
+                if (json.error === 'EMAIL_EXISTS') {
                     setErrors((prev) => ({ ...prev, email: 'An account with this email already exists.' }));
                 } else {
-                    setServerError(authError.message);
+                    setServerError(json.error ?? 'Signup failed. Please try again.');
                 }
                 return;
             }
 
-            if (!authData.user) {
-                setServerError('Signup failed. Please try again.');
-                return;
-            }
+            // Sign in immediately — no email confirmation required
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
 
-            // If email confirmation is required, send to verify page
-            if (!authData.session) {
-                router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+            if (signInError) {
+                setServerError(signInError.message);
                 return;
             }
 
