@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const TOAST_LINGER_MS = 3 * 60 * 1000;   // 3 minutes
 const CHAT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -19,6 +20,7 @@ interface ChatToast {
 
 export default function FloatingChatToast() {
     const { user } = useAuth();
+    const pathname = usePathname();
     const [toasts, setToasts] = useState<ChatToast[]>([]);
     const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -27,6 +29,11 @@ export default function FloatingChatToast() {
         const timer = timersRef.current.get(id);
         if (timer) { clearTimeout(timer); timersRef.current.delete(id); }
     };
+
+    // Dismiss toasts for the order the user just navigated to
+    useEffect(() => {
+        setToasts((prev) => prev.filter((t) => pathname !== `/orders/${t.orderId}`));
+    }, [pathname]);
 
     // Purge toasts older than 24 hours every minute
     useEffect(() => {
@@ -56,6 +63,9 @@ export default function FloatingChatToast() {
                     if (!isMounted) return;
                     const n = payload.new as Record<string, string | null>;
                     if (n['type'] !== 'new_message' || !n['order_id']) return;
+
+                    // Don't show toast if the user is already on this order's chat page
+                    if (window.location.pathname === `/orders/${n['order_id']}`) return;
 
                     const toast: ChatToast = {
                         id: n['id'] as string,
