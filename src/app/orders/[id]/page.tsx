@@ -70,6 +70,7 @@ export default function OrderPage({ params }: OrderPageProps) {
     useEffect(() => {
         let isMounted = true;
         const fetchOrder = async (retryCount = 0) => {
+            // Auth not ready yet — wait for it via the effect dependency, don't count as a retry
             if (authLoading) return;
             if (!user) {
                 if (isMounted) setLoading(false);
@@ -117,7 +118,7 @@ export default function OrderPage({ params }: OrderPageProps) {
             }
 
             if (retryCount < 3) {
-                setTimeout(() => fetchOrder(retryCount + 1), 600);
+                setTimeout(() => fetchOrder(retryCount + 1), 200);
             } else if (isMounted) {
                 setLoading(false);
             }

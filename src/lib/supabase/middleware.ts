@@ -38,8 +38,9 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    // Read session from cookie (no network call) — fast for every navigation.
-    // Sensitive server actions re-verify with getUser() individually.
+    // Read session purely from cookie — no network call.
+    // Using getUser() here would trigger a Supabase Auth network round-trip on
+    // every navigation which is the primary cause of slow page loads.
     const {
         data: { session },
     } = await supabase.auth.getSession();

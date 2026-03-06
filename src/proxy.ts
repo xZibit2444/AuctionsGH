@@ -8,12 +8,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
     matcher: [
         /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - public files (images, icons, etc.)
+         * Only run on page navigations and API routes.
+         * Skip _next/*, static assets, and all file extensions.
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/|_vercel/|favicon\.ico|.*\.[a-zA-Z0-9]+$).*)',
     ],
 };
