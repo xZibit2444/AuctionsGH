@@ -7,7 +7,7 @@ export async function markAllReadAction(): Promise<{ success?: boolean; error?: 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
         .from('notifications')
         .update({ is_read: true })
         .eq('user_id', user.id)
