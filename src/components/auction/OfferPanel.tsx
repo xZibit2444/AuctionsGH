@@ -23,9 +23,10 @@ interface OfferPanelProps {
     isSeller: boolean;
     userId: string;
     auctionTitle: string;
+    isActive?: boolean;
 }
 
-export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle }: OfferPanelProps) {
+export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, isActive = true }: OfferPanelProps) {
     const router = useRouter();
     const [offers, setOffers] = useState<Offer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -87,6 +88,9 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle }
     };
 
     if (loading) return null;
+    // Don't render at all if not seller and no offers exist and auction is inactive
+    if (!isSeller && !isActive && offers.length === 0) return null;
+    if (isSeller && !isActive && offers.length === 0) return null;
 
     const hasPending = !isSeller && offers.some((o) => o.status === 'pending');
 
@@ -204,8 +208,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle }
                 <div ref={bottomRef} />
             </div>
 
-            {/* Input area — buyer only */}
-            {!isSeller && (
+            {/* Input area — buyer only, auction must be active */}
+            {!isSeller && isActive && (
                 <form onSubmit={handleSendOffer} className="border-t border-gray-200 bg-white">
                     {formError && (
                         <p className="px-4 pt-2 text-[11px] text-red-500 font-semibold">{formError}</p>

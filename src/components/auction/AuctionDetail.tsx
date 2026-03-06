@@ -289,13 +289,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         />
                     )}
 
-                    {/* Offer panel for logged-in buyers on active auctions */}
-                    {auction.status === 'active' && !isSeller && user && (
+                    {/* Offer panel for logged-in buyers — always show so history is visible */}
+                    {!isSeller && user && (
                         <OfferPanel
                             auctionId={auction.id}
                             isSeller={false}
                             userId={user.id}
                             auctionTitle={auction.title}
+                            isActive={auction.status === 'active'}
                         />
                     )}
 
@@ -305,13 +306,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         </div>
                     )}
 
-                    {/* Incoming offers panel for the seller */}
-                    {isSeller && auction.status === 'active' && (
+                    {/* Incoming offers panel for the seller — always show so history is visible */}
+                    {isSeller && (
                         <OfferPanel
                             auctionId={auction.id}
                             isSeller={true}
                             userId={user!.id}
                             auctionTitle={auction.title}
+                            isActive={auction.status === 'active'}
                         />
                     )}
 
