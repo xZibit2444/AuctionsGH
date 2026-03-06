@@ -23,6 +23,10 @@ const config: CapacitorConfig = {
       backgroundColor: '#ffffff',
       showSpinner: false,
     },
+    PushNotifications: {
+      // Show badge, play sound, and display alert for foreground notifications
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
   },
   // webDir is required by Capacitor but unused in remote-URL mode
   webDir: 'out',
