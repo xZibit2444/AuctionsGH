@@ -1,0 +1,16 @@
+-- 030_order_messages_realtime.sql
+-- Add order_messages to the Supabase Realtime publication so that
+-- both buyer and seller receive live chat updates via postgres_changes.
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime'
+          AND schemaname = 'public'
+          AND tablename = 'order_messages'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.order_messages;
+    END IF;
+END;
+$$;

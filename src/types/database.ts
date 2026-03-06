@@ -28,6 +28,13 @@ export interface Database {
                     location: string | null;
                     is_verified: boolean;
                     is_admin: boolean;
+                    notification_preferences: {
+                        new_bid: boolean;
+                        auction_ending: boolean;
+                        auction_won: boolean;
+                        new_message: boolean;
+                        promotions: boolean;
+                    } | null;
                     created_at: string;
                     updated_at: string;
                 };
@@ -40,6 +47,7 @@ export interface Database {
                     location?: string | null;
                     is_verified?: boolean;
                     is_admin?: boolean;
+                    notification_preferences?: object | null;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -52,6 +60,7 @@ export interface Database {
                     location?: string | null;
                     is_verified?: boolean;
                     is_admin?: boolean;
+                    notification_preferences?: object | null;
                     updated_at?: string;
                 };
             };
@@ -66,6 +75,10 @@ export interface Database {
                     storage_gb: number | null;
                     ram_gb: number | null;
                     condition: PhoneCondition;
+                    listing_city: string;
+                    meetup_area: string;
+                    delivery_available: boolean;
+                    inspection_available: boolean;
                     starting_price: number;
                     current_price: number;
                     min_increment: number;
@@ -87,6 +100,10 @@ export interface Database {
                     storage_gb?: number | null;
                     ram_gb?: number | null;
                     condition: PhoneCondition;
+                    listing_city?: string;
+                    meetup_area?: string;
+                    delivery_available?: boolean;
+                    inspection_available?: boolean;
                     starting_price: number;
                     current_price: number;
                     min_increment?: number;
@@ -106,6 +123,10 @@ export interface Database {
                     storage_gb?: number | null;
                     ram_gb?: number | null;
                     condition?: PhoneCondition;
+                    listing_city?: string;
+                    meetup_area?: string;
+                    delivery_available?: boolean;
+                    inspection_available?: boolean;
                     starting_price?: number;
                     current_price?: number;
                     min_increment?: number;
@@ -134,6 +155,26 @@ export interface Database {
                 Update: {
                     url?: string;
                     position?: number;
+                };
+            };
+            auction_winner_notes: {
+                Row: {
+                    auction_id: string;
+                    seller_id: string;
+                    note: string;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    auction_id: string;
+                    seller_id: string;
+                    note: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    note?: string;
+                    updated_at?: string;
                 };
             };
             bids: {
@@ -187,6 +228,27 @@ export interface Database {
                 Insert: {
                     user_id: string;
                     auction_id: string;
+                    created_at?: string;
+                };
+                Update: never;
+            };
+            user_reviews: {
+                Row: {
+                    id: string;
+                    order_id: string;
+                    reviewer_id: string;
+                    reviewee_id: string;
+                    rating: number;
+                    comment: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    order_id: string;
+                    reviewer_id: string;
+                    reviewee_id: string;
+                    rating: number;
+                    comment?: string | null;
                     created_at?: string;
                 };
                 Update: never;

@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency, formatDisplayName } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -14,11 +14,14 @@ import BidForm from '@/components/bidding/BidForm';
 import BidHistory from '@/components/bidding/BidHistory';
 import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
-import { Heart, CheckCircle2 } from 'lucide-react';
+import SellerRating from '@/components/ui/SellerRating';
+import OfferPanel from './OfferPanel';
+import { Heart, CheckCircle2, Trash2 } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import { useRouter } from 'next/navigation';
 import type { AuctionStatus } from '@/types/database';
 import { finalizeAuctionAction } from '@/app/actions/finalizeAuction';
+import { deleteAuctionAction } from '@/app/actions/deleteAuction';
 
 interface AuctionDetailProps {
     auctionId: string;
@@ -32,7 +35,22 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const [selectedImage, setSelectedImage] = useState(0);
     const [savePending, setSavePending] = useState(false);
     const [showCongrats, setShowCongrats] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const router = useRouter();
+
+    const handleDelete = async () => {
+        if (!deleteConfirm) { setDeleteConfirm(true); return; }
+        setDeleteLoading(true);
+        const result = await deleteAuctionAction(auctionId);
+        setDeleteLoading(false);
+        if (result.success) {
+            router.push('/dashboard');
+        } else {
+            alert(result.error ?? 'Failed to delete auction');
+            setDeleteConfirm(false);
+        }
+    };
 
     const isSaved = savedIds.has(auctionId);
 
@@ -113,6 +131,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const isSeller = auction.seller_id === user?.id;
     const orderRaw = (auction as any).orders;
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+    const winnerNoteRaw = (auction as any).auction_winner_notes;
+    const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
 
     return (
         <div className="max-w-5xl mx-auto py-4 sm:py-8">
@@ -134,6 +154,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <img
                                 src={images[selectedImage]?.url}
                                 alt={auction.title}
+                                loading="eager"
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -160,6 +181,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                     <img
                                         src={img.url}
                                         alt=""
+                                        loading="lazy"
                                         className="w-full h-full object-cover"
                                     />
                                 </button>
@@ -200,17 +222,20 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     {/* Seller */}
                     <div className="flex items-center gap-3">
                         <Avatar
-                            name={formatDisplayName(auction.profiles?.username ?? 'Seller')}
+                            name={auction.profiles?.full_name ?? auction.profiles?.username ?? 'Seller'}
                             size="sm"
                         />
                         <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {formatDisplayName(auction.profiles?.username)}
+                                {auction.profiles?.username ?? 'Seller'}
                                 {auction.profiles?.is_verified && (
                                     <span className="ml-1 text-emerald-600">✓</span>
                                 )}
                             </p>
                             <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
+                            {auction.profiles?.id && (
+                                <SellerRating sellerId={auction.profiles.id} />
+                            )}
                         </div>
                     </div>
 
@@ -222,6 +247,10 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
                             { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },
+                            { label: 'City', value: auction.listing_city ?? 'Accra' },
+                            { label: 'Meetup Area', value: auction.meetup_area ?? 'Accra Central' },
+                            { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
+                            { label: 'Inspect First', value: auction.inspection_available ? 'Yes' : 'No' },
                         ].map(({ label, value }) => (
                             <div key={label} className="bg-white border border-gray-200 px-4 py-3">
                                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">{label}</p>
@@ -260,9 +289,51 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         />
                     )}
 
+                    {/* Offer panel for logged-in buyers on active auctions */}
+                    {auction.status === 'active' && !isSeller && user && (
+                        <OfferPanel
+                            auctionId={auction.id}
+                            isSeller={false}
+                            userId={user.id}
+                            auctionTitle={auction.title}
+                        />
+                    )}
+
                     {isSeller && auction.status === 'active' && (
                         <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm">
                             You cannot bid on your own auction.
+                        </div>
+                    )}
+
+                    {/* Incoming offers panel for the seller */}
+                    {isSeller && auction.status === 'active' && (
+                        <OfferPanel
+                            auctionId={auction.id}
+                            isSeller={true}
+                            userId={user!.id}
+                            auctionTitle={auction.title}
+                        />
+                    )}
+
+                    {/* Delete button — sellers only, no bids yet */}
+                    {isSeller && auction.status !== 'sold' && auction.bid_count === 0 && (
+                        <div className="flex justify-end mt-2">
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleteLoading}
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border transition-colors disabled:opacity-50 ${deleteConfirm ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'}`}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : 'Delete auction'}
+                            </button>
+                            {deleteConfirm && (
+                                <button
+                                    onClick={() => setDeleteConfirm(false)}
+                                    className="ml-2 px-4 py-2 text-sm text-gray-500 hover:text-black border border-gray-200 bg-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -274,6 +345,17 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             </h2>
                             <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                                 {auction.description}
+                            </p>
+                        </div>
+                    )}
+
+                    {isWinner && auction.status === 'sold' && winnerNote && (
+                        <div className="border border-emerald-200 bg-emerald-50 p-5 mt-2">
+                            <h2 className="text-sm font-bold text-emerald-800 mb-2 uppercase tracking-wide">
+                                Seller Note (Winner Only)
+                            </h2>
+                            <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">
+                                {winnerNote}
                             </p>
                         </div>
                     )}
@@ -292,13 +374,13 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         </div>
                         <h2 className="text-3xl font-black text-black tracking-tight mb-2">You Won!</h2>
                         <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-                            Congratulations! Your bid was the highest. You now have <span className="font-bold text-black">30 minutes</span> to complete checkout and secure the item.
+                            Congratulations! Your bid was the highest. You now have <span className="font-bold text-black">30 minutes</span> to confirm your order and secure the item.
                         </p>
                         <button
                             onClick={() => router.push(`/checkout/${auction.id}`)}
                             className="w-full flex justify-center py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 transition-colors uppercase tracking-widest mb-3"
                         >
-                            Proceed to Checkout
+                            Confirm Order
                         </button>
                     </div>
                 </div>

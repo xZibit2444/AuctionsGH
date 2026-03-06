@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Gavel, Trophy, Clock, Info } from 'lucide-react';
-import Link from 'next/link';
+import { Bell, Gavel, Trophy, Clock, Info, MessageCircle, Tag } from 'lucide-react';
+import { markAllReadAction } from '@/app/actions/notifications';
 
 interface Notification {
     id: string;
@@ -12,6 +12,7 @@ interface Notification {
     title: string;
     body: string | null;
     auction_id: string | null;
+    order_id: string | null;
     is_read: boolean;
     created_at: string;
 }
@@ -22,6 +23,8 @@ const typeIcon = (type: string) => {
         case 'auction_won': return <Trophy className="h-4 w-4 text-black" strokeWidth={1.5} />;
         case 'outbid': return <Gavel className="h-4 w-4 text-red-400" strokeWidth={1.5} />;
         case 'auction_ended': return <Clock className="h-4 w-4 text-gray-400" strokeWidth={1.5} />;
+        case 'new_message': return <MessageCircle className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />;
+        case 'new_offer': return <Tag className="h-4 w-4 text-amber-500" strokeWidth={1.5} />;
         default: return <Info className="h-4 w-4 text-gray-400" strokeWidth={1.5} />;
     }
 };
@@ -99,14 +102,15 @@ export default function NotificationBell() {
 
     const markAllRead = async () => {
         if (!user || unread === 0) return;
-        const supabase = createClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('notifications') as any)
-            .update({ is_read: true })
-            .eq('user_id', user.id)
-            .eq('is_read', false);
+        // Optimistic update
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
         setUnread(0);
+        // Persist to DB via server action
+        const result = await markAllReadAction();
+        if (result.error) {
+            // Revert optimistic update if DB write failed
+            fetchNotifications();
+        }
     };
 
     const handleOpen = () => {
@@ -179,10 +183,28 @@ export default function NotificationBell() {
                                     </div>
                                 );
 
-                                return n.auction_id ? (
-                                    <Link key={n.id} href={`/auctions/${n.auction_id}`} onClick={() => setOpen(false)}>
+                                // Build the destination URL. Offer notifications scroll straight to the offer panel.
+                                const href = n.order_id
+                                    ? `/orders/${n.order_id}`
+                                    : n.auction_id && n.type === 'new_offer'
+                                    ? `/auctions/${n.auction_id}#offer-panel`
+                                    : n.auction_id
+                                    ? `/auctions/${n.auction_id}`
+                                    : null;
+
+                                // Use window.location.href so navigation is always a full
+                                // page load — bypasses any router/RouteRefresher race conditions.
+                                return href ? (
+                                    <div
+                                        key={n.id}
+                                        role="link"
+                                        tabIndex={0}
+                                        className="cursor-pointer"
+                                        onClick={() => { setOpen(false); window.location.href = href; }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { setOpen(false); window.location.href = href; } }}
+                                    >
                                         {inner}
-                                    </Link>
+                                    </div>
                                 ) : (
                                     <div key={n.id}>{inner}</div>
                                 );
@@ -192,13 +214,12 @@ export default function NotificationBell() {
 
                     {/* Footer */}
                     <div className="border-t border-gray-100 px-4 py-2.5">
-                        <Link
-                            href="/settings#notifications"
-                            onClick={() => setOpen(false)}
+                        <button
+                            onClick={() => { setOpen(false); window.location.href = '/settings#notifications'; }}
                             className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
                         >
                             Notification settings →
-                        </Link>
+                        </button>
                     </div>
                 </div>
             )}

@@ -2,11 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { loginSchema, type LoginInput } from '@/lib/validators';
 import { Eye, EyeOff, AlertTriangle, ArrowRight } from 'lucide-react';
 
-export default function LoginForm() {
+interface LoginFormProps {
+    urlError?: string;
+}
+
+export default function LoginForm({ urlError }: LoginFormProps) {
     const router = useRouter();
     const supabase = createClient();
     const [formData, setFormData] = useState<LoginInput>({ email: '', password: '' });
@@ -14,6 +19,14 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [showPw, setShowPw] = useState(false);
+
+    const urlErrorMessage = urlError === 'expired'
+        ? 'That link has expired. Request a new one below.'
+        : urlError === 'auth'
+            ? 'Authentication failed. Please sign in again.'
+            : urlError
+                ? decodeURIComponent(urlError)
+                : null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,14 +68,21 @@ export default function LoginForm() {
     };
 
     const handleGoogleLogin = async () => {
+        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${window.location.origin}/callback` },
+            options: { redirectTo: `${origin}/callback` },
         });
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
+            {urlErrorMessage && (
+                <div className="flex items-center gap-2 border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-700 text-sm">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    {urlErrorMessage}
+                </div>
+            )}
             {serverError && (
                 <div className="flex items-center gap-2 border border-red-200 bg-red-50 px-3 py-2.5 text-red-600 text-sm">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -85,7 +105,12 @@ export default function LoginForm() {
 
             {/* Password */}
             <div>
-                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Password</label>
+                <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-black text-black uppercase tracking-widest">Password</label>
+                    <Link href="/forgot-password" className="text-[11px] text-gray-400 hover:text-black transition-colors">
+                        Forgot password?
+                    </Link>
+                </div>
                 <div className="relative">
                     <input
                         type={showPw ? 'text' : 'password'}

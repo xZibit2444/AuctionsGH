@@ -1,62 +1,161 @@
-'use client';
+﻿'use client';
 
 import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
-import { ShieldCheck, User, Package, Handshake, Info, Loader2, CheckCircle2 } from 'lucide-react';
-import { verifyOrderPinAction } from '@/app/actions/verifyPin';
+import { ShieldCheck, User, Package, Truck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
+import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
+import OrderChat from '@/components/order/OrderChat';
+import ReviewForm from '@/components/order/ReviewForm';
+import type { DeliveryStatus } from '@/types/delivery';
 
 interface OrderPageProps {
     params: Promise<{ id: string }>;
+}
+
+const STATUS_STEPS: { key: DeliveryStatus; label: string }[] = [
+    { key: 'pending', label: 'Order Placed' },
+    { key: 'sent', label: 'Sent' },
+    { key: 'delivered', label: 'Delivered' },
+    { key: 'completed', label: 'Completed' },
+];
+
+function DeliveryTimeline({ status }: { status: DeliveryStatus }) {
+    const currentIdx = STATUS_STEPS.findIndex((s) => s.key === status);
+
+    return (
+        <div className="border border-gray-200 p-6 bg-white">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-5">Delivery Status</h3>
+            <ol className="relative border-l border-gray-200 ml-3 space-y-5">
+                {STATUS_STEPS.map((step, idx) => {
+                    const done = idx <= currentIdx;
+                    const active = idx === currentIdx;
+
+                    return (
+                        <li key={step.key} className="ml-4">
+                            <span className={`absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white ${done ? 'bg-black' : 'bg-gray-200'}`}>
+                                {done ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                ) : (
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full" />
+                                )}
+                            </span>
+                            <p className={`text-sm font-bold ml-1 ${active ? 'text-black' : done ? 'text-gray-600' : 'text-gray-300'}`}>
+                                {step.label}
+                                {active && (
+                                    <span className="ml-2 text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 px-2 py-0.5">
+                                        Current
+                                    </span>
+                                )}
+                            </p>
+                        </li>
+                    );
+                })}
+            </ol>
+        </div>
+    );
 }
 
 export default function OrderPage({ params }: OrderPageProps) {
     const { id } = use(params);
     const { user, loading: authLoading } = useAuth();
     const [order, setOrder] = useState<any>(null);
+    const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>('pending');
     const [loading, setLoading] = useState(true);
-    const [pin, setPin] = useState('');
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [verifyError, setVerifyError] = useState('');
-    const [verifySuccess, setVerifySuccess] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
         const fetchOrder = async (retryCount = 0) => {
             if (authLoading) return;
-
             if (!user) {
-                setLoading(false);
+                if (isMounted) setLoading(false);
                 return;
             }
 
             const supabase = createClient();
-
             const { data, error } = await supabase
                 .from('orders')
                 .select(`
                     *,
-                    auction:auctions ( id, title, current_price, condition, auction_images(url) ),
-                    buyer:profiles!orders_buyer_id_fkey ( id, full_name, email, phone_number ),
-                    seller:profiles!orders_seller_id_fkey ( id, full_name, email, phone_number )
+                    auction:auctions ( id, title, current_price, condition, auction_images(url), auction_winner_notes(note) ),
+                    buyer:profiles!orders_buyer_id_fkey ( id, full_name, phone_number ),
+                    seller:profiles!orders_seller_id_fkey ( id, full_name, phone_number, location ),
+                    deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
                 `)
                 .eq('id', id)
                 .single();
 
+            if (!isMounted) return;
+
             if (!error && data) {
                 setOrder(data);
+                const dels = Array.isArray((data as any).deliveries)
+                    ? (data as any).deliveries
+                    : (data as any).deliveries
+                        ? [(data as any).deliveries]
+                        : [];
+
+                if (dels[0]) {
+                    setDeliveryStatus(dels[0].status as DeliveryStatus);
+                }
+
+                // Check if user already reviewed this order
+                const { data: existing } = await supabase
+                    .from('user_reviews')
+                    .select('id')
+                    .eq('order_id', id)
+                    .eq('reviewer_id', user!.id)
+                    .maybeSingle();
+                if (isMounted) setHasReviewed(!!existing);
+
                 setLoading(false);
-            } else if (retryCount < 2) {
-                // Small delay before retry to handle potential race conditions
-                setTimeout(() => fetchOrder(retryCount + 1), 500);
-            } else {
+                return;
+            }
+
+            if (retryCount < 3) {
+                setTimeout(() => fetchOrder(retryCount + 1), 600);
+            } else if (isMounted) {
                 setLoading(false);
             }
         };
 
         fetchOrder();
-    }, [id, user, authLoading, verifySuccess]);
+        return () => {
+            isMounted = false;
+        };
+    }, [id, user, authLoading]);
+
+    useEffect(() => {
+        if (!id) return;
+
+        const supabase = createClient();
+        const channel = supabase
+            .channel(`delivery-status:${id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'deliveries',
+                    filter: `order_id=eq.${id}`,
+                },
+                (payload) => {
+                    const nextStatus = (payload.new as { status?: DeliveryStatus }).status;
+                    if (nextStatus) {
+                        setDeliveryStatus(nextStatus);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [id]);
 
     if (loading || authLoading) {
         return (
@@ -83,55 +182,44 @@ export default function OrderPage({ params }: OrderPageProps) {
     }
 
     const isBuyer = user?.id === order.buyer_id;
-    const isSeller = user?.id === order.seller_id;
-    const isMeetup = order.fulfillment_type === 'meet_and_inspect';
-    const isVerified = order.status === 'pin_verified' || order.status === 'completed';
-
-    const handleVerifyPin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setVerifyError('');
-        setIsVerifying(true);
-
-        const result = await verifyOrderPinAction(order.id, pin);
-        if (result.success) {
-            setVerifySuccess(true);
-            setPin('');
-        } else {
-            setVerifyError(result.error || 'Failed to verify PIN');
-        }
-        setIsVerifying(false);
-    };
+    const isCompleted = order.status === 'completed' || order.status === 'pin_verified' || deliveryStatus === 'delivered' || deliveryStatus === 'completed';
+    const winnerNoteRaw = order.auction?.auction_winner_notes;
+    const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
+    const statusLabel = isCompleted ? 'Completed' : deliveryStatus.replace('_', ' ');
+    const statusColor = isCompleted
+        ? 'bg-emerald-100 text-emerald-700'
+        : deliveryStatus === 'sent'
+            ? 'bg-blue-100 text-blue-700'
+            : 'bg-amber-100 text-amber-700';
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-gray-200 mb-8">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">Order #{order.id.split('-')[0].toUpperCase()}</h1>
-                        <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest ${isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {isVerified ? 'Completed' : order.status.replace('_', ' ')}
+                        <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+                            Order #{order.id.split('-')[0].toUpperCase()}
+                        </h1>
+                        <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
+                            {statusLabel}
                         </span>
                     </div>
-                    <p className="text-gray-500 text-sm font-medium">Placed on {new Date(order.created_at).toLocaleDateString()}</p>
+                    <p className="text-gray-500 text-sm font-medium">
+                        Placed on {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
                 </div>
-                {isVerified && (
+                {isCompleted && (
                     <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 border border-emerald-100">
                         <CheckCircle2 className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-widest">Transaction Secured</span>
+                        <span className="text-xs font-bold uppercase tracking-widest">Transaction Complete</span>
                     </div>
                 )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                {/* Left Column - Details */}
-                <div className="space-y-8">
-
-                    {/* Item Summary */}
+                <div className="space-y-6">
                     <div className="border border-gray-200 p-6 bg-white">
-                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Item Snapshot</h3>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Item</h3>
                         <div className="flex gap-4">
                             <div className="w-20 h-20 bg-gray-100 shrink-0 border border-gray-200">
                                 {order.auction?.auction_images?.[0] && (
@@ -139,178 +227,115 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 )}
                             </div>
                             <div>
-                                <Link href={`/auctions/${order.auction_id}`} className="font-bold text-black hover:underline line-clamp-2 leading-snug mb-1">
+                                <Link
+                                    href={`/auctions/${order.auction_id}`}
+                                    className="font-bold text-black hover:underline underline-offset-2 line-clamp-2 leading-snug mb-1 block"
+                                >
                                     {order.auction?.title}
                                 </Link>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <p className="text-xs text-gray-500 uppercase tracking-wider">{order.auction?.condition} Condition</p>
-                                    <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${order.payment_method === 'escrow' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                                        {order.payment_method === 'escrow' ? 'Escrow Protected' : 'Pay on Delivery'}
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{order.auction?.condition} Condition</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-mono font-black text-black">{formatCurrency(order.amount)}</p>
+                                    <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700">
+                                        Pay on Delivery
                                     </span>
                                 </div>
-                                <p className="font-mono font-black text-black">{formatCurrency(order.amount)}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Counterparty Contact */}
                     <div className="border border-gray-200 p-6 bg-white">
-                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
-                            {isBuyer ? 'Seller Details' : 'Buyer Details'}
-                        </h3>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isBuyer ? 'Seller Contact' : 'Buyer'}</h3>
                         <div className="flex items-start gap-3">
                             <User className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-bold text-black mb-1">
+                            <div className="space-y-1.5">
+                                <p className="font-bold text-black">
                                     {isBuyer ? order.seller?.full_name : order.buyer?.full_name}
                                 </p>
-                                <p className="text-sm text-gray-500 mb-1">Phone: {isBuyer ? order.seller?.phone_number : order.buyer?.phone_number || 'Not provided'}</p>
-                                <p className="text-sm text-gray-500">Email: {isBuyer ? order.seller?.email : order.buyer?.email}</p>
+                                <p className="text-sm text-gray-500">
+                                    <span className="font-semibold text-black">Phone: </span>
+                                    {(isBuyer ? order.seller?.phone_number : order.buyer?.phone_number) || 'Not provided'}
+                                </p>
+                                {isBuyer && order.seller?.location && (
+                                    <p className="text-sm text-gray-500">
+                                        <span className="font-semibold text-black">Location: </span>
+                                        {order.seller.location}
+                                    </p>
+                                )}
+                                {isBuyer && (
+                                    <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+                                        Contact the seller to arrange delivery or pickup.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Delivery Instructions */}
                     <div className="border border-gray-200 p-6 bg-white">
-                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Fulfillment Details</h3>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Fulfillment</h3>
                         <div className="flex items-start gap-3">
-                            {isMeetup ? <Handshake className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" /> : <Package className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />}
+                            {order.fulfillment_type === 'meet_and_inspect' ? (
+                                <Package className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                            ) : (
+                                <Truck className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                            )}
                             <div>
                                 <p className="font-bold text-black mb-1">
-                                    {isMeetup ? 'Meet & Inspect Handover' : 'Escrow Delivery'}
+                                    {order.fulfillment_type === 'meet_and_inspect' ? 'Pickup / Meet & Inspect' : 'Courier Delivery'}
                                 </p>
-                                <p className="text-sm text-gray-500 leading-relaxed">
-                                    {isMeetup
-                                        ? `Arranging a meetup at: ${order.meetup_location}`
-                                        : `Delivery addressed to: ${order.meetup_location}`
-                                    }
-                                </p>
+                                <p className="text-sm text-gray-500 leading-relaxed">{order.meetup_location || '-'}</p>
                             </div>
                         </div>
                     </div>
 
+                    {isBuyer && winnerNote && (
+                        <div className="border border-emerald-200 p-6 bg-emerald-50">
+                            <h3 className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-3">Seller Note (Winner Only)</h3>
+                            <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">{winnerNote}</p>
+                        </div>
+                    )}
+
+                    <DeliveryTimeline status={deliveryStatus} />
                 </div>
 
-                {/* Right Column - Action Core */}
-                <div>
-                    {!isVerified && (
-                        <div className="bg-black text-white p-6 sm:p-8 sticky top-24">
-                            {isBuyer ? (
-                                <div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                                        <h2 className="text-xl font-black tracking-tight">Your Action Required</h2>
-                                    </div>
-                                    <p className="text-gray-300 text-sm leading-relaxed mb-6">
-                                        {order.payment_method === 'escrow'
-                                            ? "Your payment is securely locked in escrow. Once you meet the seller and insect the item, you must hand them your secret 4-digit PIN to release the funds."
-                                            : "This is a Pay on Delivery order. Once you meet the seller and inspect the item, you must pay them the full amount directly (Cash/Momo) and then provide your secret 4-digit PIN to confirm receipt."}
-                                    </p>
-
-                                    <div className="bg-white/10 p-4 border border-white/20 mb-6">
-                                        <div className="flex gap-3 mb-2">
-                                            <Info className="w-5 h-5 text-emerald-400 shrink-0" />
-                                            <h3 className="text-sm font-bold">Where is my PIN?</h3>
-                                        </div>
-                                        <p className="text-xs text-gray-300 leading-relaxed pl-8">
-                                            Your secure PIN was generated instantly upon checkout and sent directly to your Dashboard Notifications. Do not share it until you are fully satisfied with the item.
-                                        </p>
-                                    </div>
-
-                                    <Link href="/dashboard" className="block w-full text-center py-4 bg-white text-black text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">
-                                        Check Notifications for PIN
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <ShieldCheck className={`w-6 h-6 ${order.payment_method === 'escrow' ? 'text-emerald-400' : 'text-orange-400'}`} />
-                                        <h2 className="text-xl font-black tracking-tight">Verify Handover</h2>
-                                    </div>
-                                    <p className="text-gray-300 text-sm leading-relaxed mb-6">
-                                        {order.payment_method === 'escrow'
-                                            ? "The buyer's funds are secured in escrow. When you hand over the item, ask the buyer for their 4-digit secret PIN. Enter it below to instantly complete the order and release funds to your account."
-                                            : "The buyer has chosen to Pay on Delivery. Collect the full amount from the buyer first, then ask them for their secret 4-digit PIN. Enter it below to officially complete the sale."}
-                                    </p>
-
-                                    {verifyError && (
-                                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm font-bold">
-                                            {verifyError}
-                                        </div>
-                                    )}
-
-                                    <form onSubmit={handleVerifyPin} className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-300 uppercase tracking-widest mb-2">Secret Delivery PIN</label>
-                                            <input
-                                                type="text"
-                                                maxLength={4}
-                                                required
-                                                placeholder="****"
-                                                value={pin}
-                                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} // numbers only
-                                                className="w-full bg-white/5 border border-white/20 p-4 text-2xl tracking-[1em] text-center text-white focus:outline-none focus:border-white font-mono"
-                                            />
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            disabled={isVerifying || pin.length !== 4}
-                                            className="w-full flex items-center justify-center gap-2 py-4 bg-white text-black hover:bg-gray-200 disabled:opacity-50 text-sm font-bold uppercase tracking-widest transition-colors"
-                                        >
-                                            {isVerifying ? (
-                                                <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
-                                            ) : (
-                                                'Verify & Complete Order'
-                                            )}
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
-                        </div>
+                <div className="space-y-6">
+                    {isBuyer ? (
+                        <DeliveryCodeDisplay
+                            orderId={order.id}
+                            deliveryStatus={deliveryStatus}
+                            onStatusChange={() => setDeliveryStatus('completed')}
+                        />
+                    ) : (
+                        <DeliveryConfirmationForm orderId={order.id} deliveryStatus={deliveryStatus} onStatusChange={setDeliveryStatus} />
                     )}
 
-                    {isVerified && (
-                        <div className="bg-emerald-50 border border-emerald-200 p-8 text-center sticky top-24">
-                            <TrophyIcon className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                            <h2 className="text-2xl font-black text-black tracking-tight mb-2">Transaction Complete</h2>
-                            <p className="text-emerald-700 font-medium">
-                                {isBuyer
-                                    ? (order.payment_method === 'escrow'
-                                        ? "You've successfully secured the item and the escrow funds have been released to the seller. Enjoy your new device!"
-                                        : "Transaction confirmed! You've successfully received the item. Enjoy your new device!")
-                                    : (order.payment_method === 'escrow'
-                                        ? "The PIN was verified successfully! Escrow funds have been released to your account."
-                                        : "The PIN was verified successfully! The sale is now officially completed in our records.")}
-                            </p>
-                        </div>
-                    )}
+                    <div id="chat">
+                        <OrderChat
+                            orderId={order.id}
+                            userId={user!.id}
+                            isCompleted={isCompleted}
+                            otherPartyName={
+                                isBuyer
+                                    ? ((order.seller?.full_name ?? 'Seller').split(' ')[0])
+                                    : ((order.buyer?.full_name ?? 'Buyer').split(' ')[0])
+                            }
+                        />
+                    </div>
 
+                    {isCompleted && !hasReviewed && (
+                        <ReviewForm
+                            orderId={order.id}
+                            revieweeId={isBuyer ? order.seller_id : order.buyer_id}
+                            revieweeName={
+                                isBuyer
+                                    ? (order.seller?.full_name ?? 'Seller').split(' ')[0]
+                                    : (order.buyer?.full_name ?? 'Buyer').split(' ')[0]
+                            }
+                            onSubmitted={() => setHasReviewed(true)}
+                        />
+                    )}
                 </div>
             </div>
         </div>
     );
-}
-
-function TrophyIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-            <path d="M4 22h16" />
-            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-        </svg>
-    )
 }

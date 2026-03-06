@@ -63,6 +63,29 @@ export const AUCTION_DURATIONS = [
     { label: '7 Days', hours: 168 },
 ] as const;
 
+/** Marketplace city scope for listings */
+export const LISTING_CITIES = ['Accra'] as const;
+
+/** Common meetup areas in Accra for handover/pickup */
+export const ACCRA_MEETUP_AREAS = [
+    'Accra Central',
+    'Airport Residential',
+    'East Legon',
+    'Adenta',
+    'Madina',
+    'Tema',
+    'Spintex',
+    'Dansoman',
+    'Achimota',
+    'Kasoa',
+    'Osu',
+    'Cantonments',
+    'Dzorwulu',
+    'Lapaz',
+    'Ablekuma',
+    'Other (Specify in Description)',
+] as const;
+
 /** Ghana regions for location selection */
 export const GHANA_REGIONS = [
     'Greater Accra',

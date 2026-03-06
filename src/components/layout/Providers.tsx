@@ -1,11 +1,12 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 /**
- * Providers wrapper for app-wide context.
- * Add QueryClientProvider, ThemeProvider, etc. here as needed.
+ * App-wide providers. AuthProvider is here so the auth state is shared
+ * across all components without each having its own subscription.
  */
 export default function Providers({ children }: { children: ReactNode }) {
-    return <>{children}</>;
+    return <AuthProvider>{children}</AuthProvider>;
 }

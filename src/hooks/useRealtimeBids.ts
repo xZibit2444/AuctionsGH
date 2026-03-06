@@ -15,12 +15,14 @@ export function useRealtimeBids({
     onNewBid,
     onAuctionUpdate,
 }: UseRealtimeBidsOptions) {
-    const supabase = createClient();
-
     useEffect(() => {
+        // Create client inside effect so it never appears in the deps array.
+        // Having createClient() outside caused a new object every render,
+        // which would re-subscribe/unsubscribe the channel on every render.
+        const supabase = createClient();
+
         const channel = supabase
             .channel(`auction-${auctionId}`)
-            // Listen for new bids
             .on(
                 'postgres_changes',
                 {
@@ -30,7 +32,6 @@ export function useRealtimeBids({
                     filter: `auction_id=eq.${auctionId}`,
                 },
                 async (payload) => {
-                    // Fetch the full bid with bidder profile
                     const { data } = await supabase
                         .from('bids')
                         .select('*, profiles (id, username, avatar_url)')
@@ -42,7 +43,6 @@ export function useRealtimeBids({
                     }
                 }
             )
-            // Listen for auction status changes (ended, sold)
             .on(
                 'postgres_changes',
                 {
@@ -60,5 +60,5 @@ export function useRealtimeBids({
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [auctionId, supabase, onNewBid, onAuctionUpdate]);
+    }, [auctionId, onNewBid, onAuctionUpdate]);
 }

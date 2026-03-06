@@ -15,6 +15,8 @@ interface UseAuctionsOptions {
     limit?: number;
     orderBy?: 'created_at' | 'ends_at' | 'current_price';
     ascending?: boolean;
+    /** Set true only when you need order + delivery status (e.g. seller ListingTable). Adds a JOIN overhead. */
+    includeOrders?: boolean;
 }
 
 export function useAuctions(options: UseAuctionsOptions = {}) {
@@ -28,6 +30,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         limit = 40,
         orderBy = 'ends_at',
         ascending = true,
+        includeOrders = false,
     } = options;
 
     const [auctions, setAuctions] = useState<Auction[]>([]);
@@ -39,9 +42,10 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         const fetchAuctions = async () => {
             setLoading(true);
             const supabase = createClient();
-            let query = supabase
-                .from('auctions')
-                .select('*, auction_images(url, position), orders(id, status)');
+            const selectCols = includeOrders
+                ? '*, auction_images(url, position), orders(id, status, deliveries(status))'
+                : '*, auction_images(url, position)';
+            let query = supabase.from('auctions').select(selectCols);
 
             if (status !== 'all') {
                 query = query.eq('status', status);

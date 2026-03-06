@@ -40,12 +40,12 @@ export const AuctionWonEmail = ({
                     You are the winning bidder for <strong>{auctionTitle}</strong> with your bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.
                 </Text>
                 <Text style={text}>
-                    The seller is waiting for you to complete checkout so they can arrange delivery or pickup.
+                    The seller is waiting for you to confirm the order so they can arrange delivery or pickup.
                 </Text>
 
                 <Section style={btnContainer}>
                     <Link href={checkoutUrl} style={button}>
-                        Complete Checkout
+                        Confirm Order
                     </Link>
                 </Section>
 

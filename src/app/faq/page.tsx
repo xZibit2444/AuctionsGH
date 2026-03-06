@@ -24,27 +24,31 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'How do I place a bid?',
-                a: 'Find an auction you want, click into it, and enter an amount above the current bid. Your bid must be at least ₵5.00 more than the current highest bid. Once placed, your bid is binding — you\'re committing to buy at that price if you win.',
+                a: 'Open any active auction and enter your bid amount in the bid box. Each new bid must be at least ₵50 above the current highest bid. Once placed, a bid is binding — you are committing to buy at that price if you win.',
             },
             {
                 q: 'What is the minimum bid increment?',
-                a: 'Every new bid must be at least ₵50.00 higher than the current highest bid. This keeps bidding fair and prevents spam bids.',
+                a: 'Every new bid must be at least ₵50 higher than the current highest bid. This keeps bidding fair and prevents low-value spam bids.',
             },
             {
                 q: 'How long do auctions run?',
-                a: 'Sellers choose a duration when listing: 1 day, 3 days, 5 days, or 7 days. The exact end time is shown on every auction page with a live countdown.',
+                a: 'Sellers choose a duration when listing — 1 day, 3 days, 5 days, or 7 days. The exact end time is shown on every auction page with a live countdown.',
             },
             {
                 q: 'What is snipe protection?',
-                a: 'If a bid is placed in the last 2 minutes of an auction, the end time automatically extends by 2 minutes. This prevents "sniping" — the practice of placing a bid in the final seconds to win without giving others a chance to respond.',
+                a: 'If a bid is placed in the last 2 minutes of an auction, the timer automatically extends by 2 more minutes. This prevents "sniping" — placing a bid in the final seconds to win without giving other bidders a fair chance to respond.',
             },
             {
                 q: 'What happens when an auction ends?',
-                a: 'The highest bidder wins. The auction status changes to "Sold" and both the buyer and seller are notified. If no bids were placed, the auction simply ends with no sale.',
+                a: 'The highest bidder wins. The auction status changes to "Sold" and both buyer and seller are notified immediately. The buyer\'s dashboard will show a new Checkout button. If no bids were placed the auction simply closes with no sale.',
             },
             {
-                q: 'Can I cancel my bid?',
-                a: 'Bids are final once placed. Before bidding, make sure you are ready to complete the purchase at your bid amount. If you win, you are expected to follow through with the seller.',
+                q: 'Can I cancel my bid after placing it?',
+                a: 'Bids are final once placed. Before bidding, make sure you are ready to complete the purchase. If you win, you are expected to follow through with checkout and collection.',
+            },
+            {
+                q: 'What is a bid feed?',
+                a: 'Every auction page shows a live bid feed — a real-time list of all bids placed so far, showing who bid and how much. It updates instantly each time a new bid comes in, so you always see the current state of the auction.',
             },
         ],
     },
@@ -53,64 +57,149 @@ const sections: FAQSection[] = [
         items: [
             {
                 q: 'How do I list a phone for auction?',
-                a: 'Create an account, then click "Sell Phone" in the navigation. Fill in the phone details — brand, model, storage, RAM, condition, and photos — set a starting price, choose a duration, and publish.',
+                a: 'Create a free account, then click "Sell Phone" in the navigation. Fill in the phone details — brand, model, storage, RAM, condition, and photos — set a starting price and duration, then publish. Your listing goes live immediately.',
             },
             {
                 q: 'Which phone brands can I sell?',
-                a: 'We support all major brands available in Ghana: Apple, Samsung, Tecno, Infinix, Xiaomi, Huawei, Nokia, Oppo, Vivo, Realme, Google, OnePlus, Motorola, and more.',
+                a: 'We support all major brands sold in Ghana: Apple, Samsung, Tecno, Infinix, Xiaomi, Huawei, Nokia, Oppo, Vivo, Realme, Google, OnePlus, Motorola, and more.',
             },
             {
                 q: 'How do I describe the condition of my phone?',
                 a: (
                     <div className="space-y-2">
-                        <p>Choose the condition that best matches your phone honestly:</p>
+                        <p>Choose the condition that most accurately matches your phone. Be honest — misrepresenting condition leads to disputes and account suspension.</p>
                         <ul className="space-y-1.5 mt-2">
                             <li><span className="font-bold text-black">Brand New (Sealed)</span> — Factory sealed, never opened</li>
-                            <li><span className="font-bold text-black">Like New</span> — Used but in perfect condition, no scratches</li>
+                            <li><span className="font-bold text-black">Like New</span> — Used briefly, perfect condition, no scratches</li>
                             <li><span className="font-bold text-black">Good</span> — Minor cosmetic wear, fully functional</li>
                             <li><span className="font-bold text-black">Fair</span> — Noticeable wear, works well</li>
                             <li><span className="font-bold text-black">Poor</span> — Heavy wear or minor faults, still functional</li>
                         </ul>
-                        <p className="mt-2">Misrepresenting condition can lead to disputes and account suspension.</p>
                     </div>
                 ),
             },
             {
                 q: 'How many photos can I upload?',
-                a: 'Up to 6 photos per listing. Each image must be under 5 MB and in JPEG, PNG, or WebP format. High-quality photos from multiple angles significantly improve your chances of a successful sale.',
+                a: 'Up to 6 photos per listing, each under 5 MB in JPEG, PNG, or WebP format. More high-quality photos from multiple angles — front, back, sides, screen, any damage — significantly improve buyer confidence and your final sale price.',
             },
             {
                 q: 'What should I set as my starting price?',
-                a: 'Set a starting price you\'re comfortable selling at. Bidding can push the final price higher, but auctions are not guaranteed to reach above the starting price. A lower starting price often attracts more bidders.',
+                a: 'Set the lowest price you are comfortable accepting. Competitive bidding can push the final price higher, but auctions are not guaranteed to exceed the starting price. Lower starting prices typically attract more bidders.',
             },
             {
-                q: 'Can I edit or cancel my auction after it goes live?',
-                a: 'Once a bid has been placed on your auction, you cannot cancel it. Before any bids are placed, you can cancel from your dashboard. Always double-check your details before publishing.',
+                q: 'Can I cancel my auction after it goes live?',
+                a: 'Yes — but only if no bids have been placed yet. Go to your Seller Dashboard, find the listing, and click Delete. Once even one bid exists, the auction is locked and cannot be cancelled.',
+            },
+            {
+                q: 'What areas does the marketplace serve?',
+                a: 'Listings are currently available within Accra. Meetup and handover areas include East Legon, Osu, Airport Residential, Spintex, Tema, Adenta, Madina, Cantonments, Dansoman, Dzorwulu, Lapaz, Achimota, Kasoa, and more.',
             },
             {
                 q: 'Are there any fees for sellers?',
-                a: 'AuctionsGH is currently free to list. Any future fees will be communicated clearly before they take effect.',
+                a: 'AuctionsGH is currently free to list. Any future fees will be communicated clearly and in advance before they take effect.',
             },
         ],
     },
     {
-        title: 'Buying & Payment',
+        title: 'Winning & Checkout',
         items: [
             {
-                q: 'How do I pay for a phone I won?',
-                a: 'After winning, the seller\'s contact details are shared with you. Payment and handover is arranged directly between buyer and seller. We recommend meeting in a safe, public place for in-person transactions.',
+                q: 'I won an auction — what happens next?',
+                a: (
+                    <div className="space-y-2">
+                        <p>Congratulations! Follow these steps to complete your purchase:</p>
+                        <ol className="space-y-1.5 mt-2 list-decimal list-inside">
+                            <li>You will receive a notification when your win is confirmed.</li>
+                            <li>Go to your <span className="font-semibold text-black">Dashboard → Won Auctions</span> and click <span className="font-semibold text-black">Checkout</span>.</li>
+                            <li>Fill in your name, phone number, and preferred meetup method.</li>
+                            <li>Submit the form — this creates a secure order and opens an order page.</li>
+                        </ol>
+                        <p className="mt-1">Complete checkout promptly. If you delay too long, the seller may report a ghost bid.</p>
+                    </div>
+                ),
             },
             {
-                q: 'Is there buyer protection?',
-                a: 'Currently, transactions are peer-to-peer. We strongly recommend inspecting the phone before completing payment, meeting in a public location, and only buying from sellers with positive feedback. Escrow and buyer protection features are on our roadmap.',
+                q: 'How does payment work?',
+                a: 'All transactions are Pay on Delivery / Meet & Inspect. You pay the seller in cash when you physically receive and inspect the phone. There is no upfront online payment required. Only pay once you are satisfied with the item.',
             },
             {
-                q: 'What if the phone is not as described?',
-                a: 'Always inspect the phone before paying. If there is a dispute, contact our support team with photos and details. Sellers found to be misrepresenting their listings will be suspended.',
+                q: 'Can I buy a phone without bidding?',
+                a: 'AuctionsGH is an auction-only marketplace — all purchases go through competitive bidding. There is no "Buy Now" option at this time.',
             },
             {
-                q: 'Can I buy a phone directly without bidding?',
-                a: 'AuctionsGH is an auction-only marketplace — all purchases are through competitive bidding. There is no "Buy Now" option, though we may add this feature in the future.',
+                q: 'What if I win but decide not to buy?',
+                a: 'A winning bid is a commitment to purchase. If you back out without a valid reason the seller can report a ghost bid, which may result in restrictions on your account. Only bid on a phone you genuinely intend to buy.',
+            },
+        ],
+    },
+    {
+        title: 'Orders & Delivery',
+        items: [
+            {
+                q: 'What is an order?',
+                a: 'An order is created when a winning buyer completes checkout. It is a shared record between buyer and seller that tracks the status of the handover — from pending meetup through to delivery confirmed.',
+            },
+            {
+                q: 'What is the 6-digit delivery code?',
+                a: 'When your order is created, you (the buyer) are assigned a unique 6-digit delivery code. Keep it safe and only give it to the seller at the moment of handover — after you have inspected the phone and are happy to complete the transaction. This code is how the seller confirms delivery on their end.',
+            },
+            {
+                q: 'How does the seller confirm delivery?',
+                a: 'After the buyer hands over the delivery code, the seller enters it in the Order page under "Confirm Delivery". Once the code matches, the order is marked as Completed and the transaction is closed.',
+            },
+            {
+                q: 'What order statuses will I see?',
+                a: (
+                    <div className="space-y-2">
+                        <ul className="space-y-1.5">
+                            <li><span className="font-bold text-black">Pending Meetup</span> — Order created, awaiting physical meetup</li>
+                            <li><span className="font-bold text-black">Pending</span> — Shown on seller dashboard while the order is active</li>
+                            <li><span className="font-bold text-black">Delivered</span> — Seller has entered the delivery code successfully</li>
+                            <li><span className="font-bold text-black">Completed</span> — Transaction fully closed, both sides confirmed</li>
+                        </ul>
+                    </div>
+                ),
+            },
+            {
+                q: 'How do I access my order page?',
+                a: 'Once an order exists you can reach it from three places: the notification you received after checkout, your Dashboard (Seller or Buyer view) via the "Order" button next to the listing, or the "Won Auctions" section of your Buyer Dashboard.',
+            },
+            {
+                q: 'What if the seller won\'t confirm delivery?',
+                a: 'Do not hand over payment if the seller refuses to confirm delivery through the platform. The delivery code is your protection — only give it once you are satisfied and have the phone in hand. Contact support if a seller is uncooperative.',
+            },
+        ],
+    },
+    {
+        title: 'Messaging',
+        items: [
+            {
+                q: 'Can I contact the seller or buyer directly?',
+                a: 'Yes — every order has a built-in secure chat. Once an order is created, both the buyer and seller can send messages from the Order page. This keeps all communication in one place and creates a record if a dispute arises.',
+            },
+            {
+                q: 'How do I open the chat?',
+                a: (
+                    <div className="space-y-1.5">
+                        <p>There are two easy routes:</p>
+                        <ul className="space-y-1 mt-1 list-disc list-inside">
+                            <li>Open the <span className="font-semibold text-black">Order</span> page and scroll to the Chat section at the bottom.</li>
+                            <li>From your <span className="font-semibold text-black">Dashboard</span>, click the <span className="font-semibold text-black">Chat</span> button next to any listing that has an active order — it jumps straight to the chat.</li>
+                        </ul>
+                    </div>
+                ),
+            },
+            {
+                q: 'Will I be notified of new messages?',
+                a: 'Yes. A toast notification slides in from the bottom-right of the screen when a new message arrives, even if you are on a different page. The notification bell in the top navigation also highlights unread messages. Click the notification to go directly to the order chat.',
+            },
+            {
+                q: 'Is the chat private?',
+                a: 'Yes. Chat messages are only visible to the buyer and seller on that specific order. No other users can read your messages.',
+            },
+            {
+                q: 'Can I send images or files in chat?',
+                a: 'Currently chat supports text messages only (up to 2,000 characters per message). If you need to share photos — for example to document a dispute — please email them to our support team.',
             },
         ],
     },
@@ -119,44 +208,59 @@ const sections: FAQSection[] = [
         items: [
             {
                 q: 'Do I need an account to browse?',
-                a: 'No — anyone can browse auctions. You only need to create a free account when you want to place a bid or list a phone.',
+                a: 'No — anyone can browse and view auctions without signing in. You only need a free account when you want to place a bid or list a phone.',
+            },
+            {
+                q: 'What information do I need to sign up?',
+                a: 'Email address, a password (minimum 8 characters, must include an uppercase letter, lowercase letter, and number), a username (3–20 characters, letters/numbers/underscores), your full name, a Ghana phone number (+233XXXXXXXXX), and your city.',
+            },
+            {
+                q: 'How do I update my profile?',
+                a: 'Go to Settings → Profile. You can update your full name, username, phone number, and city. Your username appears publicly on your listings and bids.',
             },
             {
                 q: 'How do I change my password?',
-                a: 'Go to Settings → Security → Change Password. Enter your current password, then your new password (minimum 8 characters). Click "Update Password" to save.',
-            },
-            {
-                q: 'How do I update my profile information?',
-                a: 'Go to Settings → Profile. You can update your full name, username, phone number, and city/region. Your username is shown publicly on your listings.',
+                a: 'Go to Settings → Security → Change Password. Enter your current password and then your new password. Click "Update Password" to save.',
             },
             {
                 q: 'What is a verified seller?',
-                a: 'Verified sellers have had their identity confirmed by the AuctionsGH team. A blue checkmark appears next to their name. Buying from verified sellers adds an extra layer of trust.',
+                a: 'Verified sellers have had their identity confirmed by the AuctionsGH team. A blue checkmark appears next to their name on listings and their profile. Buying from verified sellers provides an extra layer of trust.',
             },
             {
                 q: 'How do I report a suspicious listing or user?',
-                a: 'Use the report button on any listing or contact our support team directly. We review all reports promptly. Fraudulent listings are removed and accounts are banned.',
-            },
-            {
-                q: 'Which regions of Ghana does AuctionsGH cover?',
-                a: 'We serve all 16 regions of Ghana: Greater Accra, Ashanti, Western, Eastern, Central, Northern, Volta, Upper East, Upper West, Brong Ahafo, Bono East, Ahafo, Savannah, North East, Oti, and Western North.',
+                a: 'Use the report button on any listing, or contact our support team directly via email. All reports are reviewed promptly. Fraudulent listings are removed and accounts are permanently banned.',
             },
             {
                 q: 'How do I delete my account?',
-                a: 'Go to Settings → Security → Danger Zone and click "Delete My Account". This permanently removes all your data, listings, and bid history. This action cannot be undone.',
+                a: 'Go to Settings → Security → Danger Zone and click "Delete My Account". This permanently removes all your data, listings, bid history, and messages. This action cannot be undone.',
             },
         ],
     },
     {
-        title: 'Saved & Notifications',
+        title: 'Saved Auctions & Notifications',
         items: [
             {
                 q: 'How do I save an auction to watch later?',
-                a: 'Tap the heart ❤ icon on any auction card to save it. Saved auctions appear under the "Saved" tab in the navigation bar so you can track them easily.',
+                a: 'Tap the heart icon on any auction card or detail page to save it. All saved auctions appear in the Saved section of the navigation so you can track them easily without having to search again.',
             },
             {
                 q: 'What notifications will I receive?',
-                a: 'You can configure notifications in Settings → Notifications. Available alerts include: new bids on your listings, "auction ending soon" reminders (1 hour before close), auction won confirmations, and new messages.',
+                a: (
+                    <div className="space-y-1.5">
+                        <p>AuctionsGH sends the following notifications:</p>
+                        <ul className="space-y-1 mt-1 list-disc list-inside">
+                            <li><span className="font-semibold text-black">Outbid</span> — email when someone places a higher bid on an auction you are in</li>
+                            <li><span className="font-semibold text-black">Auction Won</span> — email and in-app alert when you win</li>
+                            <li><span className="font-semibold text-black">Item Sold</span> — email and in-app alert when your listing sells</li>
+                            <li><span className="font-semibold text-black">Order Confirmed</span> — in-app notification with a link to your delivery code</li>
+                            <li><span className="font-semibold text-black">New Message</span> — real-time toast and bell notification when your chat partner writes</li>
+                        </ul>
+                    </div>
+                ),
+            },
+            {
+                q: 'Where do I see all my notifications?',
+                a: 'Tap the bell icon in the top navigation bar to open the notification panel. Unread notifications are highlighted. Clicking a notification takes you directly to the relevant auction, order, or chat.',
             },
         ],
     },

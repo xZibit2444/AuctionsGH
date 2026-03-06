@@ -16,7 +16,6 @@ interface CheckoutFormData {
     auctionId: string;
     buyerId: string;
     deliveryMethod: 'pickup' | 'delivery';
-    paymentMethod: 'escrow' | 'cod';
     amount: number;
     address?: string;
     phone: string;
@@ -40,12 +39,9 @@ export async function createOrderAction(data: CheckoutFormData) {
             return { success: false, error: 'Invalid auction state or unauthorized' };
         }
 
-        // Determine fulfillment type and initial status based on delivery method AND payment method.
-        // If they choose pickup OR cash on delivery, it behaves essentially the same (physical exchange of money/item at the end).
-        const reliesOnEscrow = data.deliveryMethod === 'delivery' && data.paymentMethod === 'escrow';
-
-        const fulfillment_type = reliesOnEscrow ? 'escrow_delivery' : 'meet_and_inspect';
-        const initial_status = reliesOnEscrow ? 'funds_held' : 'pending_meetup';
+        // Pay on delivery only.
+        const fulfillment_type = 'meet_and_inspect';
+        const initial_status = 'pending_meetup';
 
         // 1. Insert the order
         const { data: order, error: orderError } = await supabaseAdmin
@@ -56,7 +52,7 @@ export async function createOrderAction(data: CheckoutFormData) {
                 seller_id: auction.seller_id,
                 fulfillment_type,
                 status: initial_status,
-                payment_method: data.paymentMethod,
+                payment_method: 'cod',
                 amount: data.amount,
                 meetup_location: data.deliveryMethod === 'pickup' ? 'To be arranged' : data.address,
             })
@@ -68,35 +64,57 @@ export async function createOrderAction(data: CheckoutFormData) {
             return { success: false, error: 'Failed to create order. It may already exist.' };
         }
 
-        // 2. Generate the PIN via the RPC function
+        // 2. Create the delivery record with a 6-digit code
+        const deliveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const { error: deliveryError } = await supabaseAdmin
+            .from('deliveries')
+            .insert({
+                order_id: order.id,
+                auction_id: data.auctionId,
+                seller_id: auction.seller_id,
+                buyer_id: data.buyerId,
+                delivery_code: deliveryCode,
+                status: 'pending',
+            });
+
+        if (deliveryError) {
+            console.error('Delivery record creation error:', deliveryError);
+            // Non-fatal — order still created; log but don't block
+        }
+
+        // 3. Generate the PIN via the RPC function (legacy / meet-and-inspect)
         const { data: pin, error: pinError } = await supabaseAdmin.rpc('create_order_pin', {
             p_order_id: order.id
         });
 
         if (pinError) {
             console.error('PIN generation error:', pinError);
-            // We won't block the whole flow, but we need to log it
         }
 
-        // 3. Send Notifications
+        // 4. Send Notifications
 
-        // Notify Buyer with their PIN
+        // Notify Buyer — tell them where to find their delivery code
         await supabaseAdmin.from('notifications').insert({
             user_id: data.buyerId,
             type: 'system',
-            title: 'Order Confirmed - Your Secret PIN',
-            body: `Your order for "${auction.title}" is confirmed. Your secret delivery PIN is ${pin}. DO NOT share this with the seller until you have inspected the item.`,
-            auction_id: auction.id
+            title: 'Order Confirmed — View Your Delivery Code',
+            body: `Your order for "${auction.title}" is confirmed. Open your order page to see your 6-digit delivery code. Give it to the courier when your phone arrives.`,
+            auction_id: auction.id,
+            order_id: order.id
         });
 
         // Notify Seller of the sale and next steps
         await supabaseAdmin.from('notifications').insert({
             user_id: auction.seller_id,
             type: 'system',
-            title: 'Item Sold & Paid!',
-            body: `The buyer has completed checkout for "${auction.title}". Please check your order dashboard to arrange ${data.deliveryMethod === 'pickup' ? 'meetup' : 'delivery'}.`,
-            auction_id: auction.id
+            title: 'Item Sold — Buyer Confirmed Order',
+            body: `The buyer confirmed the order for "${auction.title}" with Pay on Delivery. Arrange handover and confirm delivery from your order dashboard.`,
+            auction_id: auction.id,
+            order_id: order.id
         });
+
+        void pin; // retained for legacy PIN support
 
         return { success: true, orderId: order.id };
 

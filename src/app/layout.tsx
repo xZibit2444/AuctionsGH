@@ -4,6 +4,9 @@ import './globals.css';
 import ConditionalNav from '@/components/layout/ConditionalNav';
 import Footer from '@/components/layout/Footer';
 import Providers from '@/components/layout/Providers';
+import FloatingChatToast from '@/components/layout/FloatingChatToast';
+import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
+import RouteRefresher from '@/components/layout/RouteRefresher';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,7 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
         <Providers>
+          <RouteRefresher />
           <ConditionalNav />
+          <FloatingChatToast />
+          <FloatingOfferToast />
           <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
           <div className="hidden sm:block">
             <Footer />

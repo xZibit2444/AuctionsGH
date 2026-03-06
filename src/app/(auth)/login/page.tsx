@@ -5,7 +5,12 @@ export const metadata = {
     title: 'Sign In — AuctionsGH',
 };
 
-export default function LoginPage() {
+interface LoginPageProps {
+    searchParams: Promise<{ error?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+    const { error } = await searchParams;
     return (
         <div className="min-h-screen flex">
             {/* Left panel — branding */}
@@ -61,7 +66,7 @@ export default function LoginPage() {
                             <p className="text-sm text-gray-400 mt-1">Sign in to your account to continue</p>
                         </div>
 
-                        <LoginForm />
+                        <LoginForm urlError={error} />
 
                         <p className="mt-8 text-center text-sm text-gray-500">
                             New to AuctionsGH?{' '}

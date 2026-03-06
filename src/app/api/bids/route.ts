@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BID_AMOUNT = 999_999;
+
+/** 30 bids per 60-second window per authenticated user */
+const BIDS_LIMIT = 30;
+const BIDS_WINDOW_MS = 60_000;
 
 /**
  * POST /api/bids
@@ -15,6 +20,15 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate-limit per authenticated user
+    const rl = rateLimit(`bids:${user.id}`, BIDS_LIMIT, BIDS_WINDOW_MS);
+    if (!rl.success) {
+        return NextResponse.json(
+            { error: 'Too many bids. Please slow down.' },
+            { status: 429, headers: rateLimitHeaders(rl) }
+        );
     }
 
     let body: { auction_id?: string; amount?: number };

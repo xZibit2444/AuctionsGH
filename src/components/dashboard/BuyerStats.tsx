@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
-import { Gavel, Trophy, Clock, TrendingDown } from 'lucide-react';
+import { Gavel, Trophy, Clock, TrendingDown, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface BuyerStats {
@@ -25,7 +25,7 @@ interface BidRow {
         ends_at: string;
         current_price: number;
         winner_id: string | null;
-        orders?: { id: string; status: string } | { id: string; status: string }[] | null;
+        orders: { id: string; status: string }[] | null;
     } | null;
 }
 
@@ -46,7 +46,11 @@ export default function BuyerStats() {
         const fetchData = async () => {
             const supabase = createClient();
 
-            // Fetch all bids by this user with auction info
+            // Cutoff: only fetch bids from the last 90 days to avoid unbounded queries.
+            // Won auctions are kept regardless via a separate filter below.
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 90);
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data } = await (supabase.from('bids') as any)
                 .select(`
@@ -54,38 +58,31 @@ export default function BuyerStats() {
                     auctions ( id, title, status, ends_at, current_price, winner_id, orders(id, status) )
                 `)
                 .eq('bidder_id', user.id)
-                .order('created_at', { ascending: false });
+                .gte('created_at', cutoff.toISOString())
+                .order('created_at', { ascending: false })
+                .limit(500);
 
             const bidsRaw = (data ?? []) as BidRow[];
 
-            // 1. Filter out Lost/Ended bids older than 2 hours
+            // Filter: keep active, won, or ended within last 2 hours
             const now = new Date();
             const bids = bidsRaw.filter((b) => {
                 const auction = b.auctions;
                 if (!auction) return false;
-
-                // Keep all active
                 if (auction.status === 'active') return true;
-
-                // Keep if user won
                 if (auction.winner_id === user.id && auction.status === 'sold') return true;
-
-                // For lost/ended auctions, only keep if ended within the last 2 hours
-                const endTime = new Date(auction.ends_at);
-                const diffHours = (now.getTime() - endTime.getTime()) / (1000 * 60 * 60);
-
+                const diffHours = (now.getTime() - new Date(auction.ends_at).getTime()) / (1000 * 60 * 60);
                 return diffHours <= 2;
             });
 
             setRecentBids(bids.slice(0, 8));
 
-            // Compute stats
-            const uniqueAuctionIds = new Set(bids.map((b) => b.auctions?.id).filter(Boolean));
             const won = bids.filter(
                 (b) => b.auctions?.winner_id === user.id && b.auctions?.status === 'sold'
             );
-            const active = bids.filter((b) => b.auctions?.status === 'active');
-            const uniqueActive = new Set(active.map((b) => b.auctions?.id));
+            const uniqueActive = new Set(
+                bids.filter((b) => b.auctions?.status === 'active').map((b) => b.auctions?.id)
+            );
             const totalSpent = won.reduce((sum, b) => sum + (b.auctions?.current_price ?? 0), 0);
 
             setStats({
@@ -95,8 +92,6 @@ export default function BuyerStats() {
                 totalSpent,
             });
             setLoading(false);
-
-            void uniqueAuctionIds; // referenced for correctness
         };
 
         fetchData();
@@ -167,8 +162,8 @@ export default function BuyerStats() {
                             {recentBids.map((bid) => {
                                 const isWinner = bid.auctions?.winner_id === user?.id;
                                 const status = bid.auctions?.status;
-                                const orderRaw = bid.auctions?.orders;
-                                const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+                                const ordersRaw = bid.auctions?.orders;
+                                const order = Array.isArray(ordersRaw) ? ordersRaw[0] : ordersRaw ?? null;
 
                                 // 30 mins deadline: ends_at + 30 mins
                                 const endsAt = bid.auctions?.ends_at ? new Date(bid.auctions.ends_at).getTime() : 0;
@@ -198,26 +193,33 @@ export default function BuyerStats() {
                                         </Link>
 
                                         <div className="flex items-center gap-3 shrink-0 mt-1 sm:mt-0">
-                                            {order ? (
-                                                <Link
-                                                    href={`/orders/${order.id}`}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
-                                                >
-                                                    Track Order
-                                                </Link>
-                                            ) : status === 'sold' && isWinner ? (
-                                                isExpired ? (
-                                                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 text-red-600 bg-red-50">
-                                                        VOID
-                                                    </span>
-                                                ) : (
+                                            {order && order.status !== 'void' ? (
+                                                <div className="flex items-center gap-2">
                                                     <Link
-                                                        href={`/checkout/${bid.auctions?.id}`}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                        href={`/orders/${order.id}`}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
                                                     >
-                                                        Complete Checkout
+                                                        Order
                                                     </Link>
-                                                )
+                                                    <Link
+                                                        href={`/orders/${order.id}#chat`}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-colors"
+                                                    >
+                                                        <MessageCircle className="w-3 h-3" />
+                                                        Chat
+                                                    </Link>
+                                                </div>
+                                            ) : order?.status === 'void' || (status === 'sold' && isWinner && isExpired) ? (
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 text-red-600 bg-red-50">
+                                                    VOID
+                                                </span>
+                                            ) : status === 'sold' && isWinner ? (
+                                                <Link
+                                                    href={`/checkout/${bid.auctions?.id}`}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                >
+                                                    Confirm Order
+                                                </Link>
                                             ) : (
                                                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 ${badgeColor}`}>
                                                     {badge}

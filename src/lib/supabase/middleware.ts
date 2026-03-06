@@ -29,10 +29,12 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    // Refresh session — important for Server Components
+    // Read session from cookie (no network call) — fast for every navigation.
+    // Sensitive server actions re-verify with getUser() individually.
     const {
-        data: { user },
-    } = await supabase.auth.getUser();
+        data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
     // Redirect unauthenticated users trying to access protected routes
     const protectedPaths = ['/dashboard', '/auctions/create'];

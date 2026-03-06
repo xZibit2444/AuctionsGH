@@ -2,6 +2,8 @@ import { z } from 'zod';
 import {
     GHANA_PHONE_REGEX,
     PHONE_BRANDS,
+    LISTING_CITIES,
+    ACCRA_MEETUP_AREAS,
     ALLOWED_IMAGE_TYPES,
     MAX_IMAGE_SIZE,
 } from './constants';
@@ -32,10 +34,9 @@ export const signupSchema = z.object({
     full_name: z.string().min(2, 'Please enter your full name'),
     phone_number: z
         .string()
-        .regex(GHANA_PHONE_REGEX, 'Please enter a valid Ghana phone number (+233XXXXXXXXX)')
-        .optional()
-        .or(z.literal('')),
-    location: z.string().optional(),
+        .min(1, 'Phone number is required')
+        .regex(GHANA_PHONE_REGEX, 'Please enter a valid Ghana phone number (+233XXXXXXXXX)'),
+    location: z.string().min(1, 'Please select your city'),
 });
 
 // ── Auction Schemas ──
@@ -56,6 +57,11 @@ export const createAuctionSchema = z.object({
     min_increment: z.coerce.number().positive().default(5),
     duration_hours: z.coerce.number().min(0),
     duration_minutes: z.coerce.number().min(0).max(59).optional(),
+    listing_city: z.enum(LISTING_CITIES as unknown as [string, ...string[]]),
+    meetup_area: z.enum(ACCRA_MEETUP_AREAS as unknown as [string, ...string[]]),
+    delivery_available: z.boolean().default(true),
+    inspection_available: z.boolean().default(true),
+    winner_note: z.string().max(500, 'Winner note cannot exceed 500 characters').optional(),
 });
 
 // ── Bid Schema ──

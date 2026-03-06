@@ -1,11 +1,11 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useAuction } from '@/hooks/useAuction';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
 import CheckoutTimer from '@/components/checkout/CheckoutTimer';
-import { ShieldCheck, Truck, CreditCard, ChevronDown, ChevronUp, Loader2, CheckCircle2, Info } from 'lucide-react';
+import { ShieldCheck, Truck, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createOrderAction } from '@/app/actions/createOrder';
@@ -16,7 +16,7 @@ interface CheckoutPageProps {
 
 export default function CheckoutPage({ params }: CheckoutPageProps) {
     const { id } = use(params);
-    const { auction, loading } = useAuction(id);
+    const { auction, loading, error } = useAuction(id);
     const { user } = useAuth();
     const router = useRouter();
     const [faqOpen, setFaqOpen] = useState<number | null>(0); // First FAQ open by default
@@ -28,13 +28,37 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         phone: '',
         delivery: 'pickup',
         address: '',
-        paymentMethod: 'escrow'
     });
 
-    if (loading || !auction) {
+    const orderRaw = (auction as any)?.orders;
+    const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+
+    // Always declare hooks before any early returns to keep hook order stable.
+    useEffect(() => {
+        if (order?.id) {
+            router.replace(`/orders/${order.id}`);
+        }
+    }, [order?.id, router]);
+
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />
+            </div>
+        );
+    }
+
+    if (!auction) {
+        return (
+            <div className="max-w-xl mx-auto py-20 px-4 text-center">
+                <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h1 className="text-xl font-bold mb-2 text-black">Unable to Load Checkout</h1>
+                <p className="text-gray-500 mb-6 font-medium">
+                    {error || 'We could not load this auction right now. Please refresh and try again.'}
+                </p>
+                <Link href="/dashboard" className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                    Return to Dashboard
+                </Link>
             </div>
         );
     }
@@ -55,18 +79,15 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
     const subtotal = auction.current_price;
     const isDelivery = form.delivery === 'delivery';
-    const isEscrow = form.paymentMethod === 'escrow';
     const deliveryFee = isDelivery ? 50 : 0; // Fixed delivery fee mockup
-    const platformFee = isEscrow ? subtotal * 0.05 : 0; // 5% escrow fee only charged if using escrow
-    const total = subtotal + deliveryFee + platformFee;
+    const total = subtotal + deliveryFee;
 
-    const orderRaw = (auction as any).orders;
-    const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
-
-    // If order already exists, redirect to it
     if (order) {
-        router.replace(`/orders/${order.id}`);
-        return null;
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />
+            </div>
+        );
     }
 
     const endsAt = auction.ends_at ? new Date(auction.ends_at).getTime() : 0;
@@ -80,7 +101,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 </div>
                 <h1 className="text-2xl font-black text-black tracking-tight mb-2">Checkout Window Closed</h1>
                 <p className="text-gray-500 mb-8 font-medium italic">
-                    The 30-minute window to complete this checkout has passed. This winning bid has been marked as VOID.
+                    The 30-minute window to confirm this order has passed. This winning bid has been marked as VOID.
                 </p>
                 <Link href="/dashboard" className="inline-block px-8 py-4 bg-black text-white font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition-colors">
                     Return to Dashboard
@@ -91,12 +112,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
     const faqs = [
         {
-            q: "How does AuctionsGH Escrow work?",
-            a: "Your payment is securely held by AuctionsGH. We only release funds to the seller AFTER you receive the item and confirm it matches the description. If the item is faulty, you get a full refund."
+            q: "How does Pay on Delivery work?",
+            a: "You confirm the order now, then pay the seller when the phone is delivered or at meetup. Always test the phone before handing over payment."
         },
         {
             q: "What if I miss the 30-minute window?",
-            a: "If payment is not secured within 30 minutes, your winning bid is cancelled and the item is passed down to the next highest bidder. Repeated unpaid wins may result in account suspension."
+            a: "If the order is not confirmed within 30 minutes, your winning bid is cancelled and may be passed to the next highest bidder. Repeated unconfirmed wins may result in account suspension."
         },
         {
             q: "How do I receive my item?",
@@ -109,14 +130,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         setHeaderError('');
         setIsProcessing(true);
 
-        // Simulate network/Paystack gateway delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         const result = await createOrderAction({
             auctionId: auction.id,
             buyerId: user.id,
             deliveryMethod: form.delivery as 'pickup' | 'delivery',
-            paymentMethod: form.paymentMethod as 'escrow' | 'cod',
             amount: total,
             address: form.address,
             phone: form.phone,
@@ -139,12 +156,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
                 </div>
                 <h2 className="text-2xl font-black text-black tracking-tight mb-2">
-                    {form.paymentMethod === 'cod' ? 'Confirming Order...' : 'Processing Payment...'}
+                    Confirming Order...
                 </h2>
                 <p className="text-gray-500 font-medium">
-                    {form.paymentMethod === 'cod'
-                        ? 'Please wait while we set up your order details.'
-                        : 'Please wait while we secure your escrow funds.'}
+                    Please wait while we set up your order details.
                 </p>
                 <div className="mt-8 flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 border border-emerald-100">
                     <ShieldCheck className="w-4 h-4" />
@@ -164,8 +179,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             )}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-200 mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-black tracking-tight mb-2">Secure Checkout</h1>
-                    <p className="text-gray-500 text-sm font-medium">Complete your payment to secure the item.</p>
+                    <h1 className="text-3xl font-black text-black tracking-tight mb-2">Confirm Your Order</h1>
+                    <p className="text-gray-500 text-sm font-medium">Pay on Delivery only. Confirm now to secure the item.</p>
                 </div>
                 <div className="w-full md:w-64 shrink-0">
                     <CheckoutTimer endsAt={auction.ends_at} />
@@ -308,33 +323,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 </div>
                             </div>
 
-                            {/* Payment Method Toggle */}
-                            <div className="mb-6">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Payment Method</h4>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <label className={`cursor-pointer border p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors ${form.paymentMethod === 'escrow' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                                        <input
-                                            type="radio"
-                                            name="paymentMethod"
-                                            className="sr-only"
-                                            checked={form.paymentMethod === 'escrow'}
-                                            onChange={() => setForm({ ...form, paymentMethod: 'escrow' })}
-                                        />
-                                        <div className={`w-3 h-3 rounded-full mb-0.5 ${form.paymentMethod === 'escrow' ? 'bg-black' : 'bg-gray-200'}`} />
-                                        <span className={`text-[11px] font-bold uppercase tracking-wider ${form.paymentMethod === 'escrow' ? 'text-black' : 'text-gray-500'}`}>Escrow</span>
-                                    </label>
-                                    <label className={`cursor-pointer border p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors ${form.paymentMethod === 'cod' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                                        <input
-                                            type="radio"
-                                            name="paymentMethod"
-                                            className="sr-only"
-                                            checked={form.paymentMethod === 'cod'}
-                                            onChange={() => setForm({ ...form, paymentMethod: 'cod' })}
-                                        />
-                                        <div className={`w-3 h-3 rounded-full mb-0.5 ${form.paymentMethod === 'cod' ? 'bg-black' : 'bg-gray-200'}`} />
-                                        <span className={`text-[11px] font-bold uppercase tracking-wider ${form.paymentMethod === 'cod' ? 'text-black' : 'text-gray-500'}`}>Pay on Delivery</span>
-                                    </label>
-                                </div>
+                            <div className="mb-6 border border-gray-200 p-3 bg-gray-50">
+                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Payment Method</h4>
+                                <p className="text-sm font-semibold text-black">Pay on Delivery</p>
                             </div>
 
                             {/* Cost Breakdown */}
@@ -343,17 +334,6 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                     <span className="font-medium">Winning Bid</span>
                                     <span className="font-mono">{formatCurrency(subtotal)}</span>
                                 </div>
-                                {isEscrow && (
-                                    <div className="flex justify-between text-gray-600">
-                                        <span className="font-medium">Escrow Fee (5%)</span>
-                                        <span className="font-mono">{formatCurrency(platformFee)}</span>
-                                    </div>
-                                )}
-                                {!isEscrow && (
-                                    <div className="flex justify-between text-gray-400 text-xs">
-                                        <span>No Escrow Protection</span>
-                                    </div>
-                                )}
                                 {isDelivery && (
                                     <div className="flex justify-between text-gray-600">
                                         <span className="font-medium">Delivery Fee</span>
@@ -363,7 +343,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                             </div>
 
                             <div className="flex justify-between items-end pt-5 border-t border-gray-200 mb-8">
-                                <span className="text-sm font-bold text-black uppercase tracking-widest">Total to Pay</span>
+                                <span className="text-sm font-bold text-black uppercase tracking-widest">Total on Delivery</span>
                                 <span className="text-2xl font-black text-black tracking-tight">{formatCurrency(total)}</span>
                             </div>
 
@@ -374,28 +354,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 disabled={isProcessing}
                                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
                             >
-                                {isProcessing ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Processing...
-                                    </>
-                                ) : isEscrow ? (
-                                    <>
-                                        <CreditCard className="w-4 h-4" />
-                                        Pay securely with Paystack
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="w-4 h-4" />
-                                        Confirm Cash Order
-                                    </>
-                                )}
+                                {isProcessing ? 'Confirming...' : 'Confirm Pay-on-Delivery Order'}
                             </button>
 
                             <div className="text-center text-[11px] text-gray-400 font-medium">
-                                {isEscrow
-                                    ? "Payments are securely processed and held in escrow."
-                                    : "You will pay the seller directly upon inspecting the item."}
+                                You will pay the seller directly upon delivery or at meetup after inspection.
                             </div>
                         </div>
                     </div>

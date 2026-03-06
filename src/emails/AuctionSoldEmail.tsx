@@ -46,21 +46,21 @@ export const AuctionSoldEmail = ({
                 <Section style={infoBox}>
                     <Text style={infoBoxTitle}>What happens next?</Text>
                     <Text style={text}>
-                        The buyer has exactly 30 minutes to complete checkout and secure their payment in our Escrow system. Once payment is secured, we will notify you immediately with delivery instructions or pickup details.
+                        The buyer has exactly 30 minutes to confirm the order. Once confirmed, contact them to arrange delivery or pickup and collect payment on delivery.
                     </Text>
                     <Text style={text}>
-                        If the buyer fails to pay within the 30-minute window, the auction will automatically be offered to the next highest bidder.
+                        If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.
                     </Text>
                 </Section>
 
                 <Section style={btnContainer}>
-                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`} style={button}>
+                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard`} style={button}>
                         View Dashboard
                     </Link>
                 </Section>
 
                 <Text style={footer}>
-                    Thank you for selling with AuctionsGH. We handle the payment security so you can sell with peace of mind.
+                    Thank you for selling with AuctionsGH.
                 </Text>
             </Container>
         </Body>

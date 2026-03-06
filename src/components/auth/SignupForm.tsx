@@ -19,6 +19,8 @@ export default function SignupForm() {
         phone_number: '',
         location: '',
     });
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [errors, setErrors] = useState<Partial<Record<keyof SignupInput, string>>>({});
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -26,12 +28,23 @@ export default function SignupForm() {
     const [cityOpen, setCityOpen] = useState(false);
 
     const update = (field: keyof SignupInput, value: string) =>
-        setFormData({ ...formData, [field]: value });
+        setFormData((prev) => ({ ...prev, [field]: value }));
+
+    const updateFirstName = (val: string) => {
+        setFirstName(val);
+        update('full_name', `${val} ${lastName}`.trim());
+    };
+
+    const updateLastName = (val: string) => {
+        setLastName(val);
+        update('full_name', `${firstName} ${val}`.trim());
+    };
 
     const handleGoogleSignup = async () => {
+        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${window.location.origin}/callback` },
+            options: { redirectTo: `${origin}/callback` },
         });
     };
 
@@ -56,27 +69,35 @@ export default function SignupForm() {
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
+                options: {
+                    data: {
+                        username: formData.username,
+                        full_name: formData.full_name,
+                        phone_number: formData.phone_number,
+                        location: formData.location,
+                    },
+                },
             });
 
             if (authError) {
-                setServerError(authError.message);
+                const msg = authError.message.toLowerCase();
+                if (msg.includes('already registered') || msg.includes('already in use') || msg.includes('user already exists')) {
+                    setErrors((prev) => ({ ...prev, email: 'An account with this email already exists.' }));
+                } else {
+                    setServerError(authError.message);
+                }
                 return;
             }
 
-            if (authData.user) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const { error: profileError } = await (supabase.from('profiles') as any).insert({
-                    id: authData.user.id,
-                    username: formData.username,
-                    full_name: formData.full_name,
-                    phone_number: formData.phone_number || null,
-                    location: formData.location || null,
-                });
+            if (!authData.user) {
+                setServerError('Signup failed. Please try again.');
+                return;
+            }
 
-                if (profileError) {
-                    setServerError(profileError.message);
-                    return;
-                }
+            // If email confirmation is required, send to verify page
+            if (!authData.session) {
+                router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+                return;
             }
 
             router.push('/');
@@ -89,7 +110,7 @@ export default function SignupForm() {
     };
 
     const localPhone = formData.phone_number?.startsWith('+233')
-        ? formData.phone_number.slice(4).trimStart()
+        ? formData.phone_number.slice(4).replace(/\s/g, '')
         : formData.phone_number ?? '';
 
     return (
@@ -101,28 +122,39 @@ export default function SignupForm() {
                 </div>
             )}
 
-            {/* Name + Username */}
+            {/* First + Last name */}
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Full Name</label>
+                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">First Name</label>
                     <input
-                        value={formData.full_name}
-                        onChange={(e) => update('full_name', e.target.value)}
-                        placeholder="Kwame Asante"
+                        value={firstName}
+                        onChange={(e) => updateFirstName(e.target.value)}
+                        placeholder="Kwame"
+                        className={`w-full border px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.full_name ? 'border-red-400' : 'border-gray-200'}`}
+                    />
+                </div>
+                <div>
+                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Last Name</label>
+                    <input
+                        value={lastName}
+                        onChange={(e) => updateLastName(e.target.value)}
+                        placeholder="Asante"
                         className={`w-full border px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.full_name ? 'border-red-400' : 'border-gray-200'}`}
                     />
                     {errors.full_name && <p className="text-[10px] text-red-500 mt-0.5">{errors.full_name}</p>}
                 </div>
-                <div>
-                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Username</label>
-                    <input
-                        value={formData.username}
-                        onChange={(e) => update('username', e.target.value)}
-                        placeholder="kwame_tech"
-                        className={`w-full border px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.username ? 'border-red-400' : 'border-gray-200'}`}
-                    />
-                    {errors.username && <p className="text-[10px] text-red-500 mt-0.5">{errors.username}</p>}
-                </div>
+            </div>
+
+            {/* Username */}
+            <div>
+                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Username</label>
+                <input
+                    value={formData.username}
+                    onChange={(e) => update('username', e.target.value)}
+                    placeholder="kwame_tech"
+                    className={`w-full border px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.username ? 'border-red-400' : 'border-gray-200'}`}
+                />
+                {errors.username && <p className="text-[10px] text-red-500 mt-0.5">{errors.username}</p>}
             </div>
 
             {/* Email */}
@@ -161,7 +193,7 @@ export default function SignupForm() {
             <div className="grid grid-cols-2 gap-3">
                 {/* Phone with +233 prefix */}
                 <div>
-                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Phone <span className="font-medium text-gray-400 normal-case">(optional)</span></label>
+                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Phone <span className="text-red-500">*</span></label>
                     <div className={`flex border focus-within:border-black transition-colors ${errors.phone_number ? 'border-red-400' : 'border-gray-200'}`}>
                         <div className="flex items-center gap-1 px-2 bg-gray-50 border-r border-gray-200 shrink-0">
                             <span className="text-xs font-bold text-black">GH</span>
@@ -171,19 +203,20 @@ export default function SignupForm() {
                             type="tel"
                             value={localPhone}
                             onChange={(e) => {
-                                const cleaned = e.target.value.replace(/[^0-9 ]/g, '');
-                                update('phone_number', cleaned ? `+233 ${cleaned}` : '');
+                                const cleaned = e.target.value.replace(/[^0-9]/g, '');
+                                update('phone_number', cleaned ? `+233${cleaned}` : '');
                             }}
-                            placeholder="XX XXXXXXX"
-                            maxLength={12}
+                            placeholder="XXXXXXXXX"
+                            maxLength={9}
                             className="flex-1 px-2 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
                         />
                     </div>
+                    {errors.phone_number && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone_number}</p>}
                 </div>
 
                 {/* City select */}
                 <div className="relative">
-                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">City <span className="font-medium text-gray-400 normal-case">(optional)</span></label>
+                    <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">City <span className="text-red-500">*</span></label>
                     <button
                         type="button"
                         onClick={() => setCityOpen(o => !o)}
@@ -209,6 +242,7 @@ export default function SignupForm() {
                             ))}
                         </div>
                     )}
+                    {errors.location && <p className="text-[10px] text-red-500 mt-0.5">{errors.location}</p>}
                 </div>
             </div>
 

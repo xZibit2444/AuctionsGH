@@ -12,6 +12,8 @@ import {
     STORAGE_OPTIONS,
     AUCTION_DURATIONS,
     MAX_IMAGES_PER_AUCTION,
+    LISTING_CITIES,
+    ACCRA_MEETUP_AREAS,
 } from '@/lib/constants';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2
@@ -68,6 +70,11 @@ export default function CreateAuctionForm() {
         min_increment: 50,
         duration_hours: 72,
         duration_minutes: 0,
+        listing_city: 'Accra',
+        meetup_area: 'Accra Central',
+        delivery_available: true,
+        inspection_available: true,
+        winner_note: '',
     });
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
@@ -109,7 +116,7 @@ export default function CreateAuctionForm() {
             setErrors(fieldErrors);
 
             // If validation fails on step 3 but the error is on step 1/2, jump back to it
-            if (fieldErrors.title || fieldErrors.model || fieldErrors.storage_gb) setStep(1);
+            if (fieldErrors.title || fieldErrors.model || fieldErrors.storage_gb || fieldErrors.listing_city || fieldErrors.meetup_area) setStep(1);
             else if (fieldErrors.images) setStep(2);
 
             return;
@@ -153,6 +160,10 @@ export default function CreateAuctionForm() {
                     current_price: formData.starting_price,
                     min_increment: formData.min_increment,
                     ends_at: endsAt,
+                    listing_city: formData.listing_city,
+                    meetup_area: formData.meetup_area,
+                    delivery_available: formData.delivery_available,
+                    inspection_available: formData.inspection_available,
                 })
                 .select()
                 .single();
@@ -161,6 +172,21 @@ export default function CreateAuctionForm() {
                 console.error("DEBUG: Supabase Insert Error ->", auctionError);
                 setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
                 return;
+            }
+
+            const winnerNote = (formData.winner_note ?? '').trim();
+            if (winnerNote) {
+                // Save private seller instructions visible only to the winning buyer via RLS.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { error: noteError } = await (supabase.from('auction_winner_notes') as any).insert({
+                    auction_id: (auction as { id: string }).id,
+                    seller_id: user.id,
+                    note: winnerNote,
+                });
+
+                if (noteError) {
+                    console.error('Failed to save winner-only note:', noteError.message);
+                }
             }
 
             for (let i = 0; i < images.length; i++) {
@@ -325,6 +351,63 @@ export default function CreateAuctionForm() {
                             placeholder="Describe the phone's condition, accessories included, reason for selling..."
                             className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none"
                         />
+                    </div>
+
+                    <div>
+                        <FieldLabel optional>Winner-Only Note</FieldLabel>
+                        <textarea
+                            rows={3}
+                            value={formData.winner_note ?? ''}
+                            onChange={(e) => update('winner_note', e.target.value)}
+                            placeholder="Private note only the winning buyer can see (e.g. best contact hours, pickup instruction)."
+                            className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none ${errors.winner_note ? 'border-red-400' : 'border-gray-200'}`}
+                        />
+                        {errors.winner_note && <p className="text-[11px] text-red-500 mt-1">{errors.winner_note}</p>}
+                    </div>
+
+                    {/* Location */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <FieldLabel>City</FieldLabel>
+                            <SelectInput value={formData.listing_city} onChange={(e) => update('listing_city', e.target.value)}>
+                                {LISTING_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}
+                            </SelectInput>
+                            {errors.listing_city && <p className="text-[11px] text-red-500 mt-1">{errors.listing_city}</p>}
+                        </div>
+                        <div>
+                            <FieldLabel>Meetup Area</FieldLabel>
+                            <SelectInput value={formData.meetup_area} onChange={(e) => update('meetup_area', e.target.value)}>
+                                {ACCRA_MEETUP_AREAS.map((area) => <option key={area} value={area}>{area}</option>)}
+                            </SelectInput>
+                            {errors.meetup_area && <p className="text-[11px] text-red-500 mt-1">{errors.meetup_area}</p>}
+                        </div>
+                    </div>
+
+                    {/* Buyer-facing logistics options */}
+                    <div>
+                        <FieldLabel>Handover Options</FieldLabel>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => update('delivery_available', !formData.delivery_available)}
+                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.delivery_available
+                                    ? 'border-black bg-black text-white'
+                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                            >
+                                Delivery Available
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => update('inspection_available', !formData.inspection_available)}
+                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.inspection_available
+                                    ? 'border-black bg-black text-white'
+                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                            >
+                                Meet & Inspect Available
+                            </button>
+                        </div>
                     </div>
 
                     <button
@@ -539,6 +622,18 @@ export default function CreateAuctionForm() {
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Photos</span>
                             <span className="font-semibold text-black">{images.length}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Location</span>
+                            <span className="font-semibold text-black">{formData.listing_city}, {formData.meetup_area}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Delivery</span>
+                            <span className="font-semibold text-black">{formData.delivery_available ? 'Yes' : 'No'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Inspection</span>
+                            <span className="font-semibold text-black">{formData.inspection_available ? 'Yes' : 'No'}</span>
                         </div>
                     </div>
 

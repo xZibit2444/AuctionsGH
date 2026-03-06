@@ -49,7 +49,7 @@ export default function CheckoutTimer({ endsAt }: CheckoutTimerProps) {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <div className="font-bold text-sm">Payment window expired</div>
+                <div className="font-bold text-sm">Confirmation window expired</div>
             </div>
         );
     }
@@ -64,7 +64,7 @@ export default function CheckoutTimer({ endsAt }: CheckoutTimerProps) {
     return (
         <div className={`flex flex-col items-center justify-center p-4 border-2 ${isWarning ? 'border-red-500 bg-red-50 text-red-600' : 'border-black bg-black text-white'}`}>
             <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
-                Time Remaining to Pay
+                Time Remaining to Confirm
             </div>
             <div className="text-3xl font-mono font-bold tracking-tight">
                 {mm}:{ss}

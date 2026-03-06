@@ -24,7 +24,7 @@ export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId 
                         <>You've successfully secured <strong>&quot;{auctionTitle}&quot;</strong>. Track your delivery or pickup status.</>
                     ) : (
                         <>You won <strong>&quot;{auctionTitle}&quot;</strong> for{' '}
-                            <strong>{formatCurrency(amount)}</strong>. You have 30 minutes to complete checkout.</>
+                            <strong>{formatCurrency(amount)}</strong>. You have 30 minutes to confirm your order.</>
                     )}
                 </p>
             </div>
@@ -33,7 +33,7 @@ export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId 
                 href={orderId ? `/orders/${orderId}` : `/checkout/${auctionId}`}
                 className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
             >
-                {orderId ? "Track Your Order" : "Complete Checkout"}
+                {orderId ? 'Track Your Order' : 'Confirm Order'}
                 <ArrowRight className="w-4 h-4" />
             </Link>
         </div>

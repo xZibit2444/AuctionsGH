@@ -106,7 +106,7 @@ function SelectField({
                 </button>
 
                 {open && (
-                    <div className="absolute left-0 right-0 top-full z-50 bg-white border border-black shadow-sm mt-[-1px]">
+                    <div className="absolute left-0 right-0 top-full z-50 bg-white border border-black shadow-sm -mt-px">
                         {CITIES.map((city) => (
                             <button
                                 key={city}
@@ -188,12 +188,19 @@ export default function SettingsPage() {
         phone_number: '',
         location: '',
     });
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState('');
 
     // Sync form when profile loads
     useEffect(() => {
         if (profile) {
+            const parts = (profile.full_name ?? '').split(' ');
+            const first = parts[0] ?? '';
+            const last = parts.slice(1).join(' ');
+            setFirstName(first);
+            setLastName(last);
             setProfileForm({
                 full_name: profile.full_name ?? '',
                 username: profile.username ?? '',
@@ -205,6 +212,11 @@ export default function SettingsPage() {
 
     const handleEditCancel = () => {
         // Reset to original
+        const parts = (profile?.full_name ?? '').split(' ');
+        const first = parts[0] ?? '';
+        const last = parts.slice(1).join(' ');
+        setFirstName(first);
+        setLastName(last);
         setProfileForm({
             full_name: profile?.full_name ?? '',
             username: profile?.username ?? '',
@@ -218,10 +230,21 @@ export default function SettingsPage() {
     const handleProfileSave = async () => {
         if (!user) return;
         setProfileError('');
+
+        // Validate required fields
+        if (!profileForm.phone_number || profileForm.phone_number.trim() === '') {
+            setProfileError('Phone number is required.');
+            return;
+        }
+        if (!profileForm.location || profileForm.location.trim() === '') {
+            setProfileError('Location (city) is required.');
+            return;
+        }
+
         try {
             const supabase = createClient();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (supabase.from('profiles') as any)
+            const { error } = await (supabase.from('profiles') as any)
                 .update({
                     full_name: profileForm.full_name,
                     username: profileForm.username,
@@ -229,24 +252,67 @@ export default function SettingsPage() {
                     location: profileForm.location,
                 })
                 .eq('id', user.id);
+            if (error) {
+                const msg = (error as { message?: string }).message ?? '';
+                if (msg.includes('phone_number') || (msg.includes('23505') && msg.includes('phone'))) {
+                    setProfileError('This phone number is already in use by another account.');
+                } else if (msg.includes('username')) {
+                    setProfileError('This username is already taken.');
+                } else {
+                    setProfileError(msg || 'Failed to save. Please try again.');
+                }
+                return;
+            }
             setProfileSaved(true);
             setEditing(false);
             setTimeout(() => setProfileSaved(false), 2500);
-        } catch {
-            setProfileError('Failed to save. Please try again.');
+        } catch (e: unknown) {
+            setProfileError(e instanceof Error ? e.message : 'Failed to save. Please try again.');
         }
     };
 
     /* ── Notifications ── */
-    const [notifSettings, setNotifSettings] = useState({
+    const defaultNotifSettings = {
         new_bid: true,
         auction_ending: true,
         auction_won: true,
         new_message: false,
         promotions: false,
-    });
+    };
+    const [notifSettings, setNotifSettings] = useState(defaultNotifSettings);
+    const [notifSaved, setNotifSaved] = useState(false);
+    const [notifError, setNotifError] = useState('');
+
+    // Sync notification preferences from profile
+    useEffect(() => {
+        if (profile?.notification_preferences) {
+            setNotifSettings({
+                ...defaultNotifSettings,
+                ...profile.notification_preferences,
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [profile]);
+
     const toggleNotif = (key: keyof typeof notifSettings) =>
         setNotifSettings((s) => ({ ...s, [key]: !s[key] }));
+
+    const handleSaveNotifications = async () => {
+        if (!user) return;
+        setNotifError('');
+        try {
+            const supabase = createClient();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error } = await (supabase.from('profiles') as any)
+                .update({ notification_preferences: notifSettings })
+                .eq('id', user.id);
+            if (error) throw error;
+            setNotifSaved(true);
+            setTimeout(() => setNotifSaved(false), 2500);
+        } catch (e: unknown) {
+            setNotifError(e instanceof Error ? e.message : 'Failed to save. Please try again.');
+        }
+    };
 
     /* ── Security ── */
     const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
@@ -367,7 +433,8 @@ export default function SettingsPage() {
                                 {/* READ-ONLY view */}
                                 {!editing && (
                                     <div className="px-5 sm:px-6 py-2">
-                                        <InfoRow label="Full Name" value={profile?.full_name ?? ''} placeholder="Not set" />
+                                        <InfoRow label="First Name" value={profile?.full_name?.split(' ')[0] ?? ''} placeholder="Not set" />
+                                        <InfoRow label="Last Name" value={profile?.full_name?.split(' ').slice(1).join(' ') ?? ''} placeholder="Not set" />
                                         <InfoRow label="Username" value={profile?.username ?? ''} placeholder="Not set" />
                                         <InfoRow label="Email" value={user?.email ?? ''} />
                                         <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
@@ -380,19 +447,31 @@ export default function SettingsPage() {
                                     <div className="px-5 sm:px-6 py-6 space-y-5">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <EditField
-                                                label="Full Name"
-                                                value={profileForm.full_name}
-                                                onChange={(v) => setProfileForm({ ...profileForm, full_name: v })}
-                                                placeholder="Kwame Mensah"
+                                                label="First Name"
+                                                value={firstName}
+                                                onChange={(v) => {
+                                                    setFirstName(v);
+                                                    setProfileForm((prev) => ({ ...prev, full_name: `${v} ${lastName}`.trim() }));
+                                                }}
+                                                placeholder="Kwame"
                                             />
                                             <EditField
-                                                label="Username"
-                                                value={profileForm.username}
-                                                onChange={(v) => setProfileForm({ ...profileForm, username: v })}
-                                                placeholder="kwame_m"
-                                                hint="Shown publicly on listings"
+                                                label="Last Name"
+                                                value={lastName}
+                                                onChange={(v) => {
+                                                    setLastName(v);
+                                                    setProfileForm((prev) => ({ ...prev, full_name: `${firstName} ${v}`.trim() }));
+                                                }}
+                                                placeholder="Mensah"
                                             />
                                         </div>
+                                        <EditField
+                                            label="Username"
+                                            value={profileForm.username}
+                                            onChange={(v) => setProfileForm({ ...profileForm, username: v })}
+                                            placeholder="kwame_m"
+                                            hint="Shown publicly on listings"
+                                        />
 
                                         {/* Email — read only, no edit */}
                                         <div>
@@ -468,10 +547,22 @@ export default function SettingsPage() {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="px-5 sm:px-6 py-4 border-t border-gray-200">
+                                <div className="px-5 sm:px-6 py-4 border-t border-gray-200 space-y-3">
                                     <p className="text-xs text-gray-400">
                                         Sent to <span className="font-semibold text-black">{user?.email}</span>
                                     </p>
+                                    {notifError && (
+                                        <div className="flex items-center gap-2 text-red-500 text-xs">
+                                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                            {notifError}
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={handleSaveNotifications}
+                                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                                    >
+                                        {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Preferences'}
+                                    </button>
                                 </div>
                             </div>
                         )}
