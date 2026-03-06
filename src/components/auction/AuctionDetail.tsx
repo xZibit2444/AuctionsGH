@@ -291,12 +291,12 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         />
                     )}
 
-                    {/* Offer panel for logged-in buyers — always show so history is visible */}
-                    {!isSeller && user && (
+                    {/* Offer panel for buyers (logged-in or not) */}
+                    {!isSeller && (
                         <OfferPanel
                             auctionId={auction.id}
                             isSeller={false}
-                            userId={user.id}
+                            userId={user?.id}
                             auctionTitle={auction.title}
                             isActive={auction.status === 'active'}
                         />

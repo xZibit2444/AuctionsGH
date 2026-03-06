@@ -21,12 +21,13 @@ interface Offer {
 interface OfferPanelProps {
     auctionId: string;
     isSeller: boolean;
-    userId: string;
+    userId?: string | null;
     auctionTitle: string;
     isActive?: boolean;
 }
 
 export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, isActive = true }: OfferPanelProps) {
+    const isLoggedIn = !!userId;
     const router = useRouter();
     const [offers, setOffers] = useState<Offer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
     }, [offers]);
 
     const fetchOffers = useCallback(async () => {
+        if (!userId) { setLoading(false); return; }
         const supabase = createClient();
         let q = (supabase.from('auction_offers') as any)
             .select('*, buyer_profile:profiles!buyer_id(full_name, username)')
@@ -68,6 +70,10 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
 
     const handleSendOffer = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isLoggedIn) {
+            router.push(`/login?redirectTo=/auctions/${auctionId}`);
+            return;
+        }
         const parsed = parseFloat(amount.replace(/,/g, ''));
         if (!parsed || parsed <= 0) { setFormError('Enter a valid amount'); return; }
         setSubmitting(true);
@@ -88,9 +94,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
     };
 
     if (loading) return null;
-    // Don't render at all if not seller and no offers exist and auction is inactive
-    if (!isSeller && !isActive && offers.length === 0) return null;
-    if (isSeller && !isActive && offers.length === 0) return null;
+    // Don't render at all if auction is inactive and there's nothing to show
+    if (!isActive && offers.length === 0) return null;
 
     const hasPending = !isSeller && offers.some((o) => o.status === 'pending');
 
