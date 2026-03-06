@@ -83,7 +83,8 @@ export default function FloatingChatToast() {
                 }
             )
             .subscribe((status, err) => {
-                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                // Only log real errors — err is undefined for harmless cleanup signals
+                if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && err) {
                     console.error('FloatingChatToast subscription error:', status, err);
                 }
             });

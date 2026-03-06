@@ -11,7 +11,8 @@ const supabaseAdmin = createClient(
 
 /**
  * Returns the delivery_code for an order — buyer only.
- * Called from DeliveryCodeDisplay component.
+ * If no delivery record exists yet but the caller is the order's buyer,
+ * one is created on-the-fly so the buyer always sees a code.
  */
 export async function getDeliveryCodeAction(orderId: string): Promise<{ code: string | null; error?: string }> {
     const supabase = await createServerClient();
@@ -24,10 +25,38 @@ export async function getDeliveryCodeAction(orderId: string): Promise<{ code: st
         .eq('order_id', orderId)
         .single();
 
-    if (error || !data) return { code: null, error: 'Delivery not found' };
-    if (data.buyer_id !== user.id) return { code: null, error: 'Access denied' };
+    // Delivery record exists — verify ownership and return code
+    if (data) {
+        if (data.buyer_id !== user.id) return { code: null, error: 'Access denied' };
+        return { code: data.delivery_code };
+    }
 
-    return { code: data.delivery_code };
+    // No delivery record yet — try to auto-create one if user is the buyer
+    const { data: order, error: orderErr } = await supabaseAdmin
+        .from('orders')
+        .select('id, buyer_id, seller_id, auction_id')
+        .eq('id', orderId)
+        .single();
+
+    if (orderErr || !order) return { code: null, error: 'Order not found' };
+    if (order.buyer_id !== user.id) return { code: null, error: 'Access denied' };
+
+    const deliveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const { error: insertErr } = await supabaseAdmin
+        .from('deliveries')
+        .insert({
+            order_id: orderId,
+            auction_id: order.auction_id,
+            seller_id: order.seller_id,
+            buyer_id: order.buyer_id,
+            delivery_code: deliveryCode,
+            status: 'pending',
+        });
+
+    if (insertErr) return { code: null, error: 'Could not create delivery record' };
+
+    return { code: deliveryCode };
 }
 
 /**

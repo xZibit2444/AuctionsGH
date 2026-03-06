@@ -63,8 +63,18 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
                 (payload) => {
                     const incoming = payload.new as Message;
                     setMessages((prev) => {
-                        // Already present by real ID â€” skip
+                        // Already present by real ID — skip
                         if (prev.some((m) => m.id === incoming.id)) return prev;
+                        // Replace a matching optimistic message to avoid duplicate keys
+                        // when the realtime event races the optimistic ID swap
+                        const optimisticIdx = prev.findIndex(
+                            (m) => m.id.startsWith('opt-') && m.sender_id === incoming.sender_id && m.body === incoming.body
+                        );
+                        if (optimisticIdx !== -1) {
+                            const next = [...prev];
+                            next[optimisticIdx] = incoming;
+                            return next;
+                        }
                         return [...prev, incoming];
                     });
                 }
