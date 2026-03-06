@@ -48,6 +48,7 @@ export interface Database {
                     is_verified?: boolean;
                     is_admin?: boolean;
                     notification_preferences?: object | null;
+                    fcm_token?: string | null;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -61,6 +62,7 @@ export interface Database {
                     is_verified?: boolean;
                     is_admin?: boolean;
                     notification_preferences?: object | null;
+                    fcm_token?: string | null;
                     updated_at?: string;
                 };
             };

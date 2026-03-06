@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 /**
  * Registers for FCM push notifications when running inside the Capacitor Android app.
@@ -36,10 +37,9 @@ export function usePushNotifications(userId?: string) {
                 const uid = userIdRef.current;
                 if (!uid) return;
                 try {
-                    const { createClient } = await import('@/lib/supabase/client');
                     const supabase = createClient();
-                    await supabase
-                        .from('profiles')
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    await (supabase.from('profiles') as any)
                         .update({ fcm_token: token.value })
                         .eq('id', uid);
                 } catch {
