@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { BidWithBidder } from '@/types/bid';
 
@@ -15,10 +15,21 @@ export function useRealtimeBids({
     onNewBid,
     onAuctionUpdate,
 }: UseRealtimeBidsOptions) {
+    // Store callbacks in refs so the channel only subscribes once per auctionId.
+    // Without this, every time the parent re-renders with a new callback reference
+    // the channel tears down and re-creates, causing missed events and UI freezes.
+    const onNewBidRef = useRef(onNewBid);
+    const onAuctionUpdateRef = useRef(onAuctionUpdate);
+
     useEffect(() => {
-        // Create client inside effect so it never appears in the deps array.
-        // Having createClient() outside caused a new object every render,
-        // which would re-subscribe/unsubscribe the channel on every render.
+        onNewBidRef.current = onNewBid;
+    }, [onNewBid]);
+
+    useEffect(() => {
+        onAuctionUpdateRef.current = onAuctionUpdate;
+    }, [onAuctionUpdate]);
+
+    useEffect(() => {
         const supabase = createClient();
 
         const channel = supabase
@@ -39,7 +50,7 @@ export function useRealtimeBids({
                         .single();
 
                     if (data) {
-                        onNewBid(data as unknown as BidWithBidder);
+                        onNewBidRef.current(data as unknown as BidWithBidder);
                     }
                 }
             )
@@ -52,7 +63,7 @@ export function useRealtimeBids({
                     filter: `id=eq.${auctionId}`,
                 },
                 (payload) => {
-                    onAuctionUpdate?.(payload.new as Record<string, unknown>);
+                    onAuctionUpdateRef.current?.(payload.new as Record<string, unknown>);
                 }
             )
             .subscribe();
@@ -60,5 +71,5 @@ export function useRealtimeBids({
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [auctionId, onNewBid, onAuctionUpdate]);
+    }, [auctionId]);
 }

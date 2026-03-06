@@ -1,25 +1,24 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 /**
- * Forces a full browser reload on every client-side navigation.
- * This prevents stale auth state and UI hangs when moving between pages.
+ * Calls router.refresh() on client-side navigations so server components
+ * re-fetch their data with fresh auth cookies. This is a lightweight
+ * alternative to the old full-page window.location.replace().
  */
 export default function RouteRefresher() {
     const pathname = usePathname();
+    const router = useRouter();
     const prevPath = useRef<string | null>(null);
 
     useEffect(() => {
         if (prevPath.current !== null && prevPath.current !== pathname) {
-            // Full reload preserving query string and hash
-            window.location.replace(
-                pathname + window.location.search + window.location.hash
-            );
+            router.refresh();
         }
         prevPath.current = pathname;
-    }, [pathname]);
+    }, [pathname, router]);
 
     return null;
 }

@@ -7,9 +7,9 @@ import type { BidWithBidder } from '@/types/bid';
 export function useBids(auctionId: string) {
     const [bids, setBids] = useState<BidWithBidder[]>([]);
     const [loading, setLoading] = useState(true);
-    const supabase = createClient();
 
     useEffect(() => {
+        const supabase = createClient();
         const fetchBids = async () => {
             const { data } = await supabase
                 .from('bids')
@@ -27,7 +27,7 @@ export function useBids(auctionId: string) {
         };
 
         fetchBids();
-    }, [auctionId, supabase]);
+    }, [auctionId]);
 
     return { bids, setBids, loading };
 }

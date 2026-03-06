@@ -65,35 +65,37 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const handleNewBid = useCallback(
         (bid: BidWithBidder) => {
             setBids((prev) => [bid, ...prev]);
-            if (auction) {
-                setAuction({
-                    ...auction,
-                    current_price: bid.amount,
-                    bid_count: auction.bid_count + 1,
-                });
-            }
+            setAuction((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          current_price: bid.amount,
+                          bid_count: prev.bid_count + 1,
+                      }
+                    : prev
+            );
         },
-        [auction, setAuction, setBids]
+        [setAuction, setBids]
     );
 
     const handleAuctionUpdate = useCallback(
         (payload: Record<string, unknown>) => {
-            if (auction) {
-                const newStatus = payload.status as AuctionStatus;
-                const newWinnerId = payload.winner_id as string | null;
+            const newStatus = payload.status as AuctionStatus;
+            const newWinnerId = payload.winner_id as string | null;
 
-                if (auction.status === 'active' && newStatus === 'sold' && newWinnerId === user?.id) {
+            setAuction((prev) => {
+                if (!prev) return prev;
+                if (prev.status === 'active' && newStatus === 'sold' && newWinnerId === user?.id) {
                     setShowCongrats(true);
                 }
-
-                setAuction({
-                    ...auction,
+                return {
+                    ...prev,
                     status: newStatus,
                     winner_id: newWinnerId,
-                });
-            }
+                };
+            });
         },
-        [auction, setAuction, user?.id]
+        [setAuction, user?.id]
     );
 
     useRealtimeBids({

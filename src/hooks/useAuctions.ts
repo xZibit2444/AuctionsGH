@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
@@ -37,6 +37,16 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Debounce search to avoid firing a DB query on every keystroke
+    const [debouncedSearch, setDebouncedSearch] = useState(search);
+    const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+
+    useEffect(() => {
+        if (search === debouncedSearch) return;
+        debounceTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
+        return () => clearTimeout(debounceTimer.current);
+    }, [search, debouncedSearch]);
+
     useEffect(() => {
         let isMounted = true;
         const fetchAuctions = async () => {
@@ -63,8 +73,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 query = query.eq('seller_id', sellerId);
             }
             // Full-text search across title, brand and model
-            if (search && search.trim()) {
-                const q = search.trim();
+            if (debouncedSearch && debouncedSearch.trim()) {
+                const q = debouncedSearch.trim();
                 query = query.or(
                     `title.ilike.%${q}%,brand.ilike.%${q}%,model.ilike.%${q}%`
                 );
@@ -121,7 +131,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, brand, sellerId, search, limit, orderBy, ascending]);
+    }, [status, brand, sellerId, debouncedSearch, limit, orderBy, ascending]);
 
     return { auctions, loading, error };
 }
