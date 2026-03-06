@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function generateDeliveryCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -24,8 +18,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        const supabaseAdmin = createAdminClient();
         // Check not already created
-        const { data: existing } = await supabaseAdmin
+        const { data: existing } = await (supabaseAdmin as any)
             .from('deliveries')
             .select('id')
             .eq('order_id', orderId)
@@ -37,7 +32,7 @@ export async function POST(req: NextRequest) {
 
         const delivery_code = generateDeliveryCode();
 
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await (supabaseAdmin as any)
             .from('deliveries')
             .insert({
                 order_id: orderId,

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
-
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 /**
  * 10 confirmation attempts per 10-minute window per user.
@@ -45,7 +39,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'orderId and code are required' }, { status: 400 });
         }
 
-        const { data: delivery, error: fetchErr } = await supabaseAdmin
+        const supabaseAdmin = createAdminClient();
+        const { data: delivery, error: fetchErr } = await (supabaseAdmin as any)
             .from('deliveries')
             .select('id, seller_id, delivery_code, status')
             .eq('order_id', orderId)
@@ -55,33 +50,35 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Delivery not found' }, { status: 404 });
         }
 
+        const d = delivery as any;
+
         // Only the seller can confirm
-        if (delivery.seller_id !== user.id) {
+        if (d.seller_id !== user.id) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
         // Code already used
-        if (delivery.status === 'delivered' || delivery.status === 'completed') {
+        if (d.status === 'delivered' || d.status === 'completed') {
             return NextResponse.json({ error: 'Delivery already confirmed' }, { status: 409 });
         }
 
         // Verify code
-        if (delivery.delivery_code !== code.trim()) {
+        if (d.delivery_code !== code.trim()) {
             return NextResponse.json({ error: 'Incorrect delivery code' }, { status: 422 });
         }
 
         // Mark delivery as delivered
-        const { error: updateErr } = await supabaseAdmin
+        const { error: updateErr } = await (supabaseAdmin as any)
             .from('deliveries')
             .update({ status: 'delivered', delivered_at: new Date().toISOString() })
-            .eq('id', delivery.id);
+            .eq('id', d.id);
 
         if (updateErr) {
             return NextResponse.json({ error: 'Failed to confirm delivery' }, { status: 500 });
         }
 
         // Update order status to completed
-        await supabaseAdmin
+        await (supabaseAdmin as any)
             .from('orders')
             .update({ status: 'completed', updated_at: new Date().toISOString() })
             .eq('id', orderId);

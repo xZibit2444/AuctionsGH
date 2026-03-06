@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
-
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 /**
  * GET /api/delivery/[id]
@@ -26,7 +20,8 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
         }
 
-        const { data: delivery, error } = await supabaseAdmin
+        const supabaseAdmin = createAdminClient();
+        const { data: delivery, error } = await (supabaseAdmin as any)
             .from('deliveries')
             .select('id, auction_id, order_id, seller_id, buyer_id, delivery_code, status, delivered_at, created_at')
             .eq('id', id)
@@ -37,14 +32,15 @@ export async function GET(
         }
 
         // Access control
-        if (delivery.buyer_id !== user.id && delivery.seller_id !== user.id) {
+        const d = delivery as any;
+        if (d.buyer_id !== user.id && d.seller_id !== user.id) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
         // Strip delivery_code for sellers — only buyers may see it
-        const response = delivery.buyer_id === user.id
-            ? delivery
-            : { ...delivery, delivery_code: undefined };
+        const response = d.buyer_id === user.id
+            ? d
+            : { ...d, delivery_code: undefined };
 
         return NextResponse.json({ delivery: response });
     } catch (err) {
