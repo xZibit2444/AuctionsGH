@@ -39,7 +39,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
     // Debounce search to avoid firing a DB query on every keystroke
     const [debouncedSearch, setDebouncedSearch] = useState(search);
-    const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+    const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     useEffect(() => {
         if (search === debouncedSearch) return;
