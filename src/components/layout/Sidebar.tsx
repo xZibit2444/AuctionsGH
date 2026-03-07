@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import {
-    Home, Search, LayoutDashboard, Heart,
+    Home, Search, LayoutDashboard, Heart, Package,
     HelpCircle, Plus, LogOut, Settings,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
     PanelLeftClose, PanelLeftOpen,
@@ -43,6 +43,7 @@ const NAV_ITEMS = [
     { href: '/auctions', label: 'Browse', icon: Search },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authRequired: true },
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
+    { href: '/orders', label: 'Orders', icon: Package, authRequired: true },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
 ];
 

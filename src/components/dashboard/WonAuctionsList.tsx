@@ -6,30 +6,35 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
 import Skeleton from '@/components/ui/Skeleton';
-import type { Auction } from '@/types/auction';
+
+interface OrderRow {
+    id: string;
+    status: string;
+    created_at: string;
+    auction: { id: string; title: string; current_price: number } | null;
+}
 
 export default function WonAuctionsList() {
     const { user } = useAuth();
-    const [auctions, setAuctions] = useState<Auction[]>([]);
+    const [orders, setOrders] = useState<OrderRow[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) return;
 
-        const fetchWon = async () => {
+        const fetchOrders = async () => {
             const supabase = createClient();
             const { data } = await supabase
-                .from('auctions')
-                .select('*, profiles!auctions_seller_id_fkey(username, phone_number, location)')
-                .eq('winner_id', user.id)
-                .eq('status', 'sold')
-                .order('updated_at', { ascending: false });
+                .from('orders')
+                .select('id, status, created_at, auction:auctions(id, title, current_price)')
+                .eq('buyer_id', user.id)
+                .order('created_at', { ascending: false });
 
-            setAuctions((data as Auction[]) ?? []);
+            setOrders((data as OrderRow[]) ?? []);
             setLoading(false);
         };
 
-        fetchWon();
+        fetchOrders();
     }, [user]);
 
     if (loading) {
@@ -42,17 +47,12 @@ export default function WonAuctionsList() {
         );
     }
 
-    if (auctions.length === 0) {
+    if (orders.length === 0) {
         return (
             <div className="text-center py-12">
                 <span className="text-4xl mb-4 block">🏆</span>
-                <p className="text-gray-500 dark:text-gray-400">
-                    You haven&apos;t won any auctions yet.
-                </p>
-                <Link
-                    href="/auctions"
-                    className="text-emerald-600 font-medium hover:underline mt-2 inline-block"
-                >
+                <p className="text-gray-500">You haven&apos;t won any auctions yet.</p>
+                <Link href="/auctions" className="text-emerald-600 font-medium hover:underline mt-2 inline-block">
                     Browse auctions →
                 </Link>
             </div>
@@ -61,19 +61,17 @@ export default function WonAuctionsList() {
 
     return (
         <div className="space-y-3">
-            {auctions.map((auction) => (
+            {orders.map((order) => (
                 <Link
-                    key={auction.id}
-                    href={`/auctions/${auction.id}`}
-                    className="block p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md hover:shadow-emerald-600/10 hover:border-emerald-200 transition-all duration-300 hover:-translate-y-0.5"
+                    key={order.id}
+                    href={`/orders/${order.id}`}
+                    className="block p-5 bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 hover:-translate-y-0.5"
                 >
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-medium text-gray-900 dark:text-white">
-                                {auction.title}
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Won for {formatCurrency(auction.current_price)}
+                            <h3 className="font-medium text-gray-900">{order.auction?.title ?? 'Order'}</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {formatCurrency(order.auction?.current_price ?? 0)}
                             </p>
                         </div>
                         <span className="text-2xl">🏆</span>
