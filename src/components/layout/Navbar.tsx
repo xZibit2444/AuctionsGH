@@ -72,7 +72,7 @@ export default function Navbar() {
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Search phones..."
+                                        placeholder="Search items..."
                                         className="w-48 py-2 pr-2 text-sm text-black placeholder-gray-400 bg-transparent focus:outline-none"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Escape') setSearchOpen(false);

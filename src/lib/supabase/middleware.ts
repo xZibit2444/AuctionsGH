@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
     const user = session?.user ?? null;
 
     // Redirect unauthenticated users trying to access protected routes
-    const protectedPaths = ['/dashboard', '/auctions/create'];
+    const protectedPaths = ['/dashboard', '/auctions/create', '/seller-apply', '/admin'];
     const isProtected = protectedPaths.some((path) =>
         request.nextUrl.pathname.startsWith(path)
     );

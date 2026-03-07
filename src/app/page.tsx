@@ -30,10 +30,10 @@ export default function HomePage() {
       {/* Hero */}
       <section className="mb-8">
         <h1 className="text-4xl sm:text-5xl font-black text-black tracking-tighter mb-2">
-          Find Your Next Phone.
+          Find Your Next Deal.
         </h1>
         <p className="text-gray-500 text-base sm:text-lg max-w-xl">
-          Bid on premium smartphones from verified sellers across Ghana.
+          Bid on items from verified sellers across Ghana.
         </p>
       </section>
 

@@ -14,6 +14,7 @@ export type Json =
 export type AuctionStatus = 'draft' | 'active' | 'ended' | 'sold' | 'cancelled';
 export type PhoneCondition = 'new' | 'like_new' | 'good' | 'fair' | 'poor';
 export type NotificationType = 'outbid' | 'auction_won' | 'auction_ended' | 'new_bid';
+export type SellerApplicationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Database {
     public: {
@@ -254,6 +255,49 @@ export interface Database {
                     created_at?: string;
                 };
                 Update: never;
+            };
+            seller_applications: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    full_name: string;
+                    phone_number: string;
+                    location: string;
+                    items_to_sell: string;
+                    experience: string;
+                    id_type: string;
+                    id_number: string;
+                    status: SellerApplicationStatus;
+                    admin_notes: string | null;
+                    reviewed_by: string | null;
+                    reviewed_at: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    full_name: string;
+                    phone_number: string;
+                    location: string;
+                    items_to_sell: string;
+                    experience: string;
+                    id_type: string;
+                    id_number: string;
+                    status?: SellerApplicationStatus;
+                    admin_notes?: string | null;
+                    reviewed_by?: string | null;
+                    reviewed_at?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    status?: SellerApplicationStatus;
+                    admin_notes?: string | null;
+                    reviewed_by?: string | null;
+                    reviewed_at?: string | null;
+                    updated_at?: string;
+                };
             };
         };
         Functions: {

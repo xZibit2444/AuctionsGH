@@ -113,7 +113,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     const faqs = [
         {
             q: "How does Pay on Delivery work?",
-            a: "You confirm the order now, then pay the seller when the phone is delivered or at meetup. Always test the phone before handing over payment."
+            a: "You confirm the order now, then pay the seller when the item is delivered or at meetup. Always inspect the item before handing over payment."
         },
         {
             q: "What if I miss the 30-minute window?",

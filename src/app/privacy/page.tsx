@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'Privacy Policy — AuctionsGH',
-    description: 'Privacy Policy for AuctionsGH — Ghana\'s Smartphone Auction Marketplace',
+    description: 'Privacy Policy for AuctionsGH — Ghana\'s Online Auction Marketplace',
 };
 
 export default function PrivacyPolicyPage() {
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
                     <p>
                         AuctionsGH (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the AuctionsGH platform available at{' '}
                         <a href="https://auctions-gh-7nap.vercel.app" className="text-black underline">auctions-gh-7nap.vercel.app</a>{' '}
-                        and the AuctionsGH mobile application. We are a smartphone auction marketplace based in Ghana.
+                        and the AuctionsGH mobile application. We are an online auction marketplace based in Ghana.
                         For any privacy-related questions, contact us at <strong>0257396067</strong>.
                     </p>
                 </section>
@@ -122,7 +122,7 @@ export default function PrivacyPolicyPage() {
                     <p>If you have any questions about this Privacy Policy or how we handle your data:</p>
                     <div className="mt-2 p-4 border border-gray-200 bg-gray-50">
                         <p><strong>AuctionsGH</strong></p>
-                        <p>Ghana&apos;s Smartphone Auction Marketplace</p>
+                        <p>Ghana&apos;s Online Auction Marketplace</p>
                         <p className="mt-1">📞 <strong>0257396067</strong></p>
                         <p>🌐 <a href="https://auctions-gh-7nap.vercel.app" className="text-black underline">auctions-gh-7nap.vercel.app</a></p>
                     </div>

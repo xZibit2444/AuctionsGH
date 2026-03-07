@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
-import { Smartphone, Heart } from 'lucide-react';
+import { Package, Heart } from 'lucide-react';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import type { Auction } from '@/types/auction';
 
@@ -45,7 +45,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
-                            <Smartphone className="h-10 w-10" strokeWidth={1} />
+                            <Package className="h-10 w-10" strokeWidth={1} />
                         </div>
                     )}
 

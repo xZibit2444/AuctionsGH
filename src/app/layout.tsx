@@ -11,10 +11,10 @@ import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AuctionsGH — Ghana\'s Smartphone Auction Marketplace',
+  title: 'AuctionsGH — Ghana\'s Online Auction Marketplace',
   description:
-    'Buy and sell smartphones at the best prices through live auctions. Ghana\'s leading mobile phone marketplace.',
-  keywords: ['Ghana', 'auction', 'smartphone', 'phone', 'marketplace', 'buy', 'sell'],
+    'Buy and sell anything at the best prices through live auctions. Ghana\'s leading online auction marketplace.',
+  keywords: ['Ghana', 'auction', 'marketplace', 'buy', 'sell', 'items'],
 };
 
 export default function RootLayout({

@@ -14,7 +14,7 @@ export default function Footer() {
                             </span>
                         </Link>
                         <p className="text-sm text-gray-500 mb-4">
-                            Ghana&apos;s leading smartphone auction marketplace. Buy and sell phones at the best prices.
+                            Ghana&apos;s leading online auction marketplace. Buy and sell anything at the best prices.
                         </p>
                     </div>
 
@@ -24,8 +24,8 @@ export default function Footer() {
                             Marketplace
                         </h3>
                         <ul className="space-y-2.5 text-sm text-gray-500">
-                            <li><Link href="/auctions" className="hover:text-black transition-colors">Browse Phones</Link></li>
-                            <li><Link href="/auctions/create" className="hover:text-black transition-colors">Sell a Phone</Link></li>
+                            <li><Link href="/auctions" className="hover:text-black transition-colors">Browse Auctions</Link></li>
+                            <li><Link href="/auctions/create" className="hover:text-black transition-colors">Sell an Item</Link></li>
                             <li><Link href="/dashboard" className="hover:text-black transition-colors">Dashboard</Link></li>
                         </ul>
                     </div>

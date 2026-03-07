@@ -26,14 +26,14 @@ export default function SignupPage() {
                     <div className="space-y-1">
                         <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Join the community</p>
                         <h2 className="text-5xl font-black text-white leading-none tracking-tighter">
-                            Buy &amp; Sell<br />Phones<br />Securely
+                            Buy &amp; Sell<br />Anything<br />Securely
                         </h2>
                     </div>
                     <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
                         Create your free account and start bidding within minutes. Verified listings. Protected transactions.
                     </p>
                     <div className="space-y-3 pt-2">
-                        {['Free to join — no subscription', 'Bid on any active listing instantly', 'Sell your phone at the best price', 'Secure payments via verified channels'].map((point) => (
+                        {['Free to join — no subscription', 'Bid on any active listing instantly', 'Sell your items at the best price', 'Secure payments via verified channels'].map((point) => (
                             <div key={point} className="flex items-center gap-3">
                                 <div className="h-1.5 w-1.5 bg-white rounded-full shrink-0" />
                                 <p className="text-sm text-gray-400">{point}</p>
@@ -60,7 +60,7 @@ export default function SignupPage() {
                     <div className="w-full max-w-sm">
                         <div className="mb-8">
                             <h1 className="text-3xl font-black text-black tracking-tight">Create account</h1>
-                            <p className="text-sm text-gray-400 mt-1">Start buying and selling phones today</p>
+                            <p className="text-sm text-gray-400 mt-1">Start buying and selling today</p>
                         </div>
 
                         <SignupForm />

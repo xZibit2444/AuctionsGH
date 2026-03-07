@@ -31,11 +31,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     <div className="space-y-1">
                         <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ghana&apos;s Premier</p>
                         <h2 className="text-5xl font-black text-white leading-none tracking-tighter">
-                            Smartphone<br />Auction<br />Platform
+                            Online<br />Auction<br />Platform
                         </h2>
                     </div>
                     <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                        Bid on verified pre-owned phones. Sell yours to the highest bidder. Every transaction is secure.
+                        Bid on verified items. Sell yours to the highest bidder. Every transaction is secure.
                     </p>
                     <div className="flex gap-6 pt-2">
                         <div>

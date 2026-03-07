@@ -20,7 +20,7 @@ const sections: FAQSection[] = [
         items: [
             {
                 q: 'What is AuctionsGH?',
-                a: 'AuctionsGH is Ghana\'s dedicated smartphone auction marketplace. Sellers list their phones, buyers compete by placing bids, and the highest bidder when the auction ends wins the phone. All prices are in Ghana Cedis (₵).',
+                a: 'AuctionsGH is Ghana\'s dedicated online auction marketplace. Sellers list their items, buyers compete by placing bids, and the highest bidder when the auction ends wins the item. All prices are in Ghana Cedis (₵).',
             },
             {
                 q: 'How do I place a bid?',
@@ -56,18 +56,18 @@ const sections: FAQSection[] = [
         title: 'Selling',
         items: [
             {
-                q: 'How do I list a phone for auction?',
-                a: 'Create a free account, then click "Sell Phone" in the navigation. Fill in the phone details — brand, model, storage, RAM, condition, and photos — set a starting price and duration, then publish. Your listing goes live immediately.',
+                q: 'How do I list an item for auction?',
+                a: 'Create a free account, then click "Sell" in the navigation. Fill in the item details — title, condition, and photos — set a starting price and duration, then publish. Your listing goes live immediately.',
             },
             {
-                q: 'Which phone brands can I sell?',
-                a: 'We support all major brands sold in Ghana: Apple, Samsung, Tecno, Infinix, Xiaomi, Huawei, Nokia, Oppo, Vivo, Realme, Google, OnePlus, Motorola, and more.',
+                q: 'What kinds of items can I sell?',
+                a: 'You can list any used or new item for auction — electronics, phones, accessories, clothing, furniture, collectibles, and more. Items must be legal to sell in Ghana and accurately described.',
             },
             {
-                q: 'How do I describe the condition of my phone?',
+                q: 'How do I describe the condition of my item?',
                 a: (
                     <div className="space-y-2">
-                        <p>Choose the condition that most accurately matches your phone. Be honest — misrepresenting condition leads to disputes and account suspension.</p>
+                        <p>Choose the condition that most accurately matches your item. Be honest — misrepresenting condition leads to disputes and account suspension.</p>
                         <ul className="space-y-1.5 mt-2">
                             <li><span className="font-bold text-black">Brand New (Sealed)</span> — Factory sealed, never opened</li>
                             <li><span className="font-bold text-black">Like New</span> — Used briefly, perfect condition, no scratches</li>
@@ -120,15 +120,15 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'How does payment work?',
-                a: 'All transactions are Pay on Delivery / Meet & Inspect. You pay the seller in cash when you physically receive and inspect the phone. There is no upfront online payment required. Only pay once you are satisfied with the item.',
+                a: 'All transactions are Pay on Delivery / Meet & Inspect. You pay the seller in cash when you physically receive and inspect the item. There is no upfront online payment required. Only pay once you are satisfied with the item.',
             },
             {
-                q: 'Can I buy a phone without bidding?',
+                q: 'Can I buy an item without bidding?',
                 a: 'AuctionsGH is an auction-only marketplace — all purchases go through competitive bidding. There is no "Buy Now" option at this time.',
             },
             {
                 q: 'What if I win but decide not to buy?',
-                a: 'A winning bid is a commitment to purchase. If you back out without a valid reason the seller can report a ghost bid, which may result in restrictions on your account. Only bid on a phone you genuinely intend to buy.',
+                a: 'A winning bid is a commitment to purchase. If you back out without a valid reason the seller can report a ghost bid, which may result in restrictions on your account. Only bid on an item you genuinely intend to buy.',
             },
         ],
     },
@@ -141,7 +141,7 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'What is the 6-digit delivery code?',
-                a: 'When your order is created, you (the buyer) are assigned a unique 6-digit delivery code. Keep it safe and only give it to the seller at the moment of handover — after you have inspected the phone and are happy to complete the transaction. This code is how the seller confirms delivery on their end.',
+                a: 'When your order is created, you (the buyer) are assigned a unique 6-digit delivery code. Keep it safe and only give it to the seller at the moment of handover — after you have inspected the item and are happy to complete the transaction. This code is how the seller confirms delivery on their end.',
             },
             {
                 q: 'How does the seller confirm delivery?',
@@ -166,7 +166,7 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'What if the seller won\'t confirm delivery?',
-                a: 'Do not hand over payment if the seller refuses to confirm delivery through the platform. The delivery code is your protection — only give it once you are satisfied and have the phone in hand. Contact support if a seller is uncooperative.',
+                a: 'Do not hand over payment if the seller refuses to confirm delivery through the platform. The delivery code is your protection — only give it once you are satisfied and have the item in hand. Contact support if a seller is uncooperative.',
             },
         ],
     },
@@ -208,7 +208,7 @@ const sections: FAQSection[] = [
         items: [
             {
                 q: 'Do I need an account to browse?',
-                a: 'No — anyone can browse and view auctions without signing in. You only need a free account when you want to place a bid or list a phone.',
+                a: 'No — anyone can browse and view auctions without signing in. You only need a free account when you want to place a bid or list an item.',
             },
             {
                 q: 'What information do I need to sign up?',
