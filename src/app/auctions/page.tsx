@@ -5,9 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuctions } from '@/hooks/useAuctions';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
-import { PHONE_BRANDS } from '@/lib/constants';
+import { ITEM_CATEGORIES } from '@/lib/constants';
 
-const BRANDS = ['All', ...PHONE_BRANDS];
+const CATEGORIES = ['All', ...ITEM_CATEGORIES];
 const SORT_OPTIONS = [
     { label: 'Ending Soon', value: 'ends_at:asc' },
     { label: 'Newest', value: 'created_at:desc' },
@@ -30,7 +30,7 @@ function AuctionsContent() {
     // Initialise from URL params
     const [query, setQuery] = useState(searchParams.get('q') ?? '');
     const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
-    const [brand, setBrand] = useState(searchParams.get('brand') ?? 'All');
+    const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
     const [sort, setSort] = useState(searchParams.get('sort') ?? 'ends_at:asc');
 
     const [orderBy, ascending] = sort.split(':') as [
@@ -40,7 +40,7 @@ function AuctionsContent() {
 
     const { auctions, loading } = useAuctions({
         status: 'active',
-        brand: brand === 'All' ? undefined : brand,
+        brand: category === 'All' ? undefined : category,
         search: query || undefined,
         orderBy,
         ascending: ascending === 'asc',
@@ -62,23 +62,23 @@ function AuctionsContent() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setQuery(inputVal);
-        syncUrl(inputVal, brand, sort);
+        syncUrl(inputVal, category, sort);
     };
 
-    const handleBrand = (b: string) => {
-        setBrand(b);
+    const handleCategory = (b: string) => {
+        setCategory(b);
         syncUrl(query, b, sort);
     };
 
     const handleSort = (s: string) => {
         setSort(s);
-        syncUrl(query, brand, s);
+        syncUrl(query, category, s);
     };
 
     const clearSearch = () => {
         setInputVal('');
         setQuery('');
-        syncUrl('', brand, sort);
+        syncUrl('', category, sort);
     };
 
     // Respond to external navigation (e.g. Navbar search → /auctions?q=...)
@@ -88,7 +88,7 @@ function AuctionsContent() {
         setQuery(urlQ);
     }, [searchParams]);
 
-    const hasFilters = query || brand !== 'All';
+    const hasFilters = query || category !== 'All';
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
@@ -97,7 +97,7 @@ function AuctionsContent() {
                 <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
                 {hasFilters && (
                     <button
-                        onClick={() => { setInputVal(''); setQuery(''); setBrand('All'); syncUrl('', 'All', sort); }}
+                        onClick={() => { setInputVal(''); setQuery(''); setCategory('All'); syncUrl('', 'All', sort); }}
                         className="text-xs font-semibold text-gray-400 hover:text-black transition-colors flex items-center gap-1"
                     >
                         <X className="h-3.5 w-3.5" /> Clear filters
@@ -113,7 +113,7 @@ function AuctionsContent() {
                         type="text"
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
-                        placeholder="Search by brand, model, or title…"
+                        placeholder="Search items…"
                         className="w-full border border-gray-200 pl-9 pr-9 py-2.5 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
                     />
                     {inputVal && (
@@ -134,18 +134,19 @@ function AuctionsContent() {
                 </button>
             </form>
 
-            {/* Brand chips */}
+            {/* Category chips */}
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
-                {BRANDS.map((b) => (
+                {CATEGORIES.map((c) => (
                     <button
-                        key={b}
-                        onClick={() => handleBrand(b)}
-                        className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${brand === b
-                            ? 'bg-black text-white border-black'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
-                            }`}
+                        key={c}
+                        onClick={() => handleCategory(c)}
+                        className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${
+                            category === c
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                        }`}
                     >
-                        {b}
+                        {c}
                     </button>
                 ))}
             </div>

@@ -1,5 +1,5 @@
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { PHONE_BRANDS, CONDITION_LABELS } from '@/lib/constants';
+import { ITEM_CATEGORIES, CONDITION_LABELS } from '@/lib/constants';
 
 interface AuctionFiltersProps {
     search: string;
@@ -8,8 +8,6 @@ interface AuctionFiltersProps {
     setBrand: (b: string) => void;
     condition: string;
     setCondition: (c: string) => void;
-    minStorage: number;
-    setMinStorage: (s: number) => void;
     sortBy: 'current_price' | 'ends_at' | 'created_at';
     setSortBy: (s: 'current_price' | 'ends_at' | 'created_at') => void;
     ascending: boolean;
@@ -23,21 +21,12 @@ export default function AuctionFilters({
     setBrand,
     condition,
     setCondition,
-    minStorage,
-    setMinStorage,
     sortBy,
     setSortBy,
     ascending,
     setAscending,
 }: AuctionFiltersProps) {
-    const brands = ['All', ...PHONE_BRANDS.slice(0, 8)];
-    const storageOptions = [
-        { label: 'All Storage', value: 0 },
-        { label: '64GB+', value: 64 },
-        { label: '128GB+', value: 128 },
-        { label: '256GB+', value: 256 },
-        { label: '512GB+', value: 512 },
-    ];
+    const categories = ['All', ...ITEM_CATEGORIES];
 
     const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
@@ -72,15 +61,15 @@ export default function AuctionFilters({
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by title, brand, or model..."
+                    placeholder="Search items…"
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-black focus:border-black sm:text-sm text-black transition-colors placeholder:text-gray-400"
                 />
             </div>
 
             {/* Bottom Row: Advanced Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 
-                {/* Brand */}
+                {/* Category */}
                 <div className="min-w-0">
                     <select
                         value={brand}
@@ -88,8 +77,8 @@ export default function AuctionFilters({
                         className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
-                        {brands.map(b => (
-                            <option key={b} value={b}>{b === 'All' ? 'All Brands' : b}</option>
+                        {categories.map(c => (
+                            <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
                         ))}
                     </select>
                 </div>
@@ -105,20 +94,6 @@ export default function AuctionFilters({
                         <option value="All">All Conditions</option>
                         {Object.entries(CONDITION_LABELS).map(([key, label]) => (
                             <option key={key} value={key}>{label}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Storage */}
-                <div className="min-w-0">
-                    <select
-                        value={minStorage}
-                        onChange={(e) => setMinStorage(Number(e.target.value))}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
-                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                    >
-                        {storageOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                     </select>
                 </div>

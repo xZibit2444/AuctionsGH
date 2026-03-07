@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { PHONE_BRANDS, CONDITION_LABELS, STORAGE_OPTIONS, RAM_OPTIONS, AUCTION_DURATIONS } from '@/lib/constants';
+import { ITEM_CATEGORIES, CONDITION_LABELS, AUCTION_DURATIONS } from '@/lib/constants';
 
 interface FormData {
     title: string;
@@ -20,7 +20,7 @@ interface FormData {
 
 const INITIAL: FormData = {
     title: '',
-    brand: 'Apple',
+    brand: 'Phones & Tablets',
     model: '',
     storage_gb: '',
     ram_gb: '',
@@ -60,7 +60,7 @@ export default function ListingForm() {
 
     const handleSubmit = async () => {
         if (!user) return setError('Please log in first');
-        if (!form.title || !form.model || !form.starting_price) return setError('Please fill in required fields');
+        if (!form.title || !form.starting_price) return setError('Please fill in required fields');
 
         setSubmitting(true);
         setError(null);
@@ -153,40 +153,21 @@ export default function ListingForm() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                             <select className={inputCls} value={form.brand} onChange={(e) => set('brand', e.target.value)}>
-                                {PHONE_BRANDS.map((b) => <option key={b}>{b}</option>)}
+                                {ITEM_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Model <span className="text-red-500">*</span>
+                                Brand / Variant
                             </label>
                             <input
                                 className={inputCls}
-                                placeholder="14 Pro Max"
+                                placeholder="e.g. Samsung, Nike…"
                                 value={form.model}
                                 onChange={(e) => set('model', e.target.value)}
                             />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Storage</label>
-                            <select className={inputCls} value={form.storage_gb} onChange={(e) => set('storage_gb', e.target.value)}>
-                                <option value="">—</option>
-                                {STORAGE_OPTIONS.map((gb) => (
-                                    <option key={gb} value={gb}>{gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">RAM</label>
-                            <select className={inputCls} value={form.ram_gb} onChange={(e) => set('ram_gb', e.target.value)}>
-                                <option value="">—</option>
-                                {RAM_OPTIONS.map((gb) => <option key={gb} value={gb}>{gb} GB</option>)}
-                            </select>
                         </div>
                     </div>
 
@@ -214,7 +195,7 @@ export default function ListingForm() {
                         <textarea
                             className={`${inputCls} resize-none`}
                             rows={3}
-                            placeholder="Describe the phone's condition, what's included, reason for selling..."
+                            placeholder="Describe the item's condition, what's included, reason for selling…"
                             value={form.description}
                             onChange={(e) => set('description', e.target.value)}
                         />

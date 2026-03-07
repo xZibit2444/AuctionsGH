@@ -22,23 +22,23 @@ export const MAX_IMAGES_PER_AUCTION = 6;
 /** Supabase Storage bucket for auction images */
 export const AUCTION_IMAGES_BUCKET = 'auction-images';
 
-/** Popular phone brands in Ghana */
-export const PHONE_BRANDS = [
-    'Apple',
-    'Samsung',
-    'Tecno',
-    'Infinix',
-    'Xiaomi',
-    'Huawei',
-    'Nokia',
-    'Oppo',
-    'Vivo',
-    'Realme',
-    'Google',
-    'OnePlus',
-    'Motorola',
+/** Item categories (Jiji-inspired) */
+export const ITEM_CATEGORIES = [
+    'Phones & Tablets',
+    'Electronics',
+    'Computers & Laptops',
+    'Vehicles',
+    'Fashion & Clothing',
+    'Home & Garden',
+    'Sports & Outdoors',
+    'Kids & Baby',
+    'Health & Beauty',
+    'Agriculture',
     'Other',
 ] as const;
+
+/** @deprecated use ITEM_CATEGORIES */
+export const PHONE_BRANDS = ITEM_CATEGORIES;
 
 /** Phone condition labels */
 export const CONDITION_LABELS: Record<string, string> = {
@@ -48,12 +48,6 @@ export const CONDITION_LABELS: Record<string, string> = {
     fair: 'Fair',
     poor: 'Poor',
 };
-
-/** Common storage sizes (GB) */
-export const STORAGE_OPTIONS = [16, 32, 64, 128, 256, 512, 1024] as const;
-
-/** Common RAM sizes (GB) */
-export const RAM_OPTIONS = [2, 3, 4, 6, 8, 12, 16] as const;
 
 /** Auction duration presets */
 export const AUCTION_DURATIONS = [

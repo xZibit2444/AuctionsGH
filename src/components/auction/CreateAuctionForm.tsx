@@ -7,9 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { createAuctionSchema, type CreateAuctionInput } from '@/lib/validators';
 import {
-    PHONE_BRANDS,
+    ITEM_CATEGORIES,
     CONDITION_LABELS,
-    STORAGE_OPTIONS,
     AUCTION_DURATIONS,
     MAX_IMAGES_PER_AUCTION,
     LISTING_CITIES,
@@ -20,7 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-const STEPS = ['Phone Details', 'Photos', 'Pricing'];
+const STEPS = ['Item Details', 'Photos', 'Pricing'];
 
 function FieldLabel({ children, optional }: { children: React.ReactNode; optional?: boolean }) {
     return (
@@ -62,7 +61,7 @@ export default function CreateAuctionForm() {
     const [formData, setFormData] = useState<CreateAuctionInput>({
         title: '',
         description: '',
-        brand: 'Apple',
+        brand: 'Phones & Tablets',
         model: '',
         storage_gb: undefined,
         condition: 'good',
@@ -116,7 +115,7 @@ export default function CreateAuctionForm() {
             setErrors(fieldErrors);
 
             // If validation fails on step 3 but the error is on step 1/2, jump back to it
-            if (fieldErrors.title || fieldErrors.model || fieldErrors.storage_gb || fieldErrors.listing_city || fieldErrors.meetup_area) setStep(1);
+            if (fieldErrors.title || fieldErrors.brand || fieldErrors.listing_city || fieldErrors.meetup_area) setStep(1);
             else if (fieldErrors.images) setStep(2);
 
             return;
@@ -128,7 +127,7 @@ export default function CreateAuctionForm() {
         }
 
         if (images.length === 0) {
-            setErrors({ submit: 'Please add at least one photo of the phone.' });
+            setErrors({ submit: 'Please add at least one photo of the item.' });
             setStep(2);
             return;
         }
@@ -220,7 +219,7 @@ export default function CreateAuctionForm() {
                     <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <h2 className="text-3xl font-black text-black tracking-tight mb-2">Auction Published!</h2>
-                <p className="text-gray-500 mb-8">Your {formData.brand} {formData.model} is now live and accepting bids.</p>
+                <p className="text-gray-500 mb-8">Your listing is now live and accepting bids.</p>
 
                 <div className="space-y-3">
                     <Link
@@ -272,7 +271,7 @@ export default function CreateAuctionForm() {
                 </div>
             )}
 
-            {/* ── Step 1: Phone Details ── */}
+            {/* ── Step 1: Item Details ── */}
             {step === 1 && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
                     {/* Title */}
@@ -287,38 +286,23 @@ export default function CreateAuctionForm() {
                         {errors.title && <p className="text-[11px] text-red-500 mt-1">{errors.title}</p>}
                     </div>
 
-                    {/* Brand + Model */}
+                    {/* Category + Type/Variant */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <FieldLabel>Brand</FieldLabel>
+                            <FieldLabel>Category</FieldLabel>
                             <SelectInput value={formData.brand} onChange={(e) => update('brand', e.target.value)}>
-                                {PHONE_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+                                {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                             </SelectInput>
                         </div>
                         <div>
-                            <FieldLabel>Model</FieldLabel>
+                            <FieldLabel optional>Brand / Variant</FieldLabel>
                             <input
-                                value={formData.model}
+                                value={formData.model ?? ''}
                                 onChange={(e) => update('model', e.target.value)}
-                                placeholder="14 Pro Max"
-                                className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.model ? 'border-red-400' : 'border-gray-200'}`}
+                                placeholder="e.g. Samsung, Nike, Toyota…"
+                                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
                             />
-                            {errors.model && <p className="text-[11px] text-red-500 mt-1">{errors.model}</p>}
                         </div>
-                    </div>
-
-                    {/* Storage */}
-                    <div>
-                        <FieldLabel optional>Storage</FieldLabel>
-                        <SelectInput
-                            value={formData.storage_gb ?? ''}
-                            onChange={(e) => update('storage_gb', e.target.value ? Number(e.target.value) : undefined)}
-                        >
-                            <option value="">Select storage</option>
-                            {STORAGE_OPTIONS.map((gb) => (
-                                <option key={gb} value={gb}>{gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`}</option>
-                            ))}
-                        </SelectInput>
                     </div>
 
                     {/* Condition */}
@@ -348,7 +332,7 @@ export default function CreateAuctionForm() {
                             rows={3}
                             value={formData.description ?? ''}
                             onChange={(e) => update('description', e.target.value)}
-                            placeholder="Describe the phone's condition, accessories included, reason for selling..."
+                            placeholder="Describe the item's condition, what's included, reason for selling…"
                             className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none"
                         />
                     </div>

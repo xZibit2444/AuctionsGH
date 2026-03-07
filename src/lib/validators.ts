@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import {
     GHANA_PHONE_REGEX,
-    PHONE_BRANDS,
+    ITEM_CATEGORIES,
     LISTING_CITIES,
     ACCRA_MEETUP_AREAS,
     ALLOWED_IMAGE_TYPES,
@@ -44,8 +44,8 @@ export const signupSchema = z.object({
 export const createAuctionSchema = z.object({
     title: z.string().min(5, 'Title must be at least 5 characters').max(100),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
-    brand: z.enum(PHONE_BRANDS as unknown as [string, ...string[]]),
-    model: z.string().min(1, 'Please enter the phone model'),
+    brand: z.enum(ITEM_CATEGORIES as unknown as [string, ...string[]]),
+    model: z.string().max(100).optional().default(''),
     storage_gb: z.coerce.number().positive().optional().or(z.literal(0)),
 
     condition: z.enum(['new', 'like_new', 'good', 'fair', 'poor']),

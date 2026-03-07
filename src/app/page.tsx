@@ -10,7 +10,6 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [brand, setBrand] = useState('All');
   const [condition, setCondition] = useState('All');
-  const [minStorage, setMinStorage] = useState(0);
   const [sortBy, setSortBy] = useState<'current_price' | 'ends_at' | 'created_at'>('ends_at');
   const [ascending, setAscending] = useState(true);
 
@@ -20,7 +19,6 @@ export default function HomePage() {
     search,
     brand,
     condition,
-    minStorage,
     orderBy: sortBy,
     ascending,
   });
@@ -45,8 +43,6 @@ export default function HomePage() {
         setBrand={setBrand}
         condition={condition}
         setCondition={setCondition}
-        minStorage={minStorage}
-        setMinStorage={setMinStorage}
         sortBy={sortBy}
         setSortBy={setSortBy}
         ascending={ascending}
