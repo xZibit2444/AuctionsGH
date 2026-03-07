@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { signupSchema, type SignupInput } from '@/lib/validators';
-import { Eye, EyeOff, AlertTriangle, ArrowRight, MapPin, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, AlertTriangle, ArrowRight, MapPin, ChevronDown, Mail } from 'lucide-react';
 
 const CITIES = ['Accra', 'Kumasi'];
 
 export default function SignupForm() {
-    const router = useRouter();
     const supabase = createClient();
     const [formData, setFormData] = useState<SignupInput>({
         email: '',
@@ -26,6 +24,7 @@ export default function SignupForm() {
     const [serverError, setServerError] = useState<string | null>(null);
     const [showPw, setShowPw] = useState(false);
     const [cityOpen, setCityOpen] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
 
     const update = (field: keyof SignupInput, value: string) =>
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,19 +83,8 @@ export default function SignupForm() {
                 return;
             }
 
-            // Sign in immediately — no email confirmation required
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email: formData.email,
-                password: formData.password,
-            });
-
-            if (signInError) {
-                setServerError(signInError.message);
-                return;
-            }
-
-            router.push('/');
-            router.refresh();
+            // Email confirmation required — show success screen
+            setEmailSent(true);
         } catch (err) {
             setServerError('An unexpected error occurred. Please try again.');
         } finally {
@@ -107,6 +95,22 @@ export default function SignupForm() {
     const localPhone = formData.phone_number?.startsWith('+233')
         ? formData.phone_number.slice(4).replace(/\s/g, '')
         : formData.phone_number ?? '';
+
+    if (emailSent) {
+        return (
+            <div className="text-center py-6 space-y-4">
+                <div className="flex items-center justify-center w-12 h-12 bg-black rounded-full mx-auto">
+                    <Mail className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-black text-black tracking-tight">Check your email</h2>
+                <p className="text-sm text-gray-500">
+                    We sent a confirmation link to <span className="font-semibold text-black">{formData.email}</span>.
+                    Click it to activate your account.
+                </p>
+                <p className="text-xs text-gray-400">Didn&apos;t get it? Check your spam folder.</p>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">

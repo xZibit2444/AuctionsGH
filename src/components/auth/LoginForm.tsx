@@ -51,7 +51,11 @@ export default function LoginForm({ urlError }: LoginFormProps) {
             });
 
             if (error) {
-                setServerError(error.message);
+                if (error.message.toLowerCase().includes('email not confirmed')) {
+                    setServerError('Please confirm your email address before logging in. Check your inbox for the confirmation link.');
+                } else {
+                    setServerError(error.message);
+                }
                 return;
             }
 
