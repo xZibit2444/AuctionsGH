@@ -69,7 +69,7 @@ export default function DashboardPage() {
                 )}
 
                 {/* Admin shortcut to seller applications */}
-                {profile?.is_admin && (
+                {profile?.is_super_admin && (
                     <Link
                         href="/admin/applications"
                         className="flex items-center justify-between gap-4 mb-6 sm:mb-8 p-4 border border-gray-200 hover:border-black transition-colors group"
