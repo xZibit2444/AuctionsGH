@@ -6,8 +6,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import {
-    Home, Search, LayoutDashboard, Heart, Package,
-    HelpCircle, Plus, LogOut, Settings, ShieldCheck,
+    Home, Search, LayoutDashboard, Heart,
+    HelpCircle, Plus, LogOut, Settings,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
     PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
@@ -52,7 +52,6 @@ const NAV_ITEMS = [
     { href: '/auctions', label: 'Browse', icon: Search },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authRequired: true },
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
-    { href: '/orders', label: 'Orders', icon: Package, authRequired: true },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
 ];
 
@@ -198,21 +197,6 @@ export default function Sidebar() {
                         </Link>
                     );
                 })}
-
-                {/* Admin */}
-                {profile?.is_super_admin && (
-                    <Link
-                        href="/admin"
-                        title={collapsed ? 'Admin' : undefined}
-                        className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${pathname.startsWith('/admin')
-                            ? 'bg-amber-50 text-gray-900'
-                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
-                    >
-                        <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith('/admin') ? 'opacity-100 text-amber-500' : 'opacity-60 group-hover:opacity-100'}`} strokeWidth={1.5} />
-                        {!collapsed && 'Admin'}
-                        {!collapsed && pathname.startsWith('/admin') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
-                    </Link>
-                )}
 
                 {/* Divider */}
                 {user && <div className="border-t border-gray-100 my-2" />}
