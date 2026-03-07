@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthGuard from '@/components/auth/AuthGuard';
 import { createClient } from '@/lib/supabase/client';
 import { submitSellerApplication } from '@/app/actions/sellerApplication';
 import Link from 'next/link';
-import { CheckCircle, Clock, XCircle, ChevronRight, ShieldCheck, Loader2, X } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, ChevronRight } from 'lucide-react';
 import type { SellerApplicationStatus } from '@/types/database';
 
 interface ExistingApplication {
@@ -15,8 +15,6 @@ interface ExistingApplication {
     admin_notes: string | null;
     created_at: string;
 }
-
-type VerifyStatus = 'idle' | 'loading' | 'pending' | 'approved' | 'rejected' | 'error';
 
 function StatusScreen({ app }: { app: ExistingApplication }) {
     if (app.status === 'approved') {
@@ -53,41 +51,7 @@ function StatusScreen({ app }: { app: ExistingApplication }) {
     return null;
 }
 
-function VerificationModal({
-    url,
-    onClose,
-}: {
-    url: string;
-    onClose: () => void;
-}) {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="relative w-full max-w-2xl bg-white flex flex-col" style={{ height: '80vh' }}>
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-black" />
-                        <span className="text-sm font-black text-black uppercase tracking-widest">
-                            Identity Verification
-                        </span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 hover:bg-gray-100 transition-colors"
-                        aria-label="Close"
-                    >
-                        <X className="h-4 w-4 text-gray-600" />
-                    </button>
-                </div>
-                <iframe
-                    src={url}
-                    className="flex-1 w-full border-0"
-                    allow="camera; microphone"
-                    title="Didit Identity Verification"
-                />
-            </div>
-        </div>
-    );
-}
+const ID_TYPES = ['Ghana Card', 'Passport', 'Voter ID', "Driver's License"];
 
 function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
     const { profile } = useAuth();
@@ -97,17 +61,12 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
         location: '',
         items_to_sell: '',
         experience: '',
+        id_type: '',
+        id_number: '',
     });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
-
-    // Didit verification state
-    const [verifyStatus, setVerifyStatus] = useState<VerifyStatus>('idle');
-    const [sessionId, setSessionId] = useState('');
-    const [verifyUrl, setVerifyUrl] = useState('');
-    const [showModal, setShowModal] = useState(false);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         if (profile) {
@@ -120,81 +79,14 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
         }
     }, [profile]);
 
-    // Stop polling when component unmounts
-    useEffect(() => {
-        return () => {
-            if (pollRef.current) clearInterval(pollRef.current);
-        };
-    }, []);
-
-    const stopPolling = useCallback(() => {
-        if (pollRef.current) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-        }
-    }, []);
-
-    const pollStatus = useCallback(async (sid: string) => {
-        try {
-            const res = await fetch(`/api/didit/status/${sid}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            const status: string = data.status ?? '';
-            if (status === 'approved' || status === 'Approved') {
-                setVerifyStatus('approved');
-                setShowModal(false);
-                stopPolling();
-            } else if (status === 'rejected' || status === 'Rejected' || status === 'declined') {
-                setVerifyStatus('rejected');
-                setShowModal(false);
-                stopPolling();
-            }
-        } catch {
-            // keep polling silently
-        }
-    }, [stopPolling]);
-
-    const startVerification = async () => {
-        setVerifyStatus('loading');
-        setError('');
-        try {
-            const res = await fetch('/api/didit/session', { method: 'POST' });
-            const json = await res.json();
-            if (!res.ok) {
-                setVerifyStatus('error');
-                setError(json.error || 'Could not start verification. Please try again.');
-                return;
-            }
-            const { session_id, url } = json;
-            setSessionId(session_id);
-            setVerifyUrl(url);
-            setVerifyStatus('pending');
-            setShowModal(true);
-            // Poll every 4 seconds
-            pollRef.current = setInterval(() => pollStatus(session_id), 4000);
-        } catch {
-            setVerifyStatus('error');
-            setError('Could not start verification. Please try again.');
-        }
-    };
-
-    const handleModalClose = () => {
-        setShowModal(false);
-        // Keep polling in background so user gets notified when they return
-    };
-
     const set = (field: string, value: string) =>
         setForm(prev => ({ ...prev, [field]: value }));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (verifyStatus !== 'approved') {
-            setError('You must complete identity verification before submitting.');
-            return;
-        }
         setError('');
         setSubmitting(true);
-        const result = await submitSellerApplication({ ...form, didit_session_id: sessionId });
+        const result = await submitSellerApplication({ ...form });
         setSubmitting(false);
         if (!result.success) {
             setError(result.error || 'Something went wrong.');
@@ -214,12 +106,7 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
     }
 
     return (
-        <>
-            {showModal && verifyUrl && (
-                <VerificationModal url={verifyUrl} onClose={handleModalClose} />
-            )}
-
-            <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 sm:pb-10">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 sm:pb-10">
                 <div className="mb-8">
                     <h1 className="text-2xl font-black text-black tracking-tight">Apply to Become a Seller</h1>
                     <p className="text-sm text-gray-400 mt-1">
@@ -325,107 +212,57 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
                         </div>
                     </section>
 
-                    {/* Didit Identity Verification */}
+                    {/* ID Verification */}
                     <section>
                         <h2 className="text-[11px] font-black text-black uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
-                            Identity Verification <span className="text-red-500">*</span>
+                            ID Verification
                         </h2>
-
-                        {verifyStatus === 'approved' ? (
-                            <div className="flex items-center gap-3 p-4 border border-green-200 bg-green-50">
-                                <ShieldCheck className="h-5 w-5 text-green-600 shrink-0" />
-                                <div>
-                                    <p className="text-sm font-bold text-green-800">Identity Verified</p>
-                                    <p className="text-xs text-green-600 mt-0.5">Your national ID has been successfully verified.</p>
-                                </div>
-                            </div>
-                        ) : verifyStatus === 'rejected' ? (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3 p-4 border border-red-200 bg-red-50">
-                                    <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                                    <div>
-                                        <p className="text-sm font-bold text-red-700">Verification Failed</p>
-                                        <p className="text-xs text-red-500 mt-0.5">Your ID could not be verified. Please try again with a clear, valid document.</p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={startVerification}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 border border-black text-sm font-semibold hover:bg-black hover:text-white transition-colors"
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+                                    ID Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={form.id_type}
+                                    onChange={e => set('id_type', e.target.value)}
+                                    className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black bg-white"
                                 >
-                                    <ShieldCheck className="h-4 w-4" />
-                                    Try Again
-                                </button>
+                                    <option value="">Select ID type…</option>
+                                    {ID_TYPES.map(t => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
                             </div>
-                        ) : verifyStatus === 'pending' ? (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3 p-4 border border-yellow-200 bg-yellow-50">
-                                    <Loader2 className="h-5 w-5 text-yellow-600 animate-spin shrink-0" />
-                                    <div>
-                                        <p className="text-sm font-bold text-yellow-800">Verification In Progress</p>
-                                        <p className="text-xs text-yellow-600 mt-0.5">Complete the steps in the verification window. This page will update automatically.</p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(true)}
-                                    className="text-xs text-gray-500 underline hover:text-black transition-colors"
-                                >
-                                    Reopen verification window
-                                </button>
+                            <div>
+                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+                                    ID Number <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={form.id_number}
+                                    onChange={e => set('id_number', e.target.value)}
+                                    className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
+                                    placeholder="GHA-000000000-0"
+                                />
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <p className="text-sm text-gray-500">
-                                    We use <span className="font-semibold text-black">Didit</span> to securely verify your national ID. You&apos;ll be asked to upload a photo of your document and take a quick selfie.
-                                </p>
-                                <ul className="text-xs text-gray-400 space-y-1 list-disc list-inside">
-                                    <li>Ghana Card, Passport, Voter ID, or Driver&apos;s License accepted</li>
-                                    <li>Verification usually takes under 2 minutes</li>
-                                    <li>Your data is processed securely and never shared publicly</li>
-                                </ul>
-                                {verifyStatus === 'error' && (
-                                    <p className="text-sm text-red-600">{error}</p>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={startVerification}
-                                    disabled={verifyStatus === 'loading'}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {verifyStatus === 'loading' ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Starting…
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ShieldCheck className="h-4 w-4" />
-                                            Verify My Identity
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        )}
+                        </div>
                     </section>
 
-                    {error && verifyStatus !== 'error' && (
+                    {error && (
                         <p className="text-sm text-red-600 font-medium">{error}</p>
                     )}
 
                     <button
                         type="submit"
-                        disabled={submitting || verifyStatus !== 'approved'}
+                        disabled={submitting}
                         className="w-full sm:w-auto px-8 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {submitting ? 'Submitting…' : 'Submit Application'}
                     </button>
-                    {verifyStatus !== 'approved' && (
-                        <p className="text-xs text-gray-400 -mt-4">You must verify your identity before submitting.</p>
-                    )}
                 </form>
-            </div>
-        </>
+        </div>
     );
 }
 

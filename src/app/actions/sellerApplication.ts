@@ -11,31 +11,14 @@ function getAdminClient() {
     );
 }
 
-/** Confirm with Didit API that the session is truly approved (server-side check). */
-async function verifyDiditSession(sessionId: string): Promise<boolean> {
-    const apiKey = process.env.DIDIT_API_KEY;
-    if (!apiKey || !sessionId) return false;
-    try {
-        const res = await fetch(
-            `https://apx.didit.me/identity/v2/session/${sessionId}/decision/`,
-            { headers: { Authorization: `Bearer ${apiKey}` }, cache: 'no-store' }
-        );
-        if (!res.ok) return false;
-        const data = await res.json();
-        const status: string = data.status ?? '';
-        return status.toLowerCase() === 'approved';
-    } catch {
-        return false;
-    }
-}
-
 export interface SellerApplicationData {
     full_name: string;
     phone_number: string;
     location: string;
     items_to_sell: string;
     experience: string;
-    didit_session_id: string;
+    id_type: string;
+    id_number: string;
 }
 
 export async function submitSellerApplication(data: SellerApplicationData) {
@@ -45,19 +28,10 @@ export async function submitSellerApplication(data: SellerApplicationData) {
 
     // Validate required fields
     const required: (keyof SellerApplicationData)[] = [
-        'full_name', 'phone_number', 'location', 'items_to_sell', 'experience',
+        'full_name', 'phone_number', 'location', 'items_to_sell', 'experience', 'id_type', 'id_number',
     ];
     for (const field of required) {
         if (!data[field]?.trim()) return { success: false, error: 'All fields are required.' };
-    }
-
-    // Server-side identity verification check
-    if (!data.didit_session_id?.trim()) {
-        return { success: false, error: 'Identity verification is required before submitting.' };
-    }
-    const verified = await verifyDiditSession(data.didit_session_id);
-    if (!verified) {
-        return { success: false, error: 'Identity verification could not be confirmed. Please complete verification and try again.' };
     }
 
     // Check for existing non-rejected application
@@ -78,13 +52,7 @@ export async function submitSellerApplication(data: SellerApplicationData) {
     const admin = getAdminClient();
     const { error } = await admin.from('seller_applications').insert({
         user_id: user.id,
-        full_name: data.full_name,
-        phone_number: data.phone_number,
-        location: data.location,
-        items_to_sell: data.items_to_sell,
-        experience: data.experience,
-        didit_session_id: data.didit_session_id,
-        didit_verified: true,
+        ...data,
     });
 
     if (error) return { success: false, error: error.message };
