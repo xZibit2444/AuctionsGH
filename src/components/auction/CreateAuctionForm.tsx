@@ -188,19 +188,27 @@ export default function CreateAuctionForm() {
                 }
             }
 
-            for (let i = 0; i < images.length; i++) {
-                const res = await uploadImage(images[i], user.id, (auction as { id: string }).id);
-                if (res) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await (supabase.from('auction_images') as any).insert({
-                        auction_id: (auction as { id: string }).id,
-                        url: res.url,
-                        position: i,
-                    });
-                }
+            // Upload all images in parallel instead of sequentially
+            const auctionId = (auction as { id: string }).id;
+            const uploadResults = await Promise.all(
+                images.map((img, i) => uploadImage(img, user.id, auctionId).then(res => ({ res, i })))
+            );
+
+            const imageInserts = uploadResults
+                .filter(({ res }) => res !== null)
+                .map(({ res, i }) => ({
+                    auction_id: auctionId,
+                    url: res!.url,
+                    position: i,
+                }));
+
+            if (imageInserts.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { error: imgError } = await (supabase.from('auction_images') as any).insert(imageInserts);
+                if (imgError) console.error('Failed to save image records:', imgError.message);
             }
 
-            setPublishedAuctionId((auction as { id: string }).id);
+            setPublishedAuctionId(auctionId);
         } catch (err) {
             setErrors({ submit: 'An unexpected error occurred during publishing. Please try again.' });
             console.error("DEBUG: Catch publish err ->", err);
@@ -637,10 +645,10 @@ export default function CreateAuctionForm() {
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={submitting || uploading}
+                            disabled={submitting}
                             className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors disabled:opacity-60"
                         >
-                            {submitting || uploading
+                            {submitting
                                 ? 'Publishing…'
                                 : <><span>Publish Auction</span><ArrowRight className="h-4 w-4" /></>
                             }
