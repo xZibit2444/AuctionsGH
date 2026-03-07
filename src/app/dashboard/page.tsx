@@ -49,8 +49,8 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Become a Seller banner — shown to non-sellers only */}
-                {!profile?.is_admin && (
+                {/* Become a Seller banner — shown to non-sellers only, never during load */}
+                {!loading && !profile?.is_admin && (
                     <Link
                         href="/seller-apply"
                         className="flex items-center justify-between gap-4 mb-6 sm:mb-8 p-4 border border-gray-200 hover:border-black transition-colors group"

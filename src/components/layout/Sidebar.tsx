@@ -8,6 +8,7 @@ import {
     Home, Search, LayoutDashboard, Heart, Package,
     HelpCircle, Plus, LogOut, Settings, ShieldCheck,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
+    PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { markAllReadAction } from '@/app/actions/notifications';
@@ -61,8 +62,29 @@ export default function Sidebar() {
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unread, setUnread] = useState(0);
+    const [collapsed, setCollapsed] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
     const supabase = createClient();
+
+    // Restore collapsed state from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('sidebar-collapsed');
+        if (saved === 'true') setCollapsed(true);
+    }, []);
+
+    // Sync body class for CSS-driven layout offset
+    useEffect(() => {
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        return () => document.body.classList.remove('sidebar-collapsed');
+    }, [collapsed]);
+
+    const toggleCollapsed = () => {
+        setCollapsed(c => {
+            const next = !c;
+            localStorage.setItem('sidebar-collapsed', String(next));
+            return next;
+        });
+    };
 
     const isActive = (href: string, exact?: boolean) =>
         exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
@@ -119,22 +141,44 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="fixed top-0 left-0 h-screen w-55 bg-[#0f0f0f] flex flex-col z-40">
+        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[#0f0f0f] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
 
-            {/* Brand */}
-            <div className="px-5 h-15 flex items-center border-b border-white/6 shrink-0">
-                <Link href="/" className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
-                        <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
+            {/* Brand + collapse toggle */}
+            <div className="h-15 flex items-center border-b border-white/6 shrink-0 relative">
+                {collapsed ? (
+                    <div className="flex-1 flex items-center justify-center">
+                        <Link href="/">
+                            <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
+                                <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
+                            </div>
+                        </Link>
                     </div>
-                    <span className="text-white font-black text-[17px] tracking-tight leading-none">
-                        Auctions<span className="text-amber-400">GH</span>
-                    </span>
-                </Link>
+                ) : (
+                    <div className="px-5 flex-1 flex items-center">
+                        <Link href="/" className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
+                                <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
+                            </div>
+                            <span className="text-white font-black text-[17px] tracking-tight leading-none whitespace-nowrap">
+                                Auctions<span className="text-amber-400">GH</span>
+                            </span>
+                        </Link>
+                    </div>
+                )}
+                <button
+                    onClick={toggleCollapsed}
+                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    className={`absolute right-2 p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-[3px] transition-colors ${collapsed ? 'relative right-auto' : ''}`}
+                >
+                    {collapsed
+                        ? <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    }
+                </button>
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+            <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
                 {/* main links */}
                 {NAV_ITEMS.filter(item => !item.authRequired || loading || user).map(item => {
                     const Icon = item.icon;
@@ -143,7 +187,8 @@ export default function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`group flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-[3px] ${active
+                            title={collapsed ? item.label : undefined}
+                            className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${active
                                 ? 'bg-white/8 text-white'
                                 : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
                         >
@@ -151,8 +196,8 @@ export default function Sidebar() {
                                 className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}
                                 strokeWidth={active ? 2.5 : 1.5}
                             />
-                            {item.label}
-                            {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                            {!collapsed && item.label}
+                            {!collapsed && active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
                         </Link>
                     );
                 })}
@@ -161,13 +206,14 @@ export default function Sidebar() {
                 {profile?.is_super_admin && (
                     <Link
                         href="/admin"
-                        className={`group flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-[3px] ${pathname.startsWith('/admin')
+                        title={collapsed ? 'Admin' : undefined}
+                        className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${pathname.startsWith('/admin')
                             ? 'bg-white/8 text-white'
                             : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
                     >
                         <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith('/admin') ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`} strokeWidth={1.5} />
-                        Admin
-                        {pathname.startsWith('/admin') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                        {!collapsed && 'Admin'}
+                        {!collapsed && pathname.startsWith('/admin') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
                     </Link>
                 )}
 
@@ -179,11 +225,19 @@ export default function Sidebar() {
                     <div className="relative" ref={notifRef}>
                         <button
                             onClick={() => setNotifOpen(o => !o)}
-                            className={`group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-white/8 text-white' : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
+                            title={collapsed ? 'Notifications' : undefined}
+                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-white/8 text-white' : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
                         >
-                            <Bell className={`h-4 w-4 shrink-0 opacity-60 group-hover:opacity-100 ${notifOpen ? 'opacity-100' : ''}`} strokeWidth={1.5} />
-                            Notifications
-                            {unread > 0 && (
+                            <div className="relative shrink-0">
+                                <Bell className={`h-4 w-4 opacity-60 group-hover:opacity-100 ${notifOpen ? 'opacity-100' : ''}`} strokeWidth={1.5} />
+                                {collapsed && unread > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-amber-400 text-black text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full leading-none">
+                                        {unread > 9 ? '9+' : unread}
+                                    </span>
+                                )}
+                            </div>
+                            {!collapsed && 'Notifications'}
+                            {!collapsed && unread > 0 && (
                                 <span className="ml-auto bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
                                     {unread > 9 ? '9+' : unread}
                                 </span>
@@ -192,7 +246,7 @@ export default function Sidebar() {
 
                         {/* Notification panel — slides out to the right of sidebar */}
                         {notifOpen && (
-                            <div className="fixed left-55 top-0 h-screen w-80 bg-[#161616] border-l border-white/6 flex flex-col z-50 shadow-2xl">
+                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-[#161616] border-l border-white/6 flex flex-col z-50 shadow-2xl`}>
                                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/6 shrink-0">
                                     <span className="text-sm font-black text-white">Notifications</span>
                                     <div className="flex items-center gap-2">
@@ -236,65 +290,101 @@ export default function Sidebar() {
 
             {/* Create listing CTA */}
             {profile?.is_admin && (
-                <div className="px-3 pb-3">
-                    <Link
-                        href="/auctions/create"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Create Listing
-                    </Link>
+                <div className="px-2 pb-2">
+                    {collapsed ? (
+                        <Link
+                            href="/auctions/create"
+                            title="Create Listing"
+                            className="flex items-center justify-center w-full py-2.5 bg-amber-400 text-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/auctions/create"
+                            className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Create Listing
+                        </Link>
+                    )}
                 </div>
             )}
 
             {/* User section */}
-            <div className="border-t border-white/6 p-3 shrink-0">
+            <div className="border-t border-white/6 p-2 shrink-0">
                 {!loading && user ? (
-                    <div className="space-y-0.5">
-                        {/* Avatar row */}
-                        <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
-                            <div className="h-7 w-7 bg-amber-400 text-black flex items-center justify-center font-black text-xs shrink-0 rounded-xs">
+                    collapsed ? (
+                        /* Collapsed: just avatar + sign out icon */
+                        <div className="flex flex-col items-center gap-1">
+                            <Link href="/settings" title="Settings" className="h-8 w-8 bg-amber-400 text-black flex items-center justify-center font-black text-xs rounded-[3px] hover:bg-amber-300 transition-colors">
                                 {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ||
                                     profile?.username?.[0]?.toUpperCase() ||
                                     user.email?.[0]?.toUpperCase() || 'U'}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-white text-xs font-semibold truncate leading-tight">
-                                    {profile?.full_name || profile?.username || user.email?.split('@')[0]}
-                                </p>
-                                <p className="text-gray-500 text-[10px] truncate">{user.email}</p>
-                            </div>
+                            </Link>
+                            <button
+                                onClick={() => signOut()}
+                                title="Sign out"
+                                className="p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-[3px] transition-colors"
+                            >
+                                <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            </button>
                         </div>
-                        <Link
-                            href="/settings"
-                            className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
-                        >
-                            <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
-                            Settings
-                        </Link>
-                        <button
-                            onClick={() => signOut()}
-                            className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
-                        >
-                            <LogOut className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
-                            Sign out
-                        </button>
-                    </div>
+                    ) : (
+                        <div className="space-y-0.5">
+                            {/* Avatar row */}
+                            <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
+                                <div className="h-7 w-7 bg-amber-400 text-black flex items-center justify-center font-black text-xs shrink-0 rounded-xs">
+                                    {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ||
+                                        profile?.username?.[0]?.toUpperCase() ||
+                                        user.email?.[0]?.toUpperCase() || 'U'}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-white text-xs font-semibold truncate leading-tight">
+                                        {profile?.full_name || profile?.username || user.email?.split('@')[0]}
+                                    </p>
+                                    <p className="text-gray-500 text-[10px] truncate">{user.email}</p>
+                                </div>
+                            </div>
+                            <Link
+                                href="/settings"
+                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
+                            >
+                                <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
+                                Settings
+                            </Link>
+                            <button
+                                onClick={() => signOut()}
+                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
+                            >
+                                <LogOut className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
+                                Sign out
+                            </button>
+                        </div>
+                    )
                 ) : !loading ? (
-                    <div className="space-y-2 px-1">
-                        <Link
-                            href="/login"
-                            className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:text-white border border-white/10 hover:border-white/20 transition-all rounded-[3px]"
-                        >
-                            Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
-                        </Link>
-                        <Link
-                            href="/signup"
-                            className="flex items-center justify-center w-full py-2 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
-                        >
-                            Sign up
-                        </Link>
-                    </div>
+                    collapsed ? (
+                        <div className="flex flex-col items-center gap-1.5 px-1">
+                            <Link href="/login" title="Log in" className="flex items-center justify-center w-full py-2 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white transition-all rounded-[3px]">
+                                <LogOut className="h-4 w-4 rotate-180" strokeWidth={1.5} />
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-2 px-1">
+                            <Link
+                                href="/login"
+                                className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:text-white border border-white/10 hover:border-white/20 transition-all rounded-[3px]"
+                            >
+                                Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
+                            </Link>
+                            <Link
+                                href="/signup"
+                                className="flex items-center justify-center w-full py-2 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                            >
+                                Sign up
+                            </Link>
+                        </div>
+                    )
                 ) : null}
             </div>
         </aside>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ConditionalNav from '@/components/layout/ConditionalNav';
+import MainContent from '@/components/layout/MainContent';
 import Footer from '@/components/layout/Footer';
 import Providers from '@/components/layout/Providers';
 import FloatingChatToast from '@/components/layout/FloatingChatToast';
@@ -32,14 +33,14 @@ export default function RootLayout({
         <Providers>
           <PushNotificationsInit />
           <ConditionalNav />
-          <div className="sm:ml-55">
+          <MainContent>
             <FloatingChatToast />
             <FloatingOfferToast />
             <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
             <div className="hidden sm:block">
               <Footer />
             </div>
-          </div>
+          </MainContent>
         </Providers>
         <SpeedInsights />
       </body>
