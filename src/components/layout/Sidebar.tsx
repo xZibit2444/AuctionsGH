@@ -142,33 +142,36 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[#0f0f0f] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
+        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-white border-r border-gray-100 flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
 
             {/* Brand + collapse toggle */}
-            <div className="h-15 flex items-center border-b border-white/6 shrink-0 relative">
+            <div className="h-15 flex items-center border-b border-gray-100 shrink-0 relative">
                 {collapsed ? (
                     <div className="flex-1 flex items-center justify-center">
-                        <Link href="/">
-                            <Image src="/logo.png" alt="AuctionsGH" width={32} height={32} className="h-8 w-8 object-contain" priority />
-                        </Link>
+                        <button
+                            onClick={toggleCollapsed}
+                            title="Expand sidebar"
+                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
+                        >
+                            <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        </button>
                     </div>
                 ) : (
-                    <div className="px-3 flex-1 flex items-center">
-                        <Link href="/">
-                            <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
-                        </Link>
-                    </div>
+                    <>
+                        <div className="px-3 flex-1 flex items-center">
+                            <Link href="/">
+                                <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
+                            </Link>
+                        </div>
+                        <button
+                            onClick={toggleCollapsed}
+                            title="Collapse sidebar"
+                            className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
+                        >
+                            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        </button>
+                    </>
                 )}
-                <button
-                    onClick={toggleCollapsed}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    className={`absolute right-2 p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-[3px] transition-colors ${collapsed ? 'relative right-auto' : ''}`}
-                >
-                    {collapsed
-                        ? <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.5} />
-                        : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
-                    }
-                </button>
             </div>
 
             {/* Nav */}
@@ -183,11 +186,11 @@ export default function Sidebar() {
                             href={item.href}
                             title={collapsed ? item.label : undefined}
                             className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${active
-                                ? 'bg-white/8 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
+                                ? 'bg-amber-50 text-gray-900'
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             <Icon
-                                className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}
+                                className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100 text-amber-500' : 'opacity-60 group-hover:opacity-100'}`}
                                 strokeWidth={active ? 2.5 : 1.5}
                             />
                             {!collapsed && item.label}
@@ -202,17 +205,17 @@ export default function Sidebar() {
                         href="/admin"
                         title={collapsed ? 'Admin' : undefined}
                         className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${pathname.startsWith('/admin')
-                            ? 'bg-white/8 text-white'
-                            : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
+                            ? 'bg-amber-50 text-gray-900'
+                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                     >
-                        <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith('/admin') ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`} strokeWidth={1.5} />
+                        <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith('/admin') ? 'opacity-100 text-amber-500' : 'opacity-60 group-hover:opacity-100'}`} strokeWidth={1.5} />
                         {!collapsed && 'Admin'}
                         {!collapsed && pathname.startsWith('/admin') && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
                     </Link>
                 )}
 
                 {/* Divider */}
-                {user && <div className="border-t border-white/5 my-2" />}
+                {user && <div className="border-t border-gray-100 my-2" />}
 
                 {/* Notifications row (auth only) */}
                 {user && (
@@ -220,7 +223,7 @@ export default function Sidebar() {
                         <button
                             onClick={() => setNotifOpen(o => !o)}
                             title={collapsed ? 'Notifications' : undefined}
-                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-white/8 text-white' : 'text-gray-400 hover:text-white hover:bg-white/4'}`}
+                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-amber-50 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             <div className="relative shrink-0">
                                 <Bell className={`h-4 w-4 opacity-60 group-hover:opacity-100 ${notifOpen ? 'opacity-100' : ''}`} strokeWidth={1.5} />
@@ -240,23 +243,23 @@ export default function Sidebar() {
 
                         {/* Notification panel — slides out to the right of sidebar */}
                         {notifOpen && (
-                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-[#161616] border-l border-white/6 flex flex-col z-50 shadow-2xl`}>
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-white/6 shrink-0">
-                                    <span className="text-sm font-black text-white">Notifications</span>
+                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-white border-l border-gray-100 flex flex-col z-50 shadow-xl`}>
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+                                    <span className="text-sm font-black text-gray-900">Notifications</span>
                                     <div className="flex items-center gap-2">
                                         {unread > 0 && (
-                                            <button onClick={handleMarkAllRead} className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold">
+                                            <button onClick={handleMarkAllRead} className="text-[11px] text-amber-500 hover:text-amber-600 font-semibold">
                                                 Mark all read
                                             </button>
                                         )}
-                                        <button onClick={() => setNotifOpen(false)} className="p-1 text-gray-500 hover:text-white transition-colors">
+                                        <button onClick={() => setNotifOpen(false)} className="p-1 text-gray-400 hover:text-gray-700 transition-colors">
                                             <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
                                     {notifications.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-40 text-gray-600 text-sm">
+                                        <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-sm">
                                             <Bell className="h-6 w-6 mb-2 opacity-40" />
                                             No notifications yet
                                         </div>
@@ -264,13 +267,13 @@ export default function Sidebar() {
                                         <button
                                             key={n.id}
                                             onClick={() => handleNotifClick(n)}
-                                            className={`w-full text-left flex items-start gap-3 px-4 py-3 border-b border-white/4 hover:bg-white/4 transition-colors ${!n.is_read ? 'bg-white/2' : ''}`}
+                                            className={`w-full text-left flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${!n.is_read ? 'bg-amber-50/50' : ''}`}
                                         >
                                             <div className="mt-0.5 shrink-0">{typeIcon(n.type)}</div>
                                             <div className="min-w-0 flex-1">
-                                                <p className={`text-xs font-semibold leading-snug ${n.is_read ? 'text-gray-400' : 'text-white'}`}>{n.title}</p>
-                                                {n.body && <p className="text-[11px] text-gray-500 mt-0.5 leading-snug line-clamp-2">{n.body}</p>}
-                                                <p className="text-[10px] text-gray-600 mt-1">{timeAgo(n.created_at)}</p>
+                                                <p className={`text-xs font-semibold leading-snug ${n.is_read ? 'text-gray-500' : 'text-gray-900'}`}>{n.title}</p>
+                                                {n.body && <p className="text-[11px] text-gray-400 mt-0.5 leading-snug line-clamp-2">{n.body}</p>}
+                                                <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
                                             </div>
                                             {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />}
                                         </button>
@@ -306,7 +309,7 @@ export default function Sidebar() {
             )}
 
             {/* User section */}
-            <div className="border-t border-white/6 p-2 shrink-0">
+            <div className="border-t border-gray-100 p-2 shrink-0">
                 {!loading && user ? (
                     collapsed ? (
                         /* Collapsed: just avatar + sign out icon */
@@ -319,7 +322,7 @@ export default function Sidebar() {
                             <button
                                 onClick={() => signOut()}
                                 title="Sign out"
-                                className="p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-[3px] transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
                             >
                                 <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
                             </button>
@@ -334,22 +337,22 @@ export default function Sidebar() {
                                         user.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-white text-xs font-semibold truncate leading-tight">
+                                    <p className="text-gray-900 text-xs font-semibold truncate leading-tight">
                                         {profile?.full_name || profile?.username || user.email?.split('@')[0]}
                                     </p>
-                                    <p className="text-gray-500 text-[10px] truncate">{user.email}</p>
+                                    <p className="text-gray-400 text-[10px] truncate">{user.email}</p>
                                 </div>
                             </div>
                             <Link
                                 href="/settings"
-                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
+                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px]"
                             >
                                 <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Settings
                             </Link>
                             <button
                                 onClick={() => signOut()}
-                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/4 transition-all rounded-[3px]"
+                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px]"
                             >
                                 <LogOut className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Sign out
@@ -359,7 +362,7 @@ export default function Sidebar() {
                 ) : !loading ? (
                     collapsed ? (
                         <div className="flex flex-col items-center gap-1.5 px-1">
-                            <Link href="/login" title="Log in" className="flex items-center justify-center w-full py-2 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white transition-all rounded-[3px]">
+                            <Link href="/login" title="Log in" className="flex items-center justify-center w-full py-2 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-all rounded-[3px]">
                                 <LogOut className="h-4 w-4 rotate-180" strokeWidth={1.5} />
                             </Link>
                         </div>
@@ -367,7 +370,7 @@ export default function Sidebar() {
                         <div className="space-y-2 px-1">
                             <Link
                                 href="/login"
-                                className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:text-white border border-white/10 hover:border-white/20 transition-all rounded-[3px]"
+                                className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px]"
                             >
                                 Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
                             </Link>
