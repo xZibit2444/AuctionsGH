@@ -51,48 +51,54 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         let isMounted = true;
         const fetchAuctions = async () => {
             setLoading(true);
-            const supabase = createClient();
-            const selectCols = includeOrders
-                ? '*, auction_images(url, position), orders(id, status, deliveries(status))'
-                : '*, auction_images(url, position)';
-            let query = supabase.from('auctions').select(selectCols);
+            try {
+                const supabase = createClient();
+                const selectCols = includeOrders
+                    ? '*, auction_images(url, position), orders(id, status, deliveries(status))'
+                    : '*, auction_images(url, position)';
+                let query = supabase.from('auctions').select(selectCols);
 
-            if (status !== 'all') {
-                query = query.eq('status', status);
-            }
-            if (brand && brand !== 'All') {
-                query = query.eq('brand', brand);
-            }
-            if (condition && condition !== 'All') {
-                query = query.eq('condition', condition);
-            }
-            if (minStorage && minStorage > 0) {
-                query = query.gte('storage_gb', minStorage);
-            }
-            if (sellerId) {
-                query = query.eq('seller_id', sellerId);
-            }
-            // Full-text search across title, brand and model
-            if (debouncedSearch && debouncedSearch.trim()) {
-                const q = debouncedSearch.trim();
-                query = query.or(
-                    `title.ilike.%${q}%,brand.ilike.%${q}%,model.ilike.%${q}%`
-                );
-            }
+                if (status !== 'all') {
+                    query = query.eq('status', status);
+                }
+                if (brand && brand !== 'All') {
+                    query = query.eq('brand', brand);
+                }
+                if (condition && condition !== 'All') {
+                    query = query.eq('condition', condition);
+                }
+                if (minStorage && minStorage > 0) {
+                    query = query.gte('storage_gb', minStorage);
+                }
+                if (sellerId) {
+                    query = query.eq('seller_id', sellerId);
+                }
+                // Full-text search across title, brand and model
+                if (debouncedSearch && debouncedSearch.trim()) {
+                    const q = debouncedSearch.trim();
+                    query = query.or(
+                        `title.ilike.%${q}%,brand.ilike.%${q}%,model.ilike.%${q}%`
+                    );
+                }
 
-            // Apply ordering AFTER filters
-            query = query.order(orderBy, { ascending }).limit(limit);
+                // Apply ordering AFTER filters
+                query = query.order(orderBy, { ascending }).limit(limit);
 
-            const { data, error: fetchError } = await query;
+                const { data, error: fetchError } = await query;
 
-            if (!isMounted) return;
+                if (!isMounted) return;
 
-            if (fetchError) {
-                setError(fetchError.message);
-            } else {
-                setAuctions(data as Auction[]);
+                if (fetchError) {
+                    setError(fetchError.message);
+                } else {
+                    setAuctions(data as Auction[]);
+                }
+            } catch (err) {
+                if (!isMounted) return;
+                setError(err instanceof Error ? err.message : 'Failed to load auctions');
+            } finally {
+                if (isMounted) setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchAuctions();
@@ -128,10 +134,11 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             .subscribe();
 
         return () => {
+            isMounted = false;
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, brand, sellerId, debouncedSearch, limit, orderBy, ascending]);
+    }, [status, brand, sellerId, debouncedSearch, condition, minStorage, limit, orderBy, ascending]);
 
     return { auctions, loading, error };
 }
