@@ -158,7 +158,7 @@ export default function Sidebar() {
                 })}
 
                 {/* Admin */}
-                {profile?.is_admin && (
+                {profile?.is_super_admin && (
                     <Link
                         href="/admin"
                         className={`group flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-150 rounded-[3px] ${pathname.startsWith('/admin')

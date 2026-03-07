@@ -29,6 +29,7 @@ export interface Database {
                     location: string | null;
                     is_verified: boolean;
                     is_admin: boolean;
+                    is_super_admin: boolean;
                     notification_preferences: {
                         new_bid: boolean;
                         auction_ending: boolean;
@@ -48,6 +49,7 @@ export interface Database {
                     location?: string | null;
                     is_verified?: boolean;
                     is_admin?: boolean;
+                    is_super_admin?: boolean;
                     notification_preferences?: object | null;
                     fcm_token?: string | null;
                     created_at?: string;
@@ -62,6 +64,7 @@ export interface Database {
                     location?: string | null;
                     is_verified?: boolean;
                     is_admin?: boolean;
+                    is_super_admin?: boolean;
                     notification_preferences?: object | null;
                     fcm_token?: string | null;
                     updated_at?: string;

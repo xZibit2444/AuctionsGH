@@ -68,11 +68,11 @@ export async function reviewSellerApplication(
 
     const { data: callerProfile } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('is_super_admin')
         .eq('id', user.id)
-        .single() as { data: { is_admin: boolean } | null; error: unknown };
+        .single() as { data: { is_super_admin: boolean } | null; error: unknown };
 
-    if (!callerProfile?.is_admin) return { success: false, error: 'Forbidden' };
+    if (!callerProfile?.is_super_admin) return { success: false, error: 'Forbidden' };
 
     const admin = getAdminClient();
 
