@@ -7,6 +7,7 @@ import Providers from '@/components/layout/Providers';
 import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,6 +36,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
