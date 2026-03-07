@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/auth/AuthGuard';
 import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
 import BuyerStats from '@/components/dashboard/BuyerStats';
@@ -12,12 +12,17 @@ import { Settings, Plus, ChevronRight, Store, ClipboardList } from 'lucide-react
 type Tab = 'buyer' | 'seller';
 
 export default function DashboardPage() {
-    const { profile } = useAuth();
+    const { user, profile, loading } = useAuth();
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<Tab>('buyer');
 
+    useEffect(() => {
+        if (!loading && !user) router.push('/login');
+    }, [loading, user, router]);
+
+    // Render the page shell immediately — only redirect if definitely not logged in
     return (
-        <AuthGuard>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
                 {/* Header */}
                 <div className="flex items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3">
                     <div>
@@ -131,6 +136,5 @@ export default function DashboardPage() {
                     </div>
                 )}
             </div>
-        </AuthGuard>
     );
 }

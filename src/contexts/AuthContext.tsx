@@ -57,6 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let mounted = true;
 
+        // Safety-net: if auth hasn't resolved in 4s, stop blocking the UI
+        const timeout = setTimeout(() => {
+            if (mounted) setLoading(false);
+        }, 4000);
+
         // onAuthStateChange fires immediately with INITIAL_SESSION (reads from
         // localStorage — no network round-trip), so we don't need a separate
         // getUser() call that would block the UI.
@@ -73,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return () => {
             mounted = false;
+            clearTimeout(timeout);
             subscription.unsubscribe();
         };
     }, [supabase, fetchProfile]);
