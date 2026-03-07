@@ -12,6 +12,8 @@ interface OrderRow {
     id: string;
     status: string;
     created_at: string;
+    buyer_id: string;
+    seller_id: string;
     auction: {
         id: string;
         title: string;
@@ -48,18 +50,20 @@ export default function OrdersPage() {
         const fetchOrders = async () => {
             try {
                 const supabase = createClient();
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('orders')
                     .select(`
-                    id, status, created_at,
+                    id, status, created_at, buyer_id, seller_id,
                     auction:auctions ( id, title, current_price, auction_images(url, position) ),
                     deliveries ( status )
                 `)
-                    .eq('buyer_id', user.id)
+                    .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
                     .order('created_at', { ascending: false });
 
+                if (error) console.error('[orders] fetch error:', error);
                 setOrders((data as OrderRow[]) ?? []);
-            } catch {
+            } catch (err) {
+                console.error('[orders] unexpected error:', err);
                 setOrders([]);
             } finally {
                 setLoading(false);
@@ -87,7 +91,7 @@ export default function OrdersPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
             <div className="mb-6 sm:mb-8">
                 <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">My Orders</h1>
-                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">All your purchases in one place</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">All your orders — purchases and sales</p>
             </div>
 
             {loading || authLoading ? (
@@ -123,6 +127,7 @@ export default function OrdersPage() {
                             ? 'completed'
                             : getDeliveryStatus(order);
                         const statusColor = STATUS_COLORS[statusKey] ?? 'bg-gray-100 text-gray-500';
+                        const isBuyer = order.buyer_id === user?.id;
 
                         return (
                             <div key={order.id} className="flex items-center gap-4 px-4 sm:px-5 py-4 hover:bg-gray-50 transition-colors">
@@ -139,9 +144,16 @@ export default function OrdersPage() {
 
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-black truncate">
-                                        {order.auction?.title ?? 'Order'}
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-semibold text-black truncate">
+                                            {order.auction?.title ?? 'Order'}
+                                        </p>
+                                        <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${
+                                            isBuyer ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-700'
+                                        }`}>
+                                            {isBuyer ? 'Bought' : 'Sold'}
+                                        </span>
+                                    </div>
                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                         <span className="text-xs font-mono font-semibold text-gray-500">
                                             {formatCurrency(order.auction?.current_price ?? 0)}
