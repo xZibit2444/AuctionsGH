@@ -60,7 +60,6 @@ export async function sendMessageAction(
         title: `New message from ${senderLabel}`,
         body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
         order_id: orderId,
-        auction_id: order.auction_id,
     });
 
     return { success: true, messageId: msg.id };

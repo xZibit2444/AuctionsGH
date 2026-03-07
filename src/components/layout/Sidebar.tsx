@@ -136,8 +136,9 @@ export default function Sidebar() {
 
     const handleNotifClick = (n: Notification) => {
         setNotifOpen(false);
-        if (n.auction_id) router.push(`/auctions/${n.auction_id}`);
+        if (n.type === 'new_message' && n.order_id) router.push(`/orders/${n.order_id}`);
         else if (n.order_id) router.push(`/orders/${n.order_id}`);
+        else if (n.auction_id) router.push(`/auctions/${n.auction_id}`);
     };
 
     return (
