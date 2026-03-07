@@ -48,25 +48,32 @@ export default function SellerStats() {
     useEffect(() => {
         if (!user) return;
 
+        let isMounted = true;
         const fetchStats = async () => {
-            const supabase = createClient();
-            const { data } = await supabase
-                .from('auctions')
-                .select('status, current_price')
-                .eq('seller_id', user.id);
+            try {
+                const supabase = createClient();
+                const { data } = await supabase
+                    .from('auctions')
+                    .select('status, current_price')
+                    .eq('seller_id', user.id);
 
-            const auctions = (data ?? []) as { status: string; current_price: number }[];
-            setStats({
-                totalListings: auctions.length,
-                activeListings: auctions.filter((a) => a.status === 'active').length,
-                totalSold: auctions.filter((a) => a.status === 'sold').length,
-                totalRevenue: auctions
-                    .filter((a) => a.status === 'sold')
-                    .reduce((sum, a) => sum + a.current_price, 0),
-            });
+                if (!isMounted) return;
+                const auctions = (data ?? []) as { status: string; current_price: number }[];
+                setStats({
+                    totalListings: auctions.length,
+                    activeListings: auctions.filter((a) => a.status === 'active').length,
+                    totalSold: auctions.filter((a) => a.status === 'sold').length,
+                    totalRevenue: auctions
+                        .filter((a) => a.status === 'sold')
+                        .reduce((sum, a) => sum + a.current_price, 0),
+                });
+            } catch {
+                // silently fall through — stats stay at defaults
+            }
         };
 
         fetchStats();
+        return () => { isMounted = false; };
     }, [user]);
 
     const cards = statCards(stats);

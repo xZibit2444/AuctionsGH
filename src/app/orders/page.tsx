@@ -46,19 +46,24 @@ export default function OrdersPage() {
         if (!user) return;
 
         const fetchOrders = async () => {
-            const supabase = createClient();
-            const { data } = await supabase
-                .from('orders')
-                .select(`
+            try {
+                const supabase = createClient();
+                const { data } = await supabase
+                    .from('orders')
+                    .select(`
                     id, status, created_at,
                     auction:auctions ( id, title, current_price, auction_images(url, position) ),
                     deliveries ( status )
                 `)
-                .eq('buyer_id', user.id)
-                .order('created_at', { ascending: false });
+                    .eq('buyer_id', user.id)
+                    .order('created_at', { ascending: false });
 
-            setOrders((data as OrderRow[]) ?? []);
-            setLoading(false);
+                setOrders((data as OrderRow[]) ?? []);
+            } catch {
+                setOrders([]);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchOrders();

@@ -44,62 +44,67 @@ export default function BuyerStats() {
         if (!user) return;
 
         const fetchData = async () => {
-            const supabase = createClient();
+            try {
+                const supabase = createClient();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data } = await (supabase.from('bids') as any)
-                .select(`
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { data } = await (supabase.from('bids') as any)
+                    .select(`
                     id, amount, created_at,
                     auctions ( id, title, status, ends_at, current_price, winner_id, orders(id, status) )
                 `)
-                .eq('bidder_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(200);
+                    .eq('bidder_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(200);
 
-            const bidsRaw = (data ?? []) as BidRow[];
+                const bidsRaw = (data ?? []) as BidRow[];
 
-            // Deduplicate: keep only the latest (highest) bid per auction
-            const seenAuctions = new Set<string>();
-            const uniqueBids = bidsRaw.filter((b) => {
-                const aId = b.auctions?.id;
-                if (!aId || seenAuctions.has(aId)) return false;
-                seenAuctions.add(aId);
-                return true;
-            });
+                // Deduplicate: keep only the latest (highest) bid per auction
+                const seenAuctions = new Set<string>();
+                const uniqueBids = bidsRaw.filter((b) => {
+                    const aId = b.auctions?.id;
+                    if (!aId || seenAuctions.has(aId)) return false;
+                    seenAuctions.add(aId);
+                    return true;
+                });
 
-            // Filter out auctions that are neither active nor won — keep ended/outbid for 2 hours
-            const now = new Date();
-            const bids = uniqueBids.filter((b) => {
-                const auction = b.auctions;
-                if (!auction) return false;
-                if (auction.status === 'active') return true;
-                if (auction.winner_id === user.id && auction.status === 'sold') return true;
-                const diffHours = (now.getTime() - new Date(auction.ends_at).getTime()) / (1000 * 60 * 60);
-                return diffHours <= 2;
-            });
+                // Filter out auctions that are neither active nor won — keep ended/outbid for 2 hours
+                const now = new Date();
+                const bids = uniqueBids.filter((b) => {
+                    const auction = b.auctions;
+                    if (!auction) return false;
+                    if (auction.status === 'active') return true;
+                    if (auction.winner_id === user.id && auction.status === 'sold') return true;
+                    const diffHours = (now.getTime() - new Date(auction.ends_at).getTime()) / (1000 * 60 * 60);
+                    return diffHours <= 2;
+                });
 
-            // Separate won deals so they always appear first in the list
-            const wonBids = bids.filter(
-                (b) => b.auctions?.winner_id === user.id && b.auctions?.status === 'sold'
-            );
-            const otherBids = bids.filter(
-                (b) => !(b.auctions?.winner_id === user.id && b.auctions?.status === 'sold')
-            );
+                // Separate won deals so they always appear first in the list
+                const wonBids = bids.filter(
+                    (b) => b.auctions?.winner_id === user.id && b.auctions?.status === 'sold'
+                );
+                const otherBids = bids.filter(
+                    (b) => !(b.auctions?.winner_id === user.id && b.auctions?.status === 'sold')
+                );
 
-            setRecentBids([...wonBids, ...otherBids].slice(0, 10));
+                setRecentBids([...wonBids, ...otherBids].slice(0, 10));
 
-            const uniqueActive = new Set(
-                bids.filter((b) => b.auctions?.status === 'active').map((b) => b.auctions?.id)
-            );
-            const totalSpent = wonBids.reduce((sum, b) => sum + (b.auctions?.current_price ?? 0), 0);
+                const uniqueActive = new Set(
+                    bids.filter((b) => b.auctions?.status === 'active').map((b) => b.auctions?.id)
+                );
+                const totalSpent = wonBids.reduce((sum, b) => sum + (b.auctions?.current_price ?? 0), 0);
 
-            setStats({
-                totalBids: bidsRaw.length,
-                auctionsWon: wonBids.length,
-                activeAuctions: uniqueActive.size,
-                totalSpent,
-            });
-            setLoading(false);
+                setStats({
+                    totalBids: bidsRaw.length,
+                    auctionsWon: wonBids.length,
+                    activeAuctions: uniqueActive.size,
+                    totalSpent,
+                });
+            } catch {
+                // silently fall through — stats stay at defaults
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchData();

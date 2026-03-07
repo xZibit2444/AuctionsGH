@@ -16,15 +16,23 @@ export function useSavedAuctions() {
             return;
         }
 
+        let isMounted = true;
         const supabase = createClient();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase.from('saved_auctions') as any)
             .select('auction_id')
             .eq('user_id', user.id)
             .then(({ data }: { data: { auction_id: string }[] | null }) => {
-                setSavedIds(new Set((data ?? []).map((r) => r.auction_id)));
-                setLoading(false);
+                if (isMounted) setSavedIds(new Set((data ?? []).map((r) => r.auction_id)));
+            })
+            .catch(() => {
+                // silently fall through — savedIds stays empty Set
+            })
+            .finally(() => {
+                if (isMounted) setLoading(false);
             });
+
+        return () => { isMounted = false; };
     }, [user]);
 
     const toggleSave = useCallback(

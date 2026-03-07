@@ -85,15 +85,19 @@ export default function Sidebar() {
     useEffect(() => {
         if (!user) return;
         const fetch = async () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data } = await (supabase.from('notifications') as any)
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(15);
-            const items = (data ?? []) as Notification[];
-            setNotifications(items);
-            setUnread(items.filter(n => !n.is_read).length);
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { data } = await (supabase.from('notifications') as any)
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(15);
+                const items = (data ?? []) as Notification[];
+                setNotifications(items);
+                setUnread(items.filter(n => !n.is_read).length);
+            } catch {
+                // silently fall through — notifications stay empty
+            }
         };
         fetch();
 

@@ -9,24 +9,32 @@ export function useBids(auctionId: string) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
         const supabase = createClient();
         const fetchBids = async () => {
-            const { data } = await supabase
-                .from('bids')
-                .select(
-                    `
+            try {
+                const { data, error } = await supabase
+                    .from('bids')
+                    .select(
+                        `
           *,
           profiles (id, username, avatar_url)
         `
-                )
-                .eq('auction_id', auctionId)
-                .order('created_at', { ascending: false });
+                    )
+                    .eq('auction_id', auctionId)
+                    .order('created_at', { ascending: false });
 
-            setBids((data as unknown as BidWithBidder[]) ?? []);
-            setLoading(false);
+                if (!isMounted) return;
+                if (!error) setBids((data as unknown as BidWithBidder[]) ?? []);
+            } catch {
+                // silently fall through to finally
+            } finally {
+                if (isMounted) setLoading(false);
+            }
         };
 
         fetchBids();
+        return () => { isMounted = false; };
     }, [auctionId]);
 
     return { bids, setBids, loading };
