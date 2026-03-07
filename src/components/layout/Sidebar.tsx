@@ -136,7 +136,7 @@ export default function Sidebar() {
             {/* Nav */}
             <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
                 {/* main links */}
-                {NAV_ITEMS.filter(item => !item.authRequired || user).map(item => {
+                {NAV_ITEMS.filter(item => !item.authRequired || loading || user).map(item => {
                     const Icon = item.icon;
                     const active = isActive(item.href, item.exact);
                     return (

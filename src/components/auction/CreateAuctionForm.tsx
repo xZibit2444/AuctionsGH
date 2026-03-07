@@ -188,10 +188,17 @@ export default function CreateAuctionForm() {
                 }
             }
 
-            // Upload all images in parallel instead of sequentially
+            // Upload all images in parallel with a 30-second timeout per image
+            const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
+                Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+
             const auctionId = (auction as { id: string }).id;
             const uploadResults = await Promise.all(
-                images.map((img, i) => uploadImage(img, user.id, auctionId).then(res => ({ res, i })))
+                images.map((img, i) =>
+                    withTimeout(uploadImage(img, user.id, auctionId), 30000)
+                        .then(res => ({ res, i }))
+                        .catch(() => ({ res: null, i }))
+                )
             );
 
             const imageInserts = uploadResults
