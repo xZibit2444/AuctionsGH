@@ -1,4 +1,4 @@
-'use client';
+ï»¿'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -42,7 +42,7 @@ export default function AuthBrandPanel({ variant }: Props) {
 
                 {variant === 'signup' && (
                     <div className="space-y-3">
-                        {['Free to join — no subscription', 'Bid on any active listing instantly', 'Sell your items at the best price', 'Secure payments via verified channels'].map((point) => (
+                        {['Free to join - no subscription', 'Bid on any active listing instantly', 'Sell your items at the best price', 'Secure payments via verified channels'].map((point) => (
                             <div key={point} className="flex items-center gap-3">
                                 <div className="h-1.5 w-1.5 bg-amber-400 rounded-full shrink-0" />
                                 <p className="text-sm text-gray-500">{point}</p>
