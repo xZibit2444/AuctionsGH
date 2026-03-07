@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@supabase/supabase-js';
 import { signupSchema } from '@/lib/validators';
 
@@ -17,15 +16,6 @@ export async function POST(req: NextRequest) {
 
         const { email, password, username, full_name, phone_number, location } = result.data;
 
-        const adminClient = createAdminClient();
-
-        // Check for existing account before creating
-        const { data: existingUser } = await adminClient.auth.admin.getUserByEmail(email);
-        if (existingUser?.user) {
-            return NextResponse.json({ error: 'EMAIL_EXISTS' }, { status: 409 });
-        }
-
-        // Use regular client so Supabase sends the confirmation email
         const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
