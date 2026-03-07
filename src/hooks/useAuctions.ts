@@ -103,6 +103,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
         fetchAuctions();
 
+        // Reuse the singleton client for the realtime subscription
         const supabase = createClient();
 
         // Listen for live updates to auctions (e.g. price increase, sold)

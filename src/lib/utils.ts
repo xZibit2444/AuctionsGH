@@ -74,22 +74,6 @@ export function getInitials(name: string): string {
 }
 
 /**
- * Truncate text with ellipsis.
- */
-export function truncate(text: string, maxLength: number): string {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '…';
-}
-
-/**
- * Generate a Supabase Storage public URL for an image path.
- */
-export function getStorageUrl(bucket: string, path: string): string {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
-}
-
-/**
  * Merge Tailwind class names, filtering out falsy values.
  */
 export function cn(...classes: (string | undefined | null | false)[]): string {

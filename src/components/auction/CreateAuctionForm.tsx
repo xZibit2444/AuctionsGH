@@ -111,7 +111,6 @@ export default function CreateAuctionForm() {
             result.error.issues.forEach((issue) => {
                 fieldErrors[issue.path[0] as string] = issue.message;
             });
-            console.error("DEBUG: Zod Validation failed blocking submission ->", fieldErrors);
             setErrors(fieldErrors);
 
             // If validation fails on step 3 but the error is on step 1/2, jump back to it
@@ -168,7 +167,6 @@ export default function CreateAuctionForm() {
                 .single();
 
             if (auctionError || !auction) {
-                console.error("DEBUG: Supabase Insert Error ->", auctionError);
                 setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
                 return;
             }
@@ -218,7 +216,6 @@ export default function CreateAuctionForm() {
             setPublishedAuctionId(auctionId);
         } catch (err) {
             setErrors({ submit: 'An unexpected error occurred during publishing. Please try again.' });
-            console.error("DEBUG: Catch publish err ->", err);
         } finally {
             setSubmitting(false);
         }

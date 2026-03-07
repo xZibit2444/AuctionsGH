@@ -64,8 +64,6 @@ export default function BidForm({
         } finally {
             setLoading(false);
         }
-
-        setTimeout(() => setSuccess(false), 3000);
     };
 
     return (

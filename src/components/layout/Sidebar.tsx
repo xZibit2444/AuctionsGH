@@ -12,6 +12,7 @@ import {
     PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { timeAgo } from '@/lib/utils';
 import { markAllReadAction } from '@/app/actions/notifications';
 
 interface Notification {
@@ -36,16 +37,6 @@ const typeIcon = (type: string) => {
         default: return <Info className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />;
     }
 };
-
-function timeAgo(dateStr: string) {
-    const secs = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-    if (secs < 60) return 'just now';
-    const m = Math.floor(secs / 60);
-    if (m < 60) return `${m}m`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h`;
-    return `${Math.floor(h / 24)}d`;
-}
 
 const NAV_ITEMS = [
     { href: '/', label: 'Home', icon: Home, exact: true },

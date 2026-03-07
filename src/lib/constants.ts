@@ -1,10 +1,4 @@
-/** Ghana Cedi currency code */
-export const CURRENCY = 'GHS';
 export const CURRENCY_SYMBOL = '₵';
-export const CURRENCY_LOCALE = 'en-GH';
-
-/** Minimum bid increment in GHS */
-export const DEFAULT_MIN_INCREMENT = 50.0;
 
 /** Maximum image upload size in bytes (5 MB) */
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -37,7 +31,7 @@ export const ITEM_CATEGORIES = [
     'Other',
 ] as const;
 
-/** @deprecated use ITEM_CATEGORIES */
+/** @deprecated use ITEM_CATEGORIES - kept only to avoid breaking any external references */
 export const PHONE_BRANDS = ITEM_CATEGORIES;
 
 /** Phone condition labels */
