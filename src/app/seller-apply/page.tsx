@@ -159,13 +159,13 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
         setError('');
         try {
             const res = await fetch('/api/didit/session', { method: 'POST' });
+            const json = await res.json();
             if (!res.ok) {
-                const err = await res.json();
                 setVerifyStatus('error');
-                setError(err.error || 'Could not start verification. Please try again.');
+                setError(json.error || 'Could not start verification. Please try again.');
                 return;
             }
-            const { session_id, url } = await res.json();
+            const { session_id, url } = json;
             setSessionId(session_id);
             setVerifyUrl(url);
             setVerifyStatus('pending');

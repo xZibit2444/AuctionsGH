@@ -24,16 +24,17 @@ export async function GET(
         `${DIDIT_BASE}/identity/v2/session/${sessionId}/decision/`,
         {
             headers: { Authorization: `Bearer ${apiKey}` },
-            // Don't cache – we need fresh status each poll
             cache: 'no-store',
         }
     );
 
+    const body = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-        console.error('[Didit] status check failed:', res.status);
-        return NextResponse.json({ error: 'Failed to check verification status' }, { status: 502 });
+        const detail = body?.detail ?? body?.message ?? body?.error ?? res.status;
+        console.error('[Didit] status check failed:', res.status, detail);
+        return NextResponse.json({ error: `Status check failed: ${detail}` }, { status: 502 });
     }
 
-    const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(body);
 }

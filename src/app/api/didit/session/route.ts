@@ -15,8 +15,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Verification service not configured' }, { status: 500 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
     const res = await fetch(`${DIDIT_BASE}/identity/v2/business/session/`, {
         method: 'POST',
         headers: {
@@ -24,22 +22,24 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            // Collect document + liveness for full KYC
-            features: 'DOCUMENT_CAPTURE | LIVENESS_CAPTURE',
-            callback: `${appUrl}/api/didit/callback`,
+            features: 'OCR,LIVENESS',
             vendor_data: user.id,
         }),
     });
 
+    const body = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-        const errorText = await res.text();
-        console.error('[Didit] session creation failed:', res.status, errorText);
-        return NextResponse.json({ error: 'Failed to start identity verification' }, { status: 502 });
+        const detail = body?.detail ?? body?.message ?? body?.error ?? JSON.stringify(body);
+        console.error('[Didit] session creation failed:', res.status, detail);
+        return NextResponse.json(
+            { error: `Verification service error: ${detail}` },
+            { status: 502 }
+        );
     }
 
-    const session = await res.json();
     return NextResponse.json({
-        session_id: session.session_id,
-        url: session.url,
+        session_id: body.session_id,
+        url: body.url,
     });
 }
