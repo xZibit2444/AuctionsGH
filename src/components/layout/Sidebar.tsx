@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 import {
     Home, Search, LayoutDashboard, Heart, Package,
     HelpCircle, Plus, LogOut, Settings, ShieldCheck,
@@ -148,20 +149,13 @@ export default function Sidebar() {
                 {collapsed ? (
                     <div className="flex-1 flex items-center justify-center">
                         <Link href="/">
-                            <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
-                                <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
-                            </div>
+                            <Image src="/logo.png" alt="AuctionsGH" width={32} height={32} className="h-8 w-8 object-contain" priority />
                         </Link>
                     </div>
                 ) : (
-                    <div className="px-5 flex-1 flex items-center">
-                        <Link href="/" className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
-                                <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
-                            </div>
-                            <span className="text-white font-black text-[17px] tracking-tight leading-none whitespace-nowrap">
-                                Auctions<span className="text-amber-400">GH</span>
-                            </span>
+                    <div className="px-3 flex-1 flex items-center">
+                        <Link href="/">
+                            <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
                         </Link>
                     </div>
                 )}

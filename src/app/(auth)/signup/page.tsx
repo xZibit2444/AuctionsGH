@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Gavel } from 'lucide-react';
+import Image from 'next/image';
 import SignupForm from '@/components/auth/SignupForm';
 
 export const metadata = {
@@ -16,13 +16,8 @@ export default function SignupPage() {
                     style={{ backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
 
                 {/* Logo */}
-                <Link href="/" className="relative z-10 flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-amber-400 flex items-center justify-center shrink-0">
-                        <Gavel className="h-4.5 w-4.5 text-black" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-2xl font-black tracking-tight text-white leading-none">
-                        Auctions<span className="text-amber-400">GH</span>
-                    </span>
+                <Link href="/" className="relative z-10">
+                    <Image src="/logo.png" alt="AuctionsGH" width={180} height={50} className="h-12 w-auto object-contain" priority />
                 </Link>
 
                 {/* Center message */}
@@ -53,13 +48,8 @@ export default function SignupPage() {
             <div className="flex-1 flex flex-col">
                 {/* Mobile logo */}
                 <div className="lg:hidden px-6 pt-6 pb-2">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-amber-400 flex items-center justify-center shrink-0">
-                            <Gavel className="h-4 w-4 text-black" strokeWidth={2.5} />
-                        </div>
-                        <span className="text-xl font-black tracking-tight text-black leading-none">
-                            Auctions<span className="text-amber-400">GH</span>
-                        </span>
+                    <Link href="/">
+                        <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
                     </Link>
                 </div>
 
