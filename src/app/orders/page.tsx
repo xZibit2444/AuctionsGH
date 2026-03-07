@@ -45,7 +45,11 @@ export default function OrdersPage() {
     }, [authLoading, user, router]);
 
     useEffect(() => {
-        if (!user) return;
+        if (authLoading) return; // wait for auth to resolve first
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
         const fetchOrders = async () => {
             try {
@@ -71,7 +75,7 @@ export default function OrdersPage() {
         };
 
         fetchOrders();
-    }, [user]);
+    }, [user, authLoading]);
 
     const getDeliveryStatus = (order: OrderRow) => {
         const dels = Array.isArray(order.deliveries)
@@ -94,7 +98,7 @@ export default function OrdersPage() {
                 <p className="text-xs sm:text-sm text-gray-400 mt-0.5">All your orders — purchases and sales</p>
             </div>
 
-            {loading || authLoading ? (
+            {loading ? (
                 <div className="border border-gray-200 divide-y divide-gray-100">
                     {Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-4 px-5 py-4">
