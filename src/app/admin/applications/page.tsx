@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminGuard from '@/components/auth/AdminGuard';
 import { createClient } from '@/lib/supabase/client';
 import { reviewSellerApplication } from '@/app/actions/sellerApplication';
-import { CheckCircle, XCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, ShieldCheck, ShieldX } from 'lucide-react';
 import type { SellerApplicationStatus } from '@/types/database';
 
 interface Application {
@@ -15,8 +15,10 @@ interface Application {
     location: string;
     items_to_sell: string;
     experience: string;
-    id_type: string;
-    id_number: string;
+    id_type: string | null;
+    id_number: string | null;
+    didit_session_id: string | null;
+    didit_verified: boolean;
     status: SellerApplicationStatus;
     admin_notes: string | null;
     created_at: string;
@@ -87,9 +89,24 @@ function ApplicationRow({ app, onReviewed }: { app: Application; onReviewed: () 
                 <div className="px-4 pb-5 pt-1 border-t border-gray-100 space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
                         <Field label="Phone" value={app.phone_number} />
-                        <Field label="ID Type" value={app.id_type} />
-                        <Field label="ID Number" value={app.id_number} />
                         <Field label="Applied" value={new Date(app.created_at).toLocaleString('en-GH')} />
+                        <div className="sm:col-span-2">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Identity Verification</p>
+                            {app.didit_verified ? (
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 text-green-700 text-xs font-bold">
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    Verified via Didit
+                                    {app.didit_session_id && (
+                                        <span className="text-green-500 font-normal ml-1">({app.didit_session_id.slice(0, 8)}…)</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 border border-red-200 text-red-600 text-xs font-bold">
+                                    <ShieldX className="h-3.5 w-3.5" />
+                                    Not Verified
+                                </div>
+                            )}
+                        </div>
                         <div className="sm:col-span-2">
                             <Field label="What they plan to sell" value={app.items_to_sell} />
                         </div>
