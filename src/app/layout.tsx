@@ -32,11 +32,13 @@ export default function RootLayout({
         <Providers>
           <PushNotificationsInit />
           <ConditionalNav />
-          <FloatingChatToast />
-          <FloatingOfferToast />
-          <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
-          <div className="hidden sm:block">
-            <Footer />
+          <div className="sm:ml-55">
+            <FloatingChatToast />
+            <FloatingOfferToast />
+            <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
+            <div className="hidden sm:block">
+              <Footer />
+            </div>
           </div>
         </Providers>
         <SpeedInsights />

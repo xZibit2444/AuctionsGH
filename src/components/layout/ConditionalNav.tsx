@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 
 const AUTH_ROUTES = ['/login', '/signup'];
@@ -11,8 +11,13 @@ export default function ConditionalNav() {
     if (AUTH_ROUTES.includes(pathname)) return null;
     return (
         <>
-            <Navbar />
+            <div className="hidden sm:block">
+                <Sidebar />
+            </div>
             <MobileNav />
+        </>
+    );
+}
         </>
     );
 }
