@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import SignupForm from '@/components/auth/SignupForm';
+import AuthBrandPanel from '@/components/auth/AuthBrandPanel';
 
 export const metadata = {
     title: 'Create Account — AuctionsGH',
@@ -9,40 +10,7 @@ export const metadata = {
 export default function SignupPage() {
     return (
         <div className="min-h-screen flex">
-            {/* Left panel — branding */}
-            <div className="hidden lg:flex lg:w-[45%] bg-black flex-col justify-between p-12 relative overflow-hidden">
-                {/* Subtle grid texture */}
-                <div className="absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
-
-                {/* Logo */}
-                <Link href="/" className="relative z-10">
-                    <Image src="/logo.png" alt="AuctionsGH" width={180} height={50} className="h-12 w-auto object-contain" priority />
-                </Link>
-
-                {/* Center message */}
-                <div className="relative z-10 space-y-6">
-                    <div className="space-y-1">
-                        <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Join the community</p>
-                        <h2 className="text-5xl font-black text-white leading-none tracking-tighter">
-                            Buy &amp; Sell<br />Anything<br />Securely
-                        </h2>
-                    </div>
-                    <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                        Create your free account and start bidding within minutes. Verified listings. Protected transactions.
-                    </p>
-                    <div className="space-y-3 pt-2">
-                        {['Free to join — no subscription', 'Bid on any active listing instantly', 'Sell your items at the best price', 'Secure payments via verified channels'].map((point) => (
-                            <div key={point} className="flex items-center gap-3">
-                                <div className="h-1.5 w-1.5 bg-white rounded-full shrink-0" />
-                                <p className="text-sm text-gray-400">{point}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <p className="relative z-10 text-[11px] text-gray-700">© 2025 AuctionsGH · All rights reserved</p>
-            </div>
+            <AuthBrandPanel variant="signup" />
 
             {/* Right panel — form */}
             <div className="flex-1 flex flex-col">

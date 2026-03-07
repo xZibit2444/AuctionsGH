@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import LoginForm from '@/components/auth/LoginForm';
+import AuthBrandPanel from '@/components/auth/AuthBrandPanel';
 
 export const metadata = {
     title: 'Sign In — AuctionsGH',
@@ -14,38 +15,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     const { error } = await searchParams;
     return (
         <div className="min-h-screen flex">
-            {/* Left panel — branding */}
-            <div className="hidden lg:flex lg:w-[45%] bg-black flex-col justify-between p-12 relative overflow-hidden">
-                {/* Subtle texture */}
-                <div className="absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
-
-                {/* Logo */}
-                <Link href="/" className="relative z-10">
-                    <Image src="/logo.png" alt="AuctionsGH" width={180} height={50} className="h-12 w-auto object-contain" priority />
-                </Link>
-
-                {/* Center message */}
-                <div className="relative z-10 space-y-6">
-                    <div className="space-y-1">
-                        <p className="text-[11px] font-black text-gray-600 uppercase tracking-widest">Ghana&apos;s Premier</p>
-                        <h2 className="text-5xl font-black text-white leading-none tracking-tighter">
-                            Online<br />Auction<br />Platform
-                        </h2>
-                    </div>
-                    <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-                        Bid on verified items. Sell yours to the highest bidder. Every transaction is secure.
-                    </p>
-                    <div className="flex gap-6 pt-2">
-                        <div>
-                            <p className="text-2xl font-black text-white">Accra</p>
-                            <p className="text-[11px] text-gray-600 uppercase tracking-widest">& Kumasi</p>
-                        </div>
-                    </div>
-                </div>
-
-                <p className="relative z-10 text-[11px] text-gray-700">© 2025 AuctionsGH · All rights reserved</p>
-            </div>
+            <AuthBrandPanel variant="login" />
 
             {/* Right panel — form */}
             <div className="flex-1 flex flex-col">
