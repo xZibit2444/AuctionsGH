@@ -9,6 +9,9 @@ import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
+// All pages use Supabase at runtime — prevent static prerender at build time
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
