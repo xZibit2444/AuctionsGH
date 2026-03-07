@@ -134,7 +134,9 @@ export default function OrderPage({ params }: OrderPageProps) {
         if (!id) return;
 
         const supabase = createClient();
-        const channel = supabase
+
+        // Listen for delivery status changes
+        const deliveryChannel = supabase
             .channel(`delivery-status:${id}`)
             .on(
                 'postgres_changes',
@@ -153,8 +155,26 @@ export default function OrderPage({ params }: OrderPageProps) {
             )
             .subscribe();
 
+        // Listen for order status changes (e.g. pin_verified, completed set by edge functions)
+        const orderChannel = supabase
+            .channel(`order-status:${id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders',
+                    filter: `id=eq.${id}`,
+                },
+                (payload) => {
+                    setOrder((prev: any) => prev ? { ...prev, ...payload.new } : prev);
+                }
+            )
+            .subscribe();
+
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(deliveryChannel);
+            supabase.removeChannel(orderChannel);
         };
     }, [id]);
 
