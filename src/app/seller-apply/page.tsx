@@ -51,8 +51,6 @@ function StatusScreen({ app }: { app: ExistingApplication }) {
     return null;
 }
 
-const ID_TYPES = ['Ghana Card', 'Passport', 'Voter ID', "Driver's License"];
-
 function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
     const { profile } = useAuth();
     const [form, setForm] = useState({
@@ -61,8 +59,6 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
         location: '',
         items_to_sell: '',
         experience: '',
-        id_type: '',
-        id_number: '',
     });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -207,44 +203,6 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
                                     onChange={e => set('experience', e.target.value)}
                                     className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black resize-none"
                                     placeholder="Tell us about your selling experience, e.g. sold on Tonaton, Jiji, personal business…"
-                                />
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ID Verification */}
-                    <section>
-                        <h2 className="text-[11px] font-black text-black uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
-                            ID Verification
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-                                    ID Type <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={form.id_type}
-                                    onChange={e => set('id_type', e.target.value)}
-                                    className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black bg-white"
-                                >
-                                    <option value="">Select ID type…</option>
-                                    {ID_TYPES.map(t => (
-                                        <option key={t} value={t}>{t}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-                                    ID Number <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={form.id_number}
-                                    onChange={e => set('id_number', e.target.value)}
-                                    className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
-                                    placeholder="GHA-000000000-0"
                                 />
                             </div>
                         </div>

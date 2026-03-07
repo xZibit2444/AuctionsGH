@@ -17,8 +17,6 @@ export interface SellerApplicationData {
     location: string;
     items_to_sell: string;
     experience: string;
-    id_type: string;
-    id_number: string;
 }
 
 export async function submitSellerApplication(data: SellerApplicationData) {
@@ -28,7 +26,7 @@ export async function submitSellerApplication(data: SellerApplicationData) {
 
     // Validate required fields
     const required: (keyof SellerApplicationData)[] = [
-        'full_name', 'phone_number', 'location', 'items_to_sell', 'experience', 'id_type', 'id_number',
+        'full_name', 'phone_number', 'location', 'items_to_sell', 'experience',
     ];
     for (const field of required) {
         if (!data[field]?.trim()) return { success: false, error: 'All fields are required.' };
