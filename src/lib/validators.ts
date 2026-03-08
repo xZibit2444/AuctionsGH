@@ -55,8 +55,8 @@ export const createAuctionSchema = z.object({
         .min(1, 'Minimum starting price is GHS 1')
         .max(999999, 'Maximum starting price is GHS 999,999'),
     min_increment: z.coerce.number().positive().default(5),
-    duration_hours: z.coerce.number().min(0),
-    duration_minutes: z.coerce.number().min(0).max(59).optional(),
+    duration_hours: z.coerce.number().min(0).optional().default(0),
+    duration_minutes: z.coerce.number().min(0).max(59).optional().default(0),
     listing_city: z.enum(LISTING_CITIES as unknown as [string, ...string[]]),
     meetup_area: z.enum(ACCRA_MEETUP_AREAS as unknown as [string, ...string[]]),
     delivery_available: z.boolean().default(true),

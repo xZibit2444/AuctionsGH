@@ -88,7 +88,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                         </div>
 
                         {auction.status === 'active' && (
-                            <AuctionCountdown endTime={auction.ends_at} compact />
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Open</span>
                         )}
                     </div>
                 </div>

@@ -9,7 +9,6 @@ import { createAuctionSchema, type CreateAuctionInput } from '@/lib/validators';
 import {
     ITEM_CATEGORIES,
     CONDITION_LABELS,
-    AUCTION_DURATIONS,
     MAX_IMAGES_PER_AUCTION,
     LISTING_CITIES,
     ACCRA_MEETUP_AREAS,
@@ -81,7 +80,6 @@ export default function CreateAuctionForm() {
     const [submitting, setSubmitting] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
-    const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const update = (field: keyof CreateAuctionInput, value: unknown) =>
@@ -133,15 +131,8 @@ export default function CreateAuctionForm() {
 
         setSubmitting(true);
 
-        const totalHours = formData.duration_hours + (formData.duration_minutes || 0) / 60;
-        if (totalHours === 0) {
-            setErrors({ duration_hours: 'Total duration must be greater than 0.' });
-            setStep(3);
-            setSubmitting(false);
-            return;
-        }
-
-        const endsAt = new Date(Date.now() + totalHours * 60 * 60 * 1000).toISOString();
+        // Listings are permanent — stays active until seller accepts an offer.
+        const endsAt = new Date('2099-12-31T23:59:59Z').toISOString();
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -538,66 +529,15 @@ export default function CreateAuctionForm() {
                         {errors.min_increment && <p className="text-[11px] text-red-500 mt-1">{errors.min_increment}</p>}
                     </div>
 
-                    {/* Duration */}
-                    <div>
-                        <FieldLabel>Auction Duration</FieldLabel>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3">
-                            {AUCTION_DURATIONS.map(({ label, hours }) => (
-                                <button
-                                    key={hours}
-                                    type="button"
-                                    onClick={() => { update('duration_hours', hours); setIsCustomDuration(false); }}
-                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${!isCustomDuration && formData.duration_hours === hours
-                                        ? 'border-black bg-black text-white'
-                                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => setIsCustomDuration(true)}
-                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${isCustomDuration
-                                    ? 'border-black bg-black text-white'
-                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                            >
-                                Custom
-                            </button>
+                    {/* Permanent listing notice */}
+                    <div className="flex items-start gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div className="shrink-0 mt-0.5 h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
                         </div>
-                        {isCustomDuration && (
-                            <div className="flex gap-2 mb-2">
-                                <div className={`flex flex-1 border focus-within:border-black transition-colors ${errors.duration_hours ? 'border-red-400' : 'border-gray-200'}`}>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={formData.duration_hours === 0 ? '' : formData.duration_hours}
-                                        onChange={(e) => update('duration_hours', Number(e.target.value))}
-                                        placeholder="0"
-                                        className="flex-1 w-full px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
-                                    />
-                                    <div className="flex items-center px-3 bg-gray-50 border-l border-gray-200 shrink-0">
-                                        <span className="text-xs font-semibold text-gray-500">hrs</span>
-                                    </div>
-                                </div>
-                                <div className={`flex flex-1 border focus-within:border-black transition-colors ${errors.duration_minutes ? 'border-red-400' : 'border-gray-200'}`}>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="59"
-                                        value={formData.duration_minutes === 0 ? '' : formData.duration_minutes}
-                                        onChange={(e) => update('duration_minutes', Number(e.target.value))}
-                                        placeholder="0"
-                                        className="flex-1 w-full flex-grow min-w-[50px] px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
-                                    />
-                                    <div className="flex items-center px-3 bg-gray-50 border-l border-gray-200 shrink-0">
-                                        <span className="text-xs font-semibold text-gray-500">min</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {(errors.duration_hours || errors.duration_minutes) && <p className="text-[11px] text-red-500 mt-1">{errors.duration_hours || errors.duration_minutes}</p>}
+                        <div>
+                            <p className="text-sm font-bold text-black">Listing stays live until you accept an offer</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Your listing will remain active with no expiry. You can close it any time from your dashboard.</p>
+                        </div>
                     </div>
 
                     {/* Summary box */}
