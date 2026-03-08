@@ -8,7 +8,6 @@ import Providers from '@/components/layout/Providers';
 import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
-import RouteRefresher from '@/components/layout/RouteRefresher';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script';
 
@@ -81,7 +80,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jakarta.variable} ${jakarta.className} bg-white text-gray-900 antialiased`}>
         <Providers>
-          <RouteRefresher />
           <PushNotificationsInit />
           <ConditionalNav />
           <MainContent>

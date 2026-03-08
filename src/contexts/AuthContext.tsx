@@ -70,9 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (!mounted) return;
                 const u = session?.user ?? null;
                 setUser(u);
-                if (u) await fetchProfile(u.id, supabase);
-                else setProfile(null);
                 if (mounted) setLoading(false);
+                if (u) {
+                    void fetchProfile(u.id, supabase);
+                } else {
+                    setProfile(null);
+                }
             }
         );
 
