@@ -6,7 +6,7 @@ import AuctionGrid from '@/components/auction/AuctionGrid';
 import AuctionCarousel from '@/components/auction/AuctionCarousel';
 import AuctionFilters from '@/components/auction/AuctionFilters';
 import CategoryBar from '@/components/layout/CategoryBar';
-import { Flame, Zap, Clock, TrendingUp, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { Flame, Zap, Clock, TrendingUp } from 'lucide-react';
 
 export default function HomePage() {
   const [search, setSearch] = useState('');
@@ -83,40 +83,6 @@ export default function HomePage() {
         </section>
       ) : (
         <>
-          {/* Trust strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              {
-                icon: <Zap className="h-5 w-5 text-amber-500" />,
-                bg: 'bg-amber-50',
-                title: 'Instant Checkout',
-                desc: 'Win and complete your order in minutes',
-              },
-              {
-                icon: <BadgeCheck className="h-5 w-5 text-blue-500" />,
-                bg: 'bg-blue-50',
-                title: 'Verified Sellers',
-                desc: 'Every seller is ID-verified before listing',
-              },
-              {
-                icon: <ShieldCheck className="h-5 w-5 text-green-500" />,
-                bg: 'bg-green-50',
-                title: 'Secure Payments',
-                desc: 'Safe and reliable payment process',
-              },
-            ].map(({ icon, bg, title, desc }) => (
-              <div key={title} className={`flex items-center gap-4 rounded-2xl ${bg} px-5 py-4`}>
-                <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm">
-                  {icon}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">{title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
           {/* Ending Soon */}
           <AuctionCarousel
             title="Ending Soon"

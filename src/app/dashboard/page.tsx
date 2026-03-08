@@ -7,7 +7,7 @@ import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
 import BuyerStats from '@/components/dashboard/BuyerStats';
 import Link from 'next/link';
-import { Settings, Plus, ChevronRight, Store, ClipboardList } from 'lucide-react';
+import { Settings, Plus, ChevronRight, Store, ClipboardList, Package } from 'lucide-react';
 
 type Tab = 'buyer' | 'seller';
 
@@ -70,21 +70,39 @@ export default function DashboardPage() {
 
                 {/* Admin shortcut to seller applications */}
                 {profile?.is_super_admin && (
-                    <Link
-                        href="/admin/applications"
-                        className="flex items-center justify-between gap-4 mb-6 sm:mb-8 p-4 border border-gray-200 hover:border-black transition-colors group"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                <ClipboardList className="h-4 w-4" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6 sm:mb-8">
+                        <Link
+                            href="/admin/applications"
+                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
+                                    <ClipboardList className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-black">Seller Applications</p>
+                                    <p className="text-xs text-gray-400">Review and approve pending seller applications.</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-black text-black">Seller Applications</p>
-                                <p className="text-xs text-gray-400">Review and approve pending seller applications.</p>
+                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
+                        </Link>
+
+                        <Link
+                            href="/admin/orders"
+                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
+                                    <Package className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-black">Order Monitor</p>
+                                    <p className="text-xs text-gray-400">See all orders, delivery codes, and live statuses.</p>
+                                </div>
                             </div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                    </Link>
+                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
+                        </Link>
+                    </div>
                 )}
 
                 {/* Tab Switcher */}
