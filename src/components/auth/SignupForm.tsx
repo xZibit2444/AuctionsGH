@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 
 export default function SignupForm() {
     const supabase = createClient();
@@ -29,29 +30,26 @@ export default function SignupForm() {
                 }
             }, { scope: 'email,public_profile' });
         } else {
-            const origin = window.location.origin.replace('0.0.0.0', 'localhost');
             supabase.auth.signInWithOAuth({
                 provider: 'facebook',
-                options: { redirectTo: `${origin}/callback` },
+                options: { redirectTo: buildAuthRedirectUrl('/') },
             }).then(() => setLoading(null));
         }
     };
 
     const handleGoogleLogin = async () => {
         setLoading('google');
-        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${origin}/callback` },
+            options: { redirectTo: buildAuthRedirectUrl('/') },
         });
     };
 
     const handleGithubLogin = async () => {
         setLoading('github');
-        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'github',
-            options: { redirectTo: `${origin}/callback` },
+            options: { redirectTo: buildAuthRedirectUrl('/') },
         });
     };
 

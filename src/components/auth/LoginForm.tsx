@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 import { AlertTriangle } from 'lucide-react';
 
 declare global {
@@ -17,9 +18,10 @@ declare global {
 
 interface LoginFormProps {
     urlError?: string;
+    redirectTo?: string;
 }
 
-export default function LoginForm({ urlError }: LoginFormProps) {
+export default function LoginForm({ urlError, redirectTo = '/' }: LoginFormProps) {
     const supabase = createClient();
     const router = useRouter();
     const [loading, setLoading] = useState<'google' | 'facebook' | 'github' | null>(null);
@@ -54,11 +56,9 @@ export default function LoginForm({ urlError }: LoginFormProps) {
                 }
             }, { scope: 'email,public_profile' });
         } else {
-            // Fallback: redirect-based OAuth
-            const origin = window.location.origin.replace('0.0.0.0', 'localhost');
             supabase.auth.signInWithOAuth({
                 provider: 'facebook',
-                options: { redirectTo: `${origin}/callback` },
+                options: { redirectTo: buildAuthRedirectUrl(redirectTo) },
             }).then(() => setLoading(null));
         }
     };
@@ -66,20 +66,18 @@ export default function LoginForm({ urlError }: LoginFormProps) {
     const handleGoogleLogin = async () => {
         setLoading('google');
         setError(null);
-        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${origin}/callback` },
+            options: { redirectTo: buildAuthRedirectUrl(redirectTo) },
         });
     };
 
     const handleGithubLogin = async () => {
         setLoading('github');
         setError(null);
-        const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
             provider: 'github',
-            options: { redirectTo: `${origin}/callback` },
+            options: { redirectTo: buildAuthRedirectUrl(redirectTo) },
         });
     };
 

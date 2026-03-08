@@ -8,11 +8,11 @@ export const metadata = {
 };
 
 interface LoginPageProps {
-    searchParams: Promise<{ error?: string }>;
+    searchParams: Promise<{ error?: string; redirectTo?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-    const { error } = await searchParams;
+    const { error, redirectTo } = await searchParams;
     return (
         <div className="min-h-screen flex">
             <AuthBrandPanel variant="login" />
@@ -33,7 +33,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                             <p className="text-sm text-gray-400 mt-1">Sign in to your account to continue</p>
                         </div>
 
-                        <LoginForm urlError={error} />
+                        <LoginForm urlError={error} redirectTo={redirectTo} />
 
                         <p className="mt-8 text-center text-sm text-gray-500">
                             New to AuctionsGH?{' '}
