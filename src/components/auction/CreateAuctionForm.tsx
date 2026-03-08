@@ -14,7 +14,7 @@ import {
     ACCRA_MEETUP_AREAS,
 } from '@/lib/constants';
 import {
-    Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2
+    Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -80,6 +80,8 @@ export default function CreateAuctionForm() {
     const [submitting, setSubmitting] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
+    const [isPermanent, setIsPermanent] = useState(true);
+    const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const update = (field: keyof CreateAuctionInput, value: unknown) =>
@@ -131,8 +133,19 @@ export default function CreateAuctionForm() {
 
         setSubmitting(true);
 
-        // Listings are permanent — stays active until seller accepts an offer.
-        const endsAt = new Date('2099-12-31T23:59:59Z').toISOString();
+        let endsAt: string;
+        if (isPermanent) {
+            endsAt = new Date('2099-12-31T23:59:59Z').toISOString();
+        } else {
+            const totalHours = (formData.duration_hours || 0) + (formData.duration_minutes || 0) / 60;
+            if (totalHours === 0) {
+                setErrors({ duration_hours: 'Please set a duration or choose a permanent listing.' });
+                setStep(3);
+                setSubmitting(false);
+                return;
+            }
+            endsAt = new Date(Date.now() + totalHours * 60 * 60 * 1000).toISOString();
+        }
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -520,15 +533,93 @@ export default function CreateAuctionForm() {
             {step === 3 && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
 
-                    {/* Permanent listing notice — shown prominently at top */}
-                    <div className="flex items-start gap-3 rounded-xl border-2 border-green-200 bg-green-50 px-4 py-4">
-                        <div className="shrink-0 mt-0.5 h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
-                            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                    {/* Listing duration choice */}
+                    <div>
+                        <FieldLabel>Listing Duration</FieldLabel>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsPermanent(true)}
+                                className={`flex items-start gap-3 px-4 py-3.5 border-2 rounded-xl text-left transition-all ${
+                                    isPermanent ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                                }`}
+                            >
+                                <Infinity className={`h-5 w-5 shrink-0 mt-0.5 ${isPermanent ? 'text-white' : 'text-gray-400'}`} />
+                                <div>
+                                    <p className="text-sm font-bold">Permanent</p>
+                                    <p className={`text-xs mt-0.5 ${isPermanent ? 'text-white/65' : 'text-gray-400'}`}>Stays live until you accept an offer</p>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsPermanent(false)}
+                                className={`flex items-start gap-3 px-4 py-3.5 border-2 rounded-xl text-left transition-all ${
+                                    !isPermanent ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                                }`}
+                            >
+                                <Clock className={`h-5 w-5 shrink-0 mt-0.5 ${!isPermanent ? 'text-white' : 'text-gray-400'}`} />
+                                <div>
+                                    <p className="text-sm font-bold">Set a Timer</p>
+                                    <p className={`text-xs mt-0.5 ${!isPermanent ? 'text-white/65' : 'text-gray-400'}`}>Closes automatically after a set time</p>
+                                </div>
+                            </button>
                         </div>
-                        <div>
-                            <p className="text-sm font-bold text-green-900">Your listing has no expiry</p>
-                            <p className="text-xs text-green-700 mt-0.5">It stays live until you get an offer you like and accept it, or you close it from your dashboard.</p>
-                        </div>
+
+                        {/* Duration picker — only shown when timer is selected */}
+                        {!isPermanent && (
+                            <div className="mt-3 space-y-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {[{ label: '1 Day', hours: 24 }, { label: '3 Days', hours: 72 }, { label: '5 Days', hours: 120 }, { label: '7 Days', hours: 168 }].map(({ label, hours }) => (
+                                        <button
+                                            key={hours}
+                                            type="button"
+                                            onClick={() => { update('duration_hours', hours); update('duration_minutes', 0); setIsCustomDuration(false); }}
+                                            className={`px-3 py-2 text-sm font-semibold border rounded-lg transition-colors ${
+                                                !isCustomDuration && formData.duration_hours === hours
+                                                    ? 'border-black bg-black text-white'
+                                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                            }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCustomDuration(true)}
+                                    className={`w-full px-3 py-2 text-sm font-semibold border rounded-lg transition-colors ${
+                                        isCustomDuration ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                >
+                                    Custom time
+                                </button>
+                                {isCustomDuration && (
+                                    <div className="flex gap-2">
+                                        <div className="flex flex-1 border border-gray-200 focus-within:border-black transition-colors rounded">
+                                            <input
+                                                type="number" min="0"
+                                                value={formData.duration_hours || ''}
+                                                onChange={(e) => update('duration_hours', Number(e.target.value))}
+                                                placeholder="0"
+                                                className="flex-1 px-3 py-2.5 text-sm text-black bg-white focus:outline-none"
+                                            />
+                                            <span className="flex items-center px-3 bg-gray-50 border-l border-gray-200 text-xs font-semibold text-gray-500">hrs</span>
+                                        </div>
+                                        <div className="flex flex-1 border border-gray-200 focus-within:border-black transition-colors rounded">
+                                            <input
+                                                type="number" min="0" max="59"
+                                                value={formData.duration_minutes || ''}
+                                                onChange={(e) => update('duration_minutes', Number(e.target.value))}
+                                                placeholder="0"
+                                                className="flex-1 px-3 py-2.5 text-sm text-black bg-white focus:outline-none"
+                                            />
+                                            <span className="flex items-center px-3 bg-gray-50 border-l border-gray-200 text-xs font-semibold text-gray-500">min</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {errors.duration_hours && <p className="text-[11px] text-red-500">{errors.duration_hours}</p>}
+                            </div>
+                        )}
                     </div>
                     {/* Starting price */}
                     <div>
