@@ -355,13 +355,13 @@ export default function Sidebar() {
                         <div className="space-y-2 px-1">
                             <Link
                                 href="/login"
-                                className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px]"
+                                className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px]"
                             >
                                 Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
                             </Link>
                             <Link
                                 href="/signup"
-                                className="flex items-center justify-center w-full py-2 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                                className="flex items-center justify-center w-full px-3 py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
                             >
                                 Sign up
                             </Link>

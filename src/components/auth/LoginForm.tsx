@@ -1,8 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AlertTriangle } from 'lucide-react';
+
+declare global {
+    interface Window {
+        FB?: {
+            login: (cb: (res: { authResponse?: { accessToken: string } }) => void, opts?: object) => void;
+            init: (opts: object) => void;
+            AppEvents: { logPageView: () => void };
+        };
+    }
+}
 
 interface LoginFormProps {
     urlError?: string;
@@ -10,7 +21,9 @@ interface LoginFormProps {
 
 export default function LoginForm({ urlError }: LoginFormProps) {
     const supabase = createClient();
-    const [loading, setLoading] = useState<'google' | 'facebook' | 'apple' | null>(null);
+    const router = useRouter();
+    const [loading, setLoading] = useState<'google' | 'facebook' | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const urlErrorMessage = urlError === 'expired'
         ? 'That link has expired. Please try signing in again.'
@@ -20,26 +33,57 @@ export default function LoginForm({ urlError }: LoginFormProps) {
                 ? decodeURIComponent(urlError)
                 : null;
 
-    const handleOAuth = async (provider: 'google' | 'facebook' | 'apple') => {
-        setLoading(provider);
+    const handleFacebookLogin = () => {
+        setLoading('facebook');
+        setError(null);
+        if (window.FB) {
+            window.FB.login(async (response) => {
+                if (!response.authResponse) {
+                    setLoading(null);
+                    return;
+                }
+                const { error: sbError } = await supabase.auth.signInWithIdToken({
+                    provider: 'facebook',
+                    token: response.authResponse.accessToken,
+                });
+                if (sbError) {
+                    setError(sbError.message);
+                    setLoading(null);
+                } else {
+                    router.push('/');
+                }
+            }, { scope: 'email,public_profile' });
+        } else {
+            // Fallback: redirect-based OAuth
+            const origin = window.location.origin.replace('0.0.0.0', 'localhost');
+            supabase.auth.signInWithOAuth({
+                provider: 'facebook',
+                options: { redirectTo: `${origin}/callback` },
+            }).then(() => setLoading(null));
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setLoading('google');
+        setError(null);
         const origin = window.location.origin.replace('0.0.0.0', 'localhost');
         await supabase.auth.signInWithOAuth({
-            provider,
+            provider: 'google',
             options: { redirectTo: `${origin}/callback` },
         });
     };
 
     return (
         <div className="space-y-3">
-            {urlErrorMessage && (
+            {(urlErrorMessage || error) && (
                 <div className="flex items-center gap-2 border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-700 text-sm">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
-                    {urlErrorMessage}
+                    {error ?? urlErrorMessage}
                 </div>
             )}
             <button
                 type="button"
-                onClick={() => handleOAuth('google')}
+                onClick={handleGoogleLogin}
                 disabled={loading !== null}
                 className="w-full flex items-center justify-center gap-2.5 border border-gray-200 py-3 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-60"
             >
@@ -53,25 +97,14 @@ export default function LoginForm({ urlError }: LoginFormProps) {
             </button>
             <button
                 type="button"
-                onClick={() => handleOAuth('facebook')}
+                onClick={handleFacebookLogin}
                 disabled={loading !== null}
                 className="w-full flex items-center justify-center gap-2.5 border border-gray-200 py-3 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-60"
             >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="#1877F2">
                     <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.028 4.388 11.023 10.125 11.927v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.885v2.27h3.328l-.532 3.49h-2.796v8.437C19.612 23.096 24 18.1 24 12.073z" />
                 </svg>
-                {loading === 'facebook' ? 'Redirecting...' : 'Continue with Facebook'}
-            </button>
-            <button
-                type="button"
-                onClick={() => handleOAuth('apple')}
-                disabled={loading !== null}
-                className="w-full flex items-center justify-center gap-2.5 border border-gray-200 py-3 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-60"
-            >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701z" />
-                </svg>
-                {loading === 'apple' ? 'Redirecting...' : 'Continue with Apple'}
+                {loading === 'facebook' ? 'Signing in...' : 'Continue with Facebook'}
             </button>
         </div>
     );
