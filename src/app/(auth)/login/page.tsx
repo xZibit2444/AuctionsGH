@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
                 <div className="flex-1 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-sm">
-                        <div className="mb-8">
+                        <div className="mb-8 text-center">
                             <h1 className="text-3xl font-black text-black tracking-tight">Welcome back</h1>
                             <p className="text-sm text-gray-400 mt-1">Sign in to your account to continue</p>
                         </div>
