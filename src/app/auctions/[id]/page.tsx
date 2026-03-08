@@ -12,11 +12,21 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
     const { id } = await params;
     try {
         const supabase = await createClient();
-        const { data: auction } = await supabase
+        const { data } = await supabase
             .from('auctions')
             .select('title, description, brand, model, condition, current_price, status')
             .eq('id', id)
             .single();
+
+        const auction = data as {
+            title: string;
+            description: string | null;
+            brand: string;
+            model: string;
+            condition: string;
+            current_price: number;
+            status: string;
+        } | null;
 
         if (!auction) {
             return { title: 'Auction Not Found' };
