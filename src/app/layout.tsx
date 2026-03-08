@@ -92,6 +92,13 @@ export default function RootLayout({
           </MainContent>
         </Providers>
         <SpeedInsights />
+        <Script id="aclib-auto-tag" strategy="afterInteractive">
+          {`
+            aclib.runAutoTag({
+              zoneId: 'nr472ypqmg',
+            });
+          `}
+        </Script>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-HZQX8B5XC3"
