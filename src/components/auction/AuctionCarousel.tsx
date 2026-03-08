@@ -31,62 +31,55 @@ export default function AuctionCarousel({
     };
 
     return (
-        <section className="relative group/section">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                    {icon && (
-                        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
-                            {icon}
-                        </span>
-                    )}
+        <section>
+            {/* Section header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 className="flex items-center gap-2.5 text-base font-black text-gray-900 uppercase tracking-wide">
+                    {icon && <span>{icon}</span>}
                     {title}
                 </h2>
                 <Link
                     href={viewAllHref}
-                    className="text-xs font-bold text-amber-600 hover:text-amber-500 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full transition-colors"
+                    className="text-xs font-bold text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-1"
                 >
-                    See all →
+                    View all <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
             </div>
 
-            {/* Scroll container */}
+            {/* Scroll area with side arrows */}
             <div className="relative">
-                {/* Left arrow */}
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center bg-white border border-gray-300 shadow-md hover:bg-gray-50 transition-all opacity-0 group-hover/section:opacity-100 disabled:opacity-0"
+                    className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md hover:border-gray-400 transition-all"
                     aria-label="Scroll left"
                 >
-                    <ChevronLeft className="h-4 w-4 text-black" />
+                    <ChevronLeft className="h-4 w-4 text-gray-600" />
                 </button>
 
-                {/* Cards row */}
                 <div
                     ref={scrollRef}
-                    className="flex gap-3 overflow-x-auto scroll-smooth pb-2 scrollbar-hide"
+                    className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide"
                     style={{ scrollSnapType: 'x mandatory' }}
                 >
                     {loading
                         ? Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="shrink-0 w-44 sm:w-52" style={{ scrollSnapAlign: 'start' }}>
+                            <div key={i} className="shrink-0 w-48 sm:w-56" style={{ scrollSnapAlign: 'start' }}>
                                 <AuctionCardSkeleton />
                             </div>
                         ))
                         : auctions.map((auction) => (
-                            <div key={auction.id} className="shrink-0 w-44 sm:w-52" style={{ scrollSnapAlign: 'start' }}>
+                            <div key={auction.id} className="shrink-0 w-48 sm:w-56" style={{ scrollSnapAlign: 'start' }}>
                                 <AuctionCard auction={auction} />
                             </div>
                         ))}
                 </div>
 
-                {/* Right arrow */}
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center bg-white border border-gray-300 shadow-md hover:bg-gray-50 transition-all opacity-0 group-hover/section:opacity-100 disabled:opacity-0"
+                    className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md hover:border-gray-400 transition-all"
                     aria-label="Scroll right"
                 >
-                    <ChevronRight className="h-4 w-4 text-black" />
+                    <ChevronRight className="h-4 w-4 text-gray-600" />
                 </button>
             </div>
         </section>
