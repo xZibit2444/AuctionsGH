@@ -79,8 +79,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
     const subtotal = auction.current_price;
     const isDelivery = form.delivery === 'delivery';
-    const deliveryFee = isDelivery ? 50 : 0; // Fixed delivery fee mockup
-    const total = subtotal + deliveryFee;
+    const total = subtotal;
 
     if (order) {
         return (
@@ -337,7 +336,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 {isDelivery && (
                                     <div className="flex justify-between text-gray-600">
                                         <span className="font-medium">Delivery Fee</span>
-                                        <span className="font-mono">{formatCurrency(deliveryFee)}</span>
+                                        <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Agreed with seller</span>
                                     </div>
                                 )}
                             </div>
