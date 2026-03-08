@@ -373,26 +373,52 @@ export default function CreateAuctionForm() {
                     {/* Buyer-facing logistics options */}
                     <div>
                         <FieldLabel>Handover Options</FieldLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <p className="text-xs text-gray-500 mb-2">Select all that apply — buyers will see these on your listing.</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Delivery */}
                             <button
                                 type="button"
                                 onClick={() => update('delivery_available', !formData.delivery_available)}
-                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.delivery_available
-                                    ? 'border-black bg-black text-white'
-                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
+                                className={`flex items-center gap-3 px-4 py-3 border-2 rounded-xl text-left transition-all duration-150 ${
+                                    formData.delivery_available
+                                        ? 'border-black bg-black text-white'
+                                        : 'border-gray-200 text-gray-600 bg-white hover:border-gray-400'
+                                }`}
                             >
-                                Delivery Available
+                                <div className={`shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    formData.delivery_available ? 'border-white bg-white' : 'border-gray-300 bg-transparent'
+                                }`}>
+                                    {formData.delivery_available && <Check className="h-3 w-3 text-black" strokeWidth={3} />}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold">Delivery Available</p>
+                                    <p className={`text-xs mt-0.5 ${formData.delivery_available ? 'text-white/70' : 'text-gray-400'}`}>
+                                        {formData.delivery_available ? 'ON — buyer can request delivery' : 'OFF — tap to enable'}
+                                    </p>
+                                </div>
                             </button>
+
+                            {/* Inspection */}
                             <button
                                 type="button"
                                 onClick={() => update('inspection_available', !formData.inspection_available)}
-                                className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.inspection_available
-                                    ? 'border-black bg-black text-white'
-                                    : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
+                                className={`flex items-center gap-3 px-4 py-3 border-2 rounded-xl text-left transition-all duration-150 ${
+                                    formData.inspection_available
+                                        ? 'border-black bg-black text-white'
+                                        : 'border-gray-200 text-gray-600 bg-white hover:border-gray-400'
+                                }`}
                             >
-                                Meet & Inspect Available
+                                <div className={`shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    formData.inspection_available ? 'border-white bg-white' : 'border-gray-300 bg-transparent'
+                                }`}>
+                                    {formData.inspection_available && <Check className="h-3 w-3 text-black" strokeWidth={3} />}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold">Meet &amp; Inspect</p>
+                                    <p className={`text-xs mt-0.5 ${formData.inspection_available ? 'text-white/70' : 'text-gray-400'}`}>
+                                        {formData.inspection_available ? 'ON — buyer can inspect before paying' : 'OFF — tap to enable'}
+                                    </p>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -493,6 +519,17 @@ export default function CreateAuctionForm() {
             {/* ── Step 3: Pricing ── */}
             {step === 3 && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+
+                    {/* Permanent listing notice — shown prominently at top */}
+                    <div className="flex items-start gap-3 rounded-xl border-2 border-green-200 bg-green-50 px-4 py-4">
+                        <div className="shrink-0 mt-0.5 h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-green-900">Your listing has no expiry</p>
+                            <p className="text-xs text-green-700 mt-0.5">It stays live until you get an offer you like and accept it, or you close it from your dashboard.</p>
+                        </div>
+                    </div>
                     {/* Starting price */}
                     <div>
                         <FieldLabel>Starting Price</FieldLabel>
@@ -527,17 +564,6 @@ export default function CreateAuctionForm() {
                             />
                         </div>
                         {errors.min_increment && <p className="text-[11px] text-red-500 mt-1">{errors.min_increment}</p>}
-                    </div>
-
-                    {/* Permanent listing notice */}
-                    <div className="flex items-start gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
-                        <div className="shrink-0 mt-0.5 h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
-                            <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-black">Listing stays live until you accept an offer</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Your listing will remain active with no expiry. You can close it any time from your dashboard.</p>
-                        </div>
                     </div>
 
                     {/* Summary box */}
