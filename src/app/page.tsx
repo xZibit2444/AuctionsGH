@@ -23,7 +23,7 @@ export default function HomePage() {
     condition,
     orderBy: sortBy,
     ascending,
-    limit: 60,
+    limit: 30,
   });
 
   const endingSoon = useMemo(() =>
@@ -100,7 +100,7 @@ export default function HomePage() {
                 icon: <ShieldCheck className="h-5 w-5 text-green-500" />,
                 bg: 'bg-green-50',
                 title: 'Secure Payments',
-                desc: 'Funds held in escrow until delivery',
+                desc: 'Safe and reliable payment process',
               },
             ].map(({ icon, bg, title, desc }) => (
               <div key={title} className={`flex items-center gap-4 rounded-2xl ${bg} px-5 py-4`}>

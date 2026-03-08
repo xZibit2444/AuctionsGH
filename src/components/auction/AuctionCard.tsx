@@ -7,7 +7,7 @@ import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
 import { Package, Heart } from 'lucide-react';
-import { useSavedAuctions } from '@/hooks/useSavedAuctions';
+import { useSavedAuctionsContext } from '@/contexts/SavedAuctionsContext';
 import type { Auction } from '@/types/auction';
 
 interface AuctionCardProps {
@@ -18,7 +18,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     const thumbnail = auction.auction_images?.sort(
         (a, b) => a.position - b.position
     )[0];
-    const { savedIds, toggleSave } = useSavedAuctions();
+    const { savedIds, toggleSave } = useSavedAuctionsContext();
     const isSaved = savedIds.has(auction.id);
     const [savePending, setSavePending] = useState(false);
 
