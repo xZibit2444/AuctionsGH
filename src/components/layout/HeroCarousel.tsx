@@ -7,38 +7,30 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const slides = [
     {
         id: 1,
-        emoji: '🎉',
         tag: 'Welcome to AuctionsGH',
-        title: 'Ghana\'s Best\nOnline Auctions',
+        title: "Ghana's Best\nOnline Auctions",
         subtitle: 'Browse, bid, and win — real deals from verified sellers every day.',
         cta: 'Start Bidding',
         href: '/auctions',
-        from: '#f59e0b',
-        to: '#d97706',
         bg: 'from-amber-500 to-orange-500',
-        dark: false,
     },
     {
         id: 2,
-        emoji: '📱',
         tag: 'Phones & Electronics',
         title: 'Latest Phones.\nUnbeatable Prices.',
         subtitle: 'Bid on brand-new and like-new phones from sellers across Ghana.',
         cta: 'Browse Phones',
         href: '/auctions',
         bg: 'from-violet-600 to-indigo-700',
-        dark: true,
     },
     {
         id: 3,
-        emoji: '🏷️',
         tag: 'Become a Seller',
         title: 'Turn Your Items\nInto Cash',
         subtitle: 'List in under 5 minutes. Thousands of buyers are waiting.',
         cta: 'Sell on AuctionsGH',
         href: '/seller-apply',
         bg: 'from-emerald-500 to-teal-600',
-        dark: true,
     },
 ];
 
@@ -84,13 +76,10 @@ export default function HeroCarousel() {
                     <span className="text-white/70 text-xs font-medium">{slide.tag}</span>
                 </div>
 
-                {/* Emoji + headline */}
-                <div className="flex items-start gap-3 mb-3">
-                    <span className="text-4xl sm:text-5xl leading-none select-none mt-1">{slide.emoji}</span>
-                    <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter leading-[1.1] whitespace-pre-line">
-                        {slide.title}
-                    </h2>
-                </div>
+                {/* Headline */}
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-[1.1] whitespace-pre-line mb-3">
+                    {slide.title}
+                </h2>
 
                 <p className="text-white/80 text-sm sm:text-base mb-6 max-w-sm leading-relaxed">
                     {slide.subtitle}

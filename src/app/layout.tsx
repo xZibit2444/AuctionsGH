@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import ConditionalNav from '@/components/layout/ConditionalNav';
 import MainContent from '@/components/layout/MainContent';
@@ -14,7 +14,11 @@ import Script from 'next/script';
 // All pages use Supabase at runtime — prevent static prerender at build time
 export const dynamic = 'force-dynamic';
 
-const inter = Inter({ subsets: ['latin'] });
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 
@@ -79,7 +83,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
+      <body className={`${jakarta.variable} ${jakarta.className} bg-white text-gray-900 antialiased`}>
         <Providers>
           <PushNotificationsInit />
           <ConditionalNav />

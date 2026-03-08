@@ -117,7 +117,7 @@ export default function HomePage() {
 
           {/* Ending Soon */}
           <AuctionCarousel
-            title="⏰ Ending Soon"
+            title="Ending Soon"
             auctions={endingSoon}
             loading={loading}
             viewAllHref="/auctions"
@@ -126,7 +126,7 @@ export default function HomePage() {
 
           {/* Top Bids */}
           <AuctionCarousel
-            title="🔥 Top Bids"
+            title="Top Bids"
             auctions={topBids}
             loading={loading}
             viewAllHref="/auctions"
@@ -135,7 +135,7 @@ export default function HomePage() {
 
           {/* Just Listed */}
           <AuctionCarousel
-            title="✨ Just Listed"
+            title="Just Listed"
             auctions={newest}
             loading={loading}
             viewAllHref="/auctions"
