@@ -1,40 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 
 export default function SignupForm() {
     const supabase = createClient();
-    const router = useRouter();
     const [loading, setLoading] = useState<'google' | 'facebook' | 'github' | null>(null);
 
     const handleFacebookLogin = () => {
         setLoading('facebook');
-        if (window.FB) {
-            window.FB.login(async (response) => {
-                if (!response.authResponse) {
-                    setLoading(null);
-                    return;
-                }
-                const { error } = await supabase.auth.signInWithIdToken({
-                    provider: 'facebook',
-                    token: response.authResponse.accessToken,
-                });
-                if (error) {
-                    console.error('Facebook login error:', error.message);
-                    setLoading(null);
-                } else {
-                    router.push('/');
-                }
-            }, { scope: 'email,public_profile' });
-        } else {
-            supabase.auth.signInWithOAuth({
-                provider: 'facebook',
-                options: { redirectTo: buildAuthRedirectUrl('/') },
-            }).then(() => setLoading(null));
-        }
+        supabase.auth.signInWithOAuth({
+            provider: 'facebook',
+            options: { redirectTo: buildAuthRedirectUrl('/') },
+        }).then(({ error }) => {
+            if (error) {
+                console.error('Facebook login error:', error.message);
+                setLoading(null);
+            }
+        });
     };
 
     const handleGoogleLogin = async () => {

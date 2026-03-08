@@ -1,20 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 import { AlertTriangle } from 'lucide-react';
-
-declare global {
-    interface Window {
-        FB?: {
-            login: (cb: (res: { authResponse?: { accessToken: string } }) => void, opts?: object) => void;
-            init: (opts: object) => void;
-            AppEvents: { logPageView: () => void };
-        };
-    }
-}
 
 interface LoginFormProps {
     urlError?: string;
@@ -23,7 +12,6 @@ interface LoginFormProps {
 
 export default function LoginForm({ urlError, redirectTo = '/' }: LoginFormProps) {
     const supabase = createClient();
-    const router = useRouter();
     const [loading, setLoading] = useState<'google' | 'facebook' | 'github' | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -38,29 +26,15 @@ export default function LoginForm({ urlError, redirectTo = '/' }: LoginFormProps
     const handleFacebookLogin = () => {
         setLoading('facebook');
         setError(null);
-        if (window.FB) {
-            window.FB.login(async (response) => {
-                if (!response.authResponse) {
-                    setLoading(null);
-                    return;
-                }
-                const { error: sbError } = await supabase.auth.signInWithIdToken({
-                    provider: 'facebook',
-                    token: response.authResponse.accessToken,
-                });
-                if (sbError) {
-                    setError(sbError.message);
-                    setLoading(null);
-                } else {
-                    router.push('/');
-                }
-            }, { scope: 'email,public_profile' });
-        } else {
-            supabase.auth.signInWithOAuth({
-                provider: 'facebook',
-                options: { redirectTo: buildAuthRedirectUrl(redirectTo) },
-            }).then(() => setLoading(null));
-        }
+        supabase.auth.signInWithOAuth({
+            provider: 'facebook',
+            options: { redirectTo: buildAuthRedirectUrl(redirectTo) },
+        }).then(({ error: oauthError }) => {
+            if (oauthError) {
+                setError(oauthError.message);
+                setLoading(null);
+            }
+        });
     };
 
     const handleGoogleLogin = async () => {
