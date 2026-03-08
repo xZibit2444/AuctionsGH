@@ -78,6 +78,12 @@ export default function Sidebar() {
     const isActive = (href: string, exact?: boolean) =>
         exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
 
+    const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (pathname !== '/') return;
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     // Fetch notifications
     useEffect(() => {
         if (!user) return;
@@ -160,7 +166,7 @@ export default function Sidebar() {
                 ) : (
                     <>
                         <div className="px-3 flex-1 flex items-center">
-                            <Link href="/">
+                            <Link href="/" onClick={handleLogoClick}>
                                 <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
                             </Link>
                         </div>

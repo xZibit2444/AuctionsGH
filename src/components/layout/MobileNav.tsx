@@ -20,13 +20,19 @@ export default function MobileNav() {
     const pathname = usePathname();
     const { profile } = useAuth();
 
+    const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (pathname !== '/') return;
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     if (pathname === '/login' || pathname === '/signup') return null;
 
     return (
         <>
             {/* Mobile top header with logo */}
             <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4">
-                <Link href="/">
+                <Link href="/" onClick={handleLogoClick}>
                     <Image
                         src="/logo.png"
                         alt="AuctionsGH"
