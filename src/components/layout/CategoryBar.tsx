@@ -8,18 +8,34 @@ import {
     Baby, HeartPulse, Wheat, LayoutGrid,
 } from 'lucide-react';
 
+const CATEGORY_COLORS: Record<string, string> = {
+    'All':               'bg-amber-100 text-amber-700',
+    'Phones & Tablets':  'bg-blue-100 text-blue-700',
+    'Electronics':       'bg-purple-100 text-purple-700',
+    'Computers & Laptops':'bg-indigo-100 text-indigo-700',
+    'Vehicles':          'bg-red-100 text-red-700',
+    'Fashion & Clothing':'bg-pink-100 text-pink-700',
+    'Home & Garden':     'bg-green-100 text-green-700',
+    'Sports & Outdoors': 'bg-orange-100 text-orange-700',
+    'Kids & Baby':       'bg-yellow-100 text-yellow-700',
+    'Health & Beauty':   'bg-rose-100 text-rose-700',
+    'Agriculture':       'bg-lime-100 text-lime-700',
+    'Other':             'bg-gray-100 text-gray-600',
+};
+
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
-    'Phones & Tablets': Smartphone,
-    'Electronics': Monitor,
+    'All':               LayoutGrid,
+    'Phones & Tablets':  Smartphone,
+    'Electronics':       Monitor,
     'Computers & Laptops': Laptop,
-    'Vehicles': Car,
+    'Vehicles':          Car,
     'Fashion & Clothing': Shirt,
-    'Home & Garden': Home,
+    'Home & Garden':     Home,
     'Sports & Outdoors': Dumbbell,
-    'Kids & Baby': Baby,
-    'Health & Beauty': HeartPulse,
-    'Agriculture': Wheat,
-    'Other': LayoutGrid,
+    'Kids & Baby':       Baby,
+    'Health & Beauty':   HeartPulse,
+    'Agriculture':       Wheat,
+    'Other':             LayoutGrid,
 };
 
 interface CategoryBarProps {
@@ -40,7 +56,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
         <div className="relative group/cats">
             <button
                 onClick={() => scroll('left')}
-                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity"
+                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full"
                 aria-label="Scroll categories left"
             >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -53,17 +69,22 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                 {cats.map((cat) => {
                     const Icon = CATEGORY_ICONS[cat];
                     const active = selected === cat;
+                    const color = CATEGORY_COLORS[cat] ?? 'bg-gray-100 text-gray-600';
                     return (
                         <button
                             key={cat}
                             onClick={() => onSelect(cat)}
-                            className={`shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-bold border transition-all whitespace-nowrap ${
+                            className={`shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all whitespace-nowrap shadow-sm ${
                                 active
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                                    ? 'bg-black text-white shadow-md scale-105'
+                                    : `${color} hover:scale-105 hover:shadow-md`
                             }`}
                         >
-                            {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />}
+                            {Icon && (
+                                <span className={`flex items-center justify-center w-5 h-5 rounded-full ${active ? 'bg-white/20' : 'bg-white/60'}`}>
+                                    <Icon className="h-3 w-3" strokeWidth={2} />
+                                </span>
+                            )}
                             {cat}
                         </button>
                     );
@@ -72,7 +93,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
 
             <button
                 onClick={() => scroll('right')}
-                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity"
+                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full"
                 aria-label="Scroll categories right"
             >
                 <ChevronRight className="h-3.5 w-3.5" />

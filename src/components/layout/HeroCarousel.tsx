@@ -7,30 +7,38 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const slides = [
     {
         id: 1,
-        title: "Bid. Win. Own.",
-        subtitle: "Live auctions — updated every second",
-        cta: "Shop Now",
-        href: "/auctions",
-        bg: "from-black to-gray-800",
-        accent: "text-amber-400",
+        emoji: '🎉',
+        tag: 'Welcome to AuctionsGH',
+        title: 'Ghana\'s Best\nOnline Auctions',
+        subtitle: 'Browse, bid, and win — real deals from verified sellers every day.',
+        cta: 'Start Bidding',
+        href: '/auctions',
+        from: '#f59e0b',
+        to: '#d97706',
+        bg: 'from-amber-500 to-orange-500',
+        dark: false,
     },
     {
         id: 2,
-        title: "Phones at Unbeatable Prices",
-        subtitle: "Verified sellers, real deals across Ghana",
-        cta: "Browse Phones",
-        href: "/auctions?brand=Phones+%26+Tablets",
-        bg: "from-gray-900 to-gray-700",
-        accent: "text-amber-300",
+        emoji: '📱',
+        tag: 'Phones & Electronics',
+        title: 'Latest Phones.\nUnbeatable Prices.',
+        subtitle: 'Bid on brand-new and like-new phones from sellers across Ghana.',
+        cta: 'Browse Phones',
+        href: '/auctions',
+        bg: 'from-violet-600 to-indigo-700',
+        dark: true,
     },
     {
         id: 3,
-        title: "Sell Faster on AuctionsGH",
-        subtitle: "List in minutes. Reach thousands of buyers.",
-        cta: "Start Selling",
-        href: "/seller-apply",
-        bg: "from-zinc-900 to-zinc-700",
-        accent: "text-yellow-300",
+        emoji: '🏷️',
+        tag: 'Become a Seller',
+        title: 'Turn Your Items\nInto Cash',
+        subtitle: 'List in under 5 minutes. Thousands of buyers are waiting.',
+        cta: 'Sell on AuctionsGH',
+        href: '/seller-apply',
+        bg: 'from-emerald-500 to-teal-600',
+        dark: true,
     },
 ];
 
@@ -59,38 +67,54 @@ export default function HeroCarousel() {
     const slide = slides[current];
 
     return (
-        <div className={`relative w-full rounded-none sm:rounded-lg overflow-hidden bg-linear-to-r ${slide.bg} transition-all duration-500`}>
+        <div className={`relative w-full rounded-2xl overflow-hidden bg-linear-to-br ${slide.bg} transition-all duration-500 shadow-lg`}>
+            {/* Decorative circles */}
+            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
+
             <div
-                className={`flex flex-col justify-center px-8 sm:px-16 py-14 sm:py-20 min-h-55 sm:min-h-75 transition-opacity duration-300 ${animating ? 'opacity-0' : 'opacity-100'}`}
+                className={`relative flex flex-col justify-center px-7 sm:px-16 py-12 sm:py-20 min-h-55 sm:min-h-75 transition-opacity duration-300 ${animating ? 'opacity-0' : 'opacity-100'}`}
             >
-                <p className={`text-xs font-bold uppercase tracking-[0.2em] ${slide.accent} mb-3`}>
-                    AuctionsGH — Ghana&apos;s #1 Auction Marketplace
-                </p>
-                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter leading-tight mb-3">
-                    {slide.title}
-                </h2>
-                <p className="text-gray-300 text-sm sm:text-base mb-6 max-w-md">
+                {/* Live badge + tag */}
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                        Live
+                    </span>
+                    <span className="text-white/70 text-xs font-medium">{slide.tag}</span>
+                </div>
+
+                {/* Emoji + headline */}
+                <div className="flex items-start gap-3 mb-3">
+                    <span className="text-4xl sm:text-5xl leading-none select-none mt-1">{slide.emoji}</span>
+                    <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter leading-[1.1] whitespace-pre-line">
+                        {slide.title}
+                    </h2>
+                </div>
+
+                <p className="text-white/80 text-sm sm:text-base mb-6 max-w-sm leading-relaxed">
                     {slide.subtitle}
                 </p>
+
                 <Link
                     href={slide.href}
-                    className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-sm px-6 py-3 transition-colors w-fit"
+                    className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 font-bold text-sm px-6 py-3 rounded-full transition-all shadow-md hover:shadow-lg w-fit"
                 >
-                    {slide.cta}
+                    {slide.cta} <span>→</span>
                 </Link>
             </div>
 
             {/* Arrows */}
             <button
                 onClick={prev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors"
+                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-black/20 hover:bg-black/50 text-white rounded-full transition-colors backdrop-blur-sm"
                 aria-label="Previous slide"
             >
                 <ChevronLeft className="h-4 w-4" />
             </button>
             <button
                 onClick={next}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-black/20 hover:bg-black/50 text-white rounded-full transition-colors backdrop-blur-sm"
                 aria-label="Next slide"
             >
                 <ChevronRight className="h-4 w-4" />
@@ -102,7 +126,7 @@ export default function HeroCarousel() {
                     <button
                         key={i}
                         onClick={() => goTo(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-6 bg-amber-400' : 'w-1.5 bg-white/40'}`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
                         aria-label={`Go to slide ${i + 1}`}
                     />
                 ))}

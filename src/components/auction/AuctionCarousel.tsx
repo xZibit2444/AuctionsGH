@@ -34,13 +34,17 @@ export default function AuctionCarousel({
         <section className="relative group/section">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-black tracking-tight uppercase">
-                    {icon}
+                <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                    {icon && (
+                        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
+                            {icon}
+                        </span>
+                    )}
                     {title}
                 </h2>
                 <Link
                     href={viewAllHref}
-                    className="text-xs font-bold text-amber-600 hover:text-amber-500 uppercase tracking-wider transition-colors"
+                    className="text-xs font-bold text-amber-600 hover:text-amber-500 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full transition-colors"
                 >
                     See all →
                 </Link>
