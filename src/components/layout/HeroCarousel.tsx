@@ -5,7 +5,7 @@ import { ArrowRight, CheckCircle2, Gavel, ShieldCheck } from 'lucide-react';
 
 export default function HeroCarousel() {
     return (
-        <section className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-[#071120] via-[#0b1730] to-[#111827]">
+        <section className="relative overflow-hidden rounded-4xl bg-linear-to-br from-[#071120] via-[#0b1730] to-[#111827]">
             <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
@@ -13,11 +13,11 @@ export default function HeroCarousel() {
                     backgroundSize: '28px 28px',
                 }}
             />
-            <div className="absolute inset-y-0 right-0 hidden w-[30rem] border-l border-white/8 bg-white/[0.03] lg:block" />
+            <div className="absolute inset-y-0 right-0 hidden w-120 border-l border-white/8 bg-white/3 lg:block" />
             <div className="absolute -top-24 right-8 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
             <div className="absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl" />
 
-            <div className="relative grid min-h-[31rem] lg:grid-cols-[minmax(0,1fr)_26rem]">
+            <div className="relative grid min-h-124 lg:grid-cols-[minmax(0,1fr)_26rem]">
                 <div className="flex flex-col justify-center px-7 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
                     <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3.5 py-1.5">
                         <span
@@ -79,7 +79,7 @@ export default function HeroCarousel() {
                 </div>
 
                 <div className="hidden lg:flex flex-col justify-center px-8 py-10">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
+                    <div className="rounded-3xl border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/48">
                             How AuctionsGH works
                         </p>
