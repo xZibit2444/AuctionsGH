@@ -49,8 +49,17 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
     useEffect(() => {
         let isMounted = true;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         const fetchAuctions = async () => {
             setLoading(true);
+            setError(null);
+
+            timeoutId = setTimeout(() => {
+                if (!isMounted) return;
+                setLoading(false);
+                setError('Loading auctions is taking too long. Please try again.');
+            }, 8000);
+
             try {
                 const supabase = createClient();
                 const selectCols = includeOrders
@@ -97,6 +106,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 if (!isMounted) return;
                 setError(err instanceof Error ? err.message : 'Failed to load auctions');
             } finally {
+                if (timeoutId) clearTimeout(timeoutId);
                 if (isMounted) setLoading(false);
             }
         };
@@ -136,6 +146,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
         return () => {
             isMounted = false;
+            if (timeoutId) clearTimeout(timeoutId);
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

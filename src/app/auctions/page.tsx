@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense, startTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuctions } from '@/hooks/useAuctions';
 import AuctionGrid from '@/components/auction/AuctionGrid';
@@ -38,7 +38,7 @@ function AuctionsContent() {
         string
     ];
 
-    const { auctions, loading } = useAuctions({
+    const { auctions, loading, error } = useAuctions({
         status: 'active',
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
@@ -84,8 +84,10 @@ function AuctionsContent() {
     // Respond to external navigation (e.g. Navbar search → /auctions?q=...)
     useEffect(() => {
         const urlQ = searchParams.get('q') ?? '';
-        setInputVal(urlQ);
-        setQuery(urlQ);
+        startTransition(() => {
+            setInputVal(urlQ);
+            setQuery(urlQ);
+        });
     }, [searchParams]);
 
     const hasFilters = query || category !== 'All';
@@ -133,6 +135,12 @@ function AuctionsContent() {
                     Search
                 </button>
             </form>
+
+            {error && (
+                <div className="mb-5 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    {error}
+                </div>
+            )}
 
             {/* Category chips */}
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">

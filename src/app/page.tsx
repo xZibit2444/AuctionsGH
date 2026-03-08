@@ -16,7 +16,7 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<'current_price' | 'ends_at' | 'created_at'>('ends_at');
   const [ascending, setAscending] = useState(true);
 
-  const { auctions, loading } = useAuctions({
+  const { auctions, loading, error } = useAuctions({
     status: 'active',
     search,
     brand,
@@ -46,6 +46,12 @@ export default function HomePage() {
 
       {/* Hero */}
       <HeroCarousel />
+
+      {error && (
+        <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {error}
+        </div>
+      )}
 
       {/* Category pills */}
       <CategoryBar selected={brand} onSelect={setBrand} />
@@ -162,4 +168,3 @@ export default function HomePage() {
     </div>
   );
 }
-
