@@ -8,19 +8,34 @@ import {
     Baby, HeartPulse, Wheat, LayoutGrid,
 } from 'lucide-react';
 
-const CATEGORY_COLORS: Record<string, string> = {
-    'All':               'bg-amber-100 text-amber-700',
-    'Phones & Tablets':  'bg-blue-100 text-blue-700',
-    'Electronics':       'bg-purple-100 text-purple-700',
-    'Computers & Laptops':'bg-indigo-100 text-indigo-700',
-    'Vehicles':          'bg-red-100 text-red-700',
-    'Fashion & Clothing':'bg-pink-100 text-pink-700',
-    'Home & Garden':     'bg-green-100 text-green-700',
-    'Sports & Outdoors': 'bg-orange-100 text-orange-700',
-    'Kids & Baby':       'bg-yellow-100 text-yellow-700',
-    'Health & Beauty':   'bg-rose-100 text-rose-700',
-    'Agriculture':       'bg-lime-100 text-lime-700',
-    'Other':             'bg-gray-100 text-gray-600',
+const CATEGORY_INACTIVE: Record<string, string> = {
+    'All':                'bg-amber-50 text-amber-700 border border-amber-200',
+    'Phones & Tablets':   'bg-blue-50 text-blue-700 border border-blue-200',
+    'Electronics':        'bg-purple-50 text-purple-700 border border-purple-200',
+    'Computers & Laptops':'bg-indigo-50 text-indigo-700 border border-indigo-200',
+    'Vehicles':           'bg-red-50 text-red-700 border border-red-200',
+    'Fashion & Clothing': 'bg-pink-50 text-pink-700 border border-pink-200',
+    'Home & Garden':      'bg-green-50 text-green-700 border border-green-200',
+    'Sports & Outdoors':  'bg-orange-50 text-orange-700 border border-orange-200',
+    'Kids & Baby':        'bg-yellow-50 text-yellow-700 border border-yellow-200',
+    'Health & Beauty':    'bg-rose-50 text-rose-700 border border-rose-200',
+    'Agriculture':        'bg-lime-50 text-lime-700 border border-lime-200',
+    'Other':              'bg-gray-100 text-gray-600 border border-gray-200',
+};
+
+const CATEGORY_ACTIVE: Record<string, string> = {
+    'All':                'bg-amber-500 text-white border border-amber-500',
+    'Phones & Tablets':   'bg-blue-600 text-white border border-blue-600',
+    'Electronics':        'bg-purple-600 text-white border border-purple-600',
+    'Computers & Laptops':'bg-indigo-600 text-white border border-indigo-600',
+    'Vehicles':           'bg-red-600 text-white border border-red-600',
+    'Fashion & Clothing': 'bg-pink-600 text-white border border-pink-600',
+    'Home & Garden':      'bg-green-600 text-white border border-green-600',
+    'Sports & Outdoors':  'bg-orange-500 text-white border border-orange-500',
+    'Kids & Baby':        'bg-yellow-500 text-white border border-yellow-500',
+    'Health & Beauty':    'bg-rose-600 text-white border border-rose-600',
+    'Agriculture':        'bg-lime-600 text-white border border-lime-600',
+    'Other':              'bg-gray-700 text-white border border-gray-700',
 };
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -69,19 +84,17 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                 {cats.map((cat) => {
                     const Icon = CATEGORY_ICONS[cat];
                     const active = selected === cat;
-                    const color = CATEGORY_COLORS[cat] ?? 'bg-gray-100 text-gray-600';
+                    const colorClass = active
+                        ? (CATEGORY_ACTIVE[cat] ?? 'bg-gray-700 text-white border border-gray-700')
+                        : (CATEGORY_INACTIVE[cat] ?? 'bg-gray-100 text-gray-600 border border-gray-200');
                     return (
                         <button
                             key={cat}
                             onClick={() => onSelect(cat)}
-                            className={`shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all whitespace-nowrap shadow-sm ${
-                                active
-                                    ? 'bg-black text-white shadow-md scale-105'
-                                    : `${color} hover:scale-105 hover:shadow-md`
-                            }`}
+                            className={`shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all whitespace-nowrap ${colorClass} ${active ? 'shadow-md scale-105' : 'hover:scale-105 hover:shadow-sm'}`}
                         >
                             {Icon && (
-                                <span className={`flex items-center justify-center w-5 h-5 rounded-full ${active ? 'bg-white/20' : 'bg-white/60'}`}>
+                                <span className={`flex items-center justify-center w-5 h-5 rounded-full ${active ? 'bg-white/25' : 'bg-white/70'}`}>
                                     <Icon className="h-3 w-3" strokeWidth={2} />
                                 </span>
                             )}
