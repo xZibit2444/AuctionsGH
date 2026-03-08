@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import {
@@ -49,20 +49,16 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const router = useRouter();
     const { user, profile, loading, signOut } = useAuth();
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unread, setUnread] = useState(0);
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('sidebar-collapsed') === 'true';
+    });
     const notifRef = useRef<HTMLDivElement>(null);
-    const supabase = createClient();
-
-    // Restore collapsed state from localStorage
-    useEffect(() => {
-        const saved = localStorage.getItem('sidebar-collapsed');
-        if (saved === 'true') setCollapsed(true);
-    }, []);
+    const supabase = useMemo(() => createClient(), []);
 
     // Sync body class for CSS-driven layout offset
     useEffect(() => {
@@ -113,7 +109,7 @@ export default function Sidebar() {
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
-    }, [user]);
+    }, [supabase, user]);
 
     // Close notif panel on outside click
     useEffect(() => {
@@ -132,9 +128,17 @@ export default function Sidebar() {
 
     const handleNotifClick = (n: Notification) => {
         setNotifOpen(false);
-        if (n.type === 'new_message' && n.order_id) router.push(`/orders/${n.order_id}`);
-        else if (n.order_id) router.push(`/orders/${n.order_id}`);
-        else if (n.auction_id) router.push(`/auctions/${n.auction_id}`);
+        const href = n.order_id
+            ? `/orders/${n.order_id}`
+            : n.auction_id && n.type === 'new_offer'
+                ? `/auctions/${n.auction_id}#offer-panel`
+                : n.auction_id
+                    ? `/auctions/${n.auction_id}`
+                    : null;
+
+        if (href) {
+            window.location.assign(href);
+        }
     };
 
     return (

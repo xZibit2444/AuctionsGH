@@ -1,8 +1,18 @@
 import type { Metadata } from 'next';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+
 export const metadata: Metadata = {
-    title: 'Privacy Policy — AuctionsGH',
-    description: 'Privacy Policy for AuctionsGH — Ghana\'s Online Auction Marketplace',
+    title: 'Privacy Policy',
+    description: "Privacy Policy for AuctionsGH — Ghana's Online Auction Marketplace. Learn how we handle your personal data.",
+    robots: { index: true, follow: false },
+    alternates: { canonical: `${SITE_URL}/privacy` },
+    openGraph: {
+        title: 'Privacy Policy | AuctionsGH',
+        description: "How AuctionsGH handles your personal data — Ghana's Online Auction Marketplace.",
+        url: `${SITE_URL}/privacy`,
+        siteName: 'AuctionsGH',
+    },
 };
 
 export default function PrivacyPolicyPage() {
