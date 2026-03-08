@@ -5,7 +5,6 @@ import { useAuctions } from '@/hooks/useAuctions';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 import AuctionCarousel from '@/components/auction/AuctionCarousel';
 import AuctionFilters from '@/components/auction/AuctionFilters';
-import HeroCarousel from '@/components/layout/HeroCarousel';
 import CategoryBar from '@/components/layout/CategoryBar';
 import { Flame, Zap, Clock, TrendingUp, ShieldCheck, BadgeCheck } from 'lucide-react';
 
@@ -43,9 +42,6 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8">
-
-      {/* Hero */}
-      <HeroCarousel />
 
       {error && (
         <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
