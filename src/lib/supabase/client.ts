@@ -10,10 +10,6 @@ export function createClient() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         isSingleton: true,
-        auth: {
-          // Give in-flight auth work more time before Supabase force-steals the lock.
-          lockAcquireTimeout: 15000,
-        },
       }
     );
   }
