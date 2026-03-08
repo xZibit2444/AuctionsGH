@@ -117,7 +117,7 @@ export default async function AdminOrdersPage() {
         .from('profiles')
         .select('is_super_admin')
         .eq('id', user.id)
-        .single();
+        .single() as { data: { is_super_admin: boolean } | null; error: unknown };
 
     if (!profile?.is_super_admin) {
         redirect('/');
