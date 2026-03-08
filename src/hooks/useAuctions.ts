@@ -50,21 +50,51 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
     useEffect(() => {
         let isMounted = true;
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
+        let didTimeOut = false;
         const fetchAuctions = async () => {
             setLoading(true);
             setError(null);
 
             timeoutId = setTimeout(() => {
                 if (!isMounted) return;
-                setLoading(false);
+                didTimeOut = true;
                 setError('Loading auctions is taking too long. Please try again.');
             }, 8000);
 
             try {
                 const supabase = createClient();
                 const selectCols = includeOrders
-                    ? '*, auction_images(url, position), orders(id, status, deliveries(status))'
-                    : '*, auction_images(url, position)';
+                    ? `
+                        id,
+                        title,
+                        brand,
+                        model,
+                        condition,
+                        current_price,
+                        status,
+                        bid_count,
+                        ends_at,
+                        created_at,
+                        seller_id,
+                        storage_gb,
+                        auction_images(url, position),
+                        orders(id, status, deliveries(status))
+                    `
+                    : `
+                        id,
+                        title,
+                        brand,
+                        model,
+                        condition,
+                        current_price,
+                        status,
+                        bid_count,
+                        ends_at,
+                        created_at,
+                        seller_id,
+                        storage_gb,
+                        auction_images(url, position)
+                    `;
                 let query = supabase.from('auctions').select(selectCols);
 
                 if (status !== 'all') {
@@ -101,6 +131,11 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     setError(fetchError.message);
                 } else {
                     setAuctions(data as Auction[]);
+                    // If the query eventually succeeded after the soft timeout,
+                    // clear the warning so the UI shows the loaded data normally.
+                    if (didTimeOut) {
+                        setError(null);
+                    }
                 }
             } catch (err) {
                 if (!isMounted) return;
