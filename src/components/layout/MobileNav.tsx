@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Home, Search, Plus, Heart, LayoutDashboard } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
@@ -21,7 +23,24 @@ export default function MobileNav() {
     if (pathname === '/login' || pathname === '/signup') return null;
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 sm:hidden">
+        <>
+            {/* Mobile top header with logo */}
+            <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4">
+                <Link href="/">
+                    <Image
+                        src="/logo.png"
+                        alt="AuctionsGH"
+                        width={120}
+                        height={40}
+                        className="h-9 w-auto object-contain"
+                        priority
+                    />
+                </Link>
+                <NotificationBell />
+            </header>
+
+            {/* Mobile bottom tab bar */}
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 sm:hidden">
             <div className="flex items-center justify-around h-16 px-2">
                 {tabs.map((tab) => {
                     if (tab.href === '/auctions/create' && !profile?.is_admin) return null;
@@ -58,5 +77,6 @@ export default function MobileNav() {
                 })}
             </div>
         </nav>
+        </>
     );
 }

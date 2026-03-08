@@ -22,7 +22,8 @@ body {
 
 /* Sidebar-aware main content offset */
 .sidebar-offset {
-  /* mobile: no left margin (MobileNav is used) */
+  /* mobile: push content below the fixed top header (h-14 = 3.5rem) */
+  padding-top: 3.5rem;
 }
 @media (min-width: 640px) {
   .sidebar-offset {
