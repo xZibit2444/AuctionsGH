@@ -5,128 +5,113 @@ import { ArrowRight, CheckCircle2, Gavel, ShieldCheck } from 'lucide-react';
 
 export default function HeroCarousel() {
     return (
-        <section className="relative overflow-hidden rounded-4xl bg-linear-to-br from-[#071120] via-[#0b1730] to-[#111827]">
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#071120] via-[#0c1a35] to-[#111827]">
+            {/* Subtle dot grid */}
             <div
-                className="absolute inset-0 opacity-[0.04]"
+                className="absolute inset-0 opacity-[0.035]"
                 style={{
                     backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                    backgroundSize: '28px 28px',
+                    backgroundSize: '24px 24px',
                 }}
             />
-            <div className="absolute inset-y-0 right-0 hidden w-120 border-l border-white/8 bg-white/3 lg:block" />
-            <div className="absolute -top-24 right-8 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
-            <div className="absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl" />
+            {/* Glow accents */}
+            <div className="absolute -top-16 right-24 h-40 w-40 rounded-full bg-amber-400/12 blur-3xl" />
+            <div className="absolute -bottom-12 left-16 h-36 w-36 rounded-full bg-blue-500/10 blur-3xl" />
 
-            <div className="relative grid min-h-124 lg:grid-cols-[minmax(0,1fr)_26rem]">
-                <div className="flex flex-col justify-center px-7 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
-                    <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3.5 py-1.5">
-                        <span
-                            className="h-2 w-2 rounded-full bg-green-400"
-                            style={{ animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' }}
-                        />
-                        <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/72">
-                            Auctions open now
+            <div className="relative grid lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
+                {/* Left: copy */}
+                <div className="flex flex-col justify-center px-7 py-8 sm:px-10 sm:py-9 lg:px-12 lg:py-10">
+                    {/* Live badge */}
+                    <div className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-white/12 bg-white/7 px-3 py-1">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/65">
+                            Live auctions
                         </span>
                     </div>
 
-                    <h1 className="max-w-3xl text-3xl font-extrabold leading-[1.02] tracking-[-0.05em] text-white sm:text-5xl lg:text-[4.2rem]">
-                        Bid on good phones,
+                    <h1 className="text-[1.75rem] font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+                        Buy &amp; sell phones, laptops
                         <br className="hidden sm:block" />
-                        laptops, and resale finds
-                        <span className="text-amber-400"> around Accra.</span>
+                        and resale finds
+                        <span className="text-amber-400"> in Accra.</span>
                     </h1>
 
-                    <p className="mt-5 max-w-xl text-sm leading-8 text-white/68 sm:text-[15px]">
-                        AuctionsGH is built for local resale. Sellers apply before listing,
-                        buyers bid live, and the handover stays simple: meet, inspect, then pay.
+                    <p className="mt-3 max-w-md text-[13px] leading-6 text-white/60 sm:text-sm sm:leading-7">
+                        Sellers are vetted before listing. Buyers bid live.
+                        Meet up, inspect, then pay — no surprises.
                     </p>
 
-                    <div className="mt-6 flex flex-wrap gap-2.5">
-                        {['Seller applications reviewed', 'Condition notes matter', 'Meet-to-inspect handover'].map((item) => (
-                            <span
-                                key={item}
-                                className="rounded-full border border-white/10 bg-black/15 px-3 py-1.5 text-[11px] font-medium text-white/78"
-                            >
-                                {item}
-                            </span>
-                        ))}
-                    </div>
-
-                    <div className="mt-8 flex flex-wrap gap-3">
+                    {/* CTAs */}
+                    <div className="mt-5 flex flex-wrap gap-2.5">
                         <Link
                             href="/auctions"
-                            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-50"
+                            className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-amber-50"
                         >
                             Browse Auctions
-                            <ArrowRight className="h-4 w-4" />
+                            <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                         <Link
                             href="/faq"
-                            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white/85 transition-colors hover:bg-white/8"
+                            className="inline-flex items-center rounded-full border border-white/18 px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/8"
                         >
                             How it works
                         </Link>
                     </div>
 
-                    <div className="mt-10 border-t border-white/10 pt-5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45">
-                            Popular on the marketplace
-                        </p>
-                        <p className="mt-2 text-sm text-white/72">
-                            iPhones, Samsung Galaxy devices, laptops, gaming consoles, speakers, and home appliances.
-                        </p>
+                    {/* Trust tags */}
+                    <div className="mt-5 flex flex-wrap gap-2">
+                        {['Vetted sellers', 'Live bidding', 'Inspect first'].map((tag) => (
+                            <span
+                                key={tag}
+                                className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/55"
+                            >
+                                {tag}
+                            </span>
+                        ))}
                     </div>
                 </div>
 
-                <div className="hidden lg:flex flex-col justify-center px-8 py-10">
-                    <div className="rounded-3xl border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
-                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/48">
-                            How AuctionsGH works
-                        </p>
+                {/* Right: how it works panel */}
+                <div className="hidden lg:flex flex-col justify-center border-l border-white/6 bg-black/15 px-6 py-8">
+                    <p className="mb-3 text-[9px] font-black uppercase tracking-[0.25em] text-white/40">
+                        How it works
+                    </p>
 
-                        <div className="mt-5 space-y-3">
-                            {[
-                                {
-                                    icon: <ShieldCheck className="h-4 w-4 text-sky-300" />,
-                                    title: 'Sellers apply first',
-                                    desc: 'Listings go live only after seller review and approval.',
-                                },
-                                {
-                                    icon: <Gavel className="h-4 w-4 text-amber-300" />,
-                                    title: 'Bids update live',
-                                    desc: 'You see the current pace of the auction as bids come in.',
-                                },
-                                {
-                                    icon: <CheckCircle2 className="h-4 w-4 text-emerald-300" />,
-                                    title: 'Inspect before payment',
-                                    desc: 'The winner checks out on-platform, then meets the seller to inspect.',
-                                },
-                            ].map(({ icon, title, desc }) => (
-                                <div
-                                    key={title}
-                                    className="rounded-2xl border border-white/8 bg-black/18 px-4 py-4"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8">
-                                            {icon}
-                                        </div>
-                                        <p className="text-sm font-bold text-white">{title}</p>
-                                    </div>
-                                    <p className="mt-3 pl-[2.85rem] text-[13px] leading-6 text-white/58">
-                                        {desc}
-                                    </p>
+                    <div className="space-y-2">
+                        {[
+                            {
+                                icon: <ShieldCheck className="h-3.5 w-3.5 text-sky-300" />,
+                                title: 'Sellers apply first',
+                                desc: 'Every listing is reviewed before going live.',
+                            },
+                            {
+                                icon: <Gavel className="h-3.5 w-3.5 text-amber-300" />,
+                                title: 'Bids update live',
+                                desc: 'Watch the price move in real time.',
+                            },
+                            {
+                                icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />,
+                                title: 'Inspect before paying',
+                                desc: 'Meet the seller, check the item, then pay.',
+                            },
+                        ].map(({ icon, title, desc }) => (
+                            <div key={title} className="flex items-start gap-3 rounded-2xl border border-white/6 bg-white/4 px-4 py-3">
+                                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/8">
+                                    {icon}
                                 </div>
-                            ))}
-                        </div>
+                                <div>
+                                    <p className="text-[13px] font-semibold text-white">{title}</p>
+                                    <p className="mt-0.5 text-[11px] leading-5 text-white/50">{desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
 
-                        <div className="mt-5 rounded-2xl bg-amber-400 px-4 py-4 text-black">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">
-                                Buyer reminder
-                            </p>
-                            <p className="mt-2 text-sm font-medium leading-6">
-                                If the condition does not match the listing when you meet up, do not complete the handover.
-                            </p>
-                        </div>
+                    <div className="mt-3 rounded-2xl bg-amber-400 px-4 py-3">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-black/50">Buyer tip</p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-black/80">
+                            If the item doesn&apos;t match the listing, don&apos;t complete the handover.
+                        </p>
                     </div>
                 </div>
             </div>
