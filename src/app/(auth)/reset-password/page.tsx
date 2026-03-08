@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { Eye, EyeOff, AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ const passwordSchema = (pw: string): string | null => {
 export default function ResetPasswordPage() {
     const router = useRouter();
     const supabase = createClient();
+    const { user, loading: authLoading } = useAuth();
 
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
@@ -25,20 +27,13 @@ export default function ResetPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [sessionReady, setSessionReady] = useState(false);
+    const sessionReady = !!user;
 
-    // Supabase sets the session automatically when the recovery link is clicked
-    // (the callback route exchanges the code). We just need to confirm the session
-    // is present before allowing submission.
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            if (data.session) {
-                setSessionReady(true);
-            } else {
-                setError('Invalid or expired reset link. Please request a new one.');
-            }
-        });
-    }, []);
+        if (!authLoading && !user) {
+            setError('Invalid or expired reset link. Please request a new one.');
+        }
+    }, [authLoading, user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -173,7 +168,7 @@ export default function ResetPasswordPage() {
 
                             <button
                                 type="submit"
-                                disabled={loading || !sessionReady}
+                                disabled={loading || authLoading || !sessionReady}
                                 className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors disabled:opacity-60"
                             >
                                 {loading ? 'Updating…' : <><span>Update Password</span><ArrowRight className="h-4 w-4" /></>}
