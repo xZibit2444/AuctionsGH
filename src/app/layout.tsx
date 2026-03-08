@@ -66,11 +66,6 @@ export const metadata: Metadata = {
       "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
     images: ['/logo.png'],
   },
-  icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
-  },
   alternates: {
     canonical: SITE_URL,
   },
