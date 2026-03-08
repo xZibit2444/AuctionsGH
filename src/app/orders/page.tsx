@@ -102,10 +102,10 @@ export default function OrdersPage() {
                 <div className="border border-gray-200 divide-y divide-gray-100">
                     {Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-4 px-5 py-4">
-                            <div className="h-12 w-12 bg-gray-100 animate-pulse shrink-0" />
+                            <div className="h-12 w-12 bg-gray-100 skeleton-pulse shrink-0" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-100 animate-pulse w-2/3" />
-                                <div className="h-3 bg-gray-100 animate-pulse w-1/3" />
+                                <div className="h-4 bg-gray-100 skeleton-pulse w-2/3" />
+                                <div className="h-3 bg-gray-100 skeleton-pulse w-1/3" />
                             </div>
                         </div>
                     ))}

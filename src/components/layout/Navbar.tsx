@@ -99,7 +99,7 @@ export default function Navbar() {
                         </div>
 
                         {loading ? (
-                            <div className="h-8 w-16 bg-gray-100 animate-pulse" />
+                            <div className="h-8 w-16 bg-gray-100 skeleton-pulse" />
                         ) : user ? (
                             <>
                                 {profile?.is_admin && (

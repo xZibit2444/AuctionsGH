@@ -89,7 +89,7 @@ export default function DeliveryCodeDisplay({ orderId, deliveryStatus, onStatusC
             )}
 
             {loading ? (
-                <div className="h-16 bg-white/10 animate-pulse mb-6" />
+                <div className="h-16 bg-white/10 skeleton-pulse mb-6" />
             ) : error ? (
                 <div className="p-4 bg-red-500/20 border border-red-500/40 text-red-300 text-sm font-bold mb-6">
                     {error}

@@ -126,7 +126,7 @@ export default function BuyerStats() {
                         <div key={label} className="bg-white p-5 sm:p-6">
                             <Icon className="h-4 w-4 text-gray-400 mb-4" strokeWidth={1.5} />
                             <p className="text-2xl sm:text-3xl font-black text-black tracking-tight mb-1">
-                                {loading ? <span className="inline-block w-12 h-7 bg-gray-100 animate-pulse" /> : value}
+                                {loading ? <span className="inline-block w-12 h-7 bg-gray-100 skeleton-pulse" /> : value}
                             </p>
                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{label}</p>
                         </div>
@@ -151,8 +151,8 @@ export default function BuyerStats() {
                         <div className="divide-y divide-gray-100">
                             {[...Array(4)].map((_, i) => (
                                 <div key={i} className="flex items-center gap-4 px-4 sm:px-5 py-4">
-                                    <div className="flex-1 h-4 bg-gray-100 animate-pulse" />
-                                    <div className="w-20 h-4 bg-gray-100 animate-pulse" />
+                                    <div className="flex-1 h-4 bg-gray-100 skeleton-pulse" />
+                                    <div className="w-20 h-4 bg-gray-100 skeleton-pulse" />
                                 </div>
                             ))}
                         </div>

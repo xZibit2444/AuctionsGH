@@ -67,7 +67,7 @@ export default function SavedPage() {
                 {loading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="bg-white aspect-[3/4] animate-pulse" />
+                            <div key={i} className="bg-white aspect-[3/4] skeleton-pulse" />
                         ))}
                     </div>
                 ) : auctions.length === 0 ? (

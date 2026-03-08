@@ -83,8 +83,15 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
     if (order) {
         return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />
+            <div className="max-w-xl mx-auto py-20 px-4 text-center">
+                <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h1 className="text-xl font-bold mb-2 text-black">Order Already Created</h1>
+                <p className="text-gray-500 mb-6 font-medium">
+                    This checkout has already been completed. Redirecting you to the order now.
+                </p>
+                <Link href={`/orders/${order.id}`} className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                    Open Order
+                </Link>
             </div>
         );
     }
@@ -128,21 +135,26 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         e.preventDefault();
         setHeaderError('');
         setIsProcessing(true);
+        try {
+            const result = await createOrderAction({
+                auctionId: auction.id,
+                buyerId: user.id,
+                deliveryMethod: form.delivery as 'pickup' | 'delivery',
+                amount: total,
+                address: form.address,
+                phone: form.phone,
+                name: form.name
+            });
 
-        const result = await createOrderAction({
-            auctionId: auction.id,
-            buyerId: user.id,
-            deliveryMethod: form.delivery as 'pickup' | 'delivery',
-            amount: total,
-            address: form.address,
-            phone: form.phone,
-            name: form.name
-        });
+            if (result.success && result.orderId) {
+                router.push(`/orders/${result.orderId}`);
+                return;
+            }
 
-        if (result.success && result.orderId) {
-            router.push(`/orders/${result.orderId}`);
-        } else {
             setHeaderError(result.error || 'Failed to process payment');
+        } catch {
+            setHeaderError('Checkout failed unexpectedly. Please try again.');
+        } finally {
             setIsProcessing(false);
         }
     };

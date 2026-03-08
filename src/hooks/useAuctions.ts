@@ -49,17 +49,9 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
     useEffect(() => {
         let isMounted = true;
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        let didTimeOut = false;
         const fetchAuctions = async () => {
             setLoading(true);
             setError(null);
-
-            timeoutId = setTimeout(() => {
-                if (!isMounted) return;
-                didTimeOut = true;
-                setError('Loading auctions is taking too long. Please try again.');
-            }, 8000);
 
             try {
                 const supabase = createClient();
@@ -131,17 +123,11 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     setError(fetchError.message);
                 } else {
                     setAuctions(data as Auction[]);
-                    // If the query eventually succeeded after the soft timeout,
-                    // clear the warning so the UI shows the loaded data normally.
-                    if (didTimeOut) {
-                        setError(null);
-                    }
                 }
             } catch (err) {
                 if (!isMounted) return;
                 setError(err instanceof Error ? err.message : 'Failed to load auctions');
             } finally {
-                if (timeoutId) clearTimeout(timeoutId);
                 if (isMounted) setLoading(false);
             }
         };
@@ -181,7 +167,6 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
         return () => {
             isMounted = false;
-            if (timeoutId) clearTimeout(timeoutId);
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

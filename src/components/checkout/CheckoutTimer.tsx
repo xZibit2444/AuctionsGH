@@ -40,7 +40,7 @@ export default function CheckoutTimer({ endsAt }: CheckoutTimerProps) {
     }, [endsAt]);
 
     if (!timeLeft) {
-        return <div className="animate-pulse bg-gray-100 h-10 w-32" />;
+        return <div className="skeleton-pulse bg-gray-100 h-10 w-32" />;
     }
 
     if (expired) {
