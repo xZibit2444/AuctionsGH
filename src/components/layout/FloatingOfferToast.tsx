@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { respondToOfferAction } from '@/app/actions/offer';
@@ -20,6 +21,7 @@ interface OfferToast {
 
 export default function FloatingOfferToast() {
     const { user } = useAuth();
+    const router = useRouter();
     const [toasts, setToasts] = useState<OfferToast[]>([]);
     const [responding, setResponding] = useState<string | null>(null);
     const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -112,8 +114,7 @@ export default function FloatingOfferToast() {
         if (result.success) {
             dismiss(toast.id);
             if (response === 'accepted') {
-                // Navigate seller to the auction so they see it as sold
-                window.location.href = `/auctions/${toast.auctionId}`;
+                router.push(`/auctions/${toast.auctionId}`);
             }
         } else {
             alert(result.error ?? 'Something went wrong');

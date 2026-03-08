@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Bell, Gavel, Trophy, Clock, Info, MessageCircle, Tag } from 'lucide-react';
@@ -41,6 +42,7 @@ function timeAgo(dateStr: string) {
 
 export default function NotificationBell() {
     const { user } = useAuth();
+    const router = useRouter();
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unread, setUnread] = useState(0);
@@ -200,8 +202,8 @@ export default function NotificationBell() {
                                         role="link"
                                         tabIndex={0}
                                         className="cursor-pointer"
-                                        onClick={() => { setOpen(false); window.location.href = href; }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') { setOpen(false); window.location.href = href; } }}
+                                        onClick={() => { setOpen(false); router.push(href); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { setOpen(false); router.push(href); } }}
                                     >
                                         {inner}
                                     </div>
@@ -215,7 +217,7 @@ export default function NotificationBell() {
                     {/* Footer */}
                     <div className="border-t border-gray-100 px-4 py-2.5">
                         <button
-                            onClick={() => { setOpen(false); window.location.href = '/settings#notifications'; }}
+                            onClick={() => { setOpen(false); router.push('/settings#notifications'); }}
                             className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
                         >
                             Notification settings →

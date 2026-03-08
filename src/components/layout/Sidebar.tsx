@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
@@ -49,6 +49,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { user, profile, loading, signOut } = useAuth();
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -137,7 +138,7 @@ export default function Sidebar() {
                     : null;
 
         if (href) {
-            window.location.assign(href);
+            router.push(href);
         }
     };
 

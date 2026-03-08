@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAuction } from '@/hooks/useAuction';
 import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
@@ -37,6 +37,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const [showCongrats, setShowCongrats] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const finalizeStartedRef = useRef(false);
     const router = useRouter();
 
     const handleDelete = async () => {
@@ -105,18 +106,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     });
 
     const handleCountdownEnd = useCallback(async () => {
-        if (auction?.status === 'active') {
-            const highestBidderId = bids[0]?.bidder_id;
+        if (auction?.status !== 'active' || finalizeStartedRef.current) return;
 
-            // Fire the server action to instantly claim the win & notifications
+        finalizeStartedRef.current = true;
+        const highestBidderId = bids[0]?.bidder_id;
+
+        try {
             await finalizeAuctionAction(auctionId);
 
-            // Instantly finalize on the client side UI
             if (highestBidderId === user?.id) {
                 setShowCongrats(true);
             }
-            // Transition status to hide the bid form instantly
+
             setAuction((prev) => prev ? { ...prev, status: highestBidderId ? 'sold' : 'ended' } : prev);
+        } finally {
+            finalizeStartedRef.current = false;
         }
     }, [auction, bids, user?.id, setAuction, auctionId]);
 

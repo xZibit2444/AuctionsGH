@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
     const { user, profile, loading, signOut } = useAuth();
+    const router = useRouter();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -77,7 +79,7 @@ export default function Navbar() {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Escape') setSearchOpen(false);
                                             if (e.key === 'Enter' && searchQuery.trim()) {
-                                                window.location.href = `/auctions?q=${encodeURIComponent(searchQuery)}`;
+                                                router.push(`/auctions?q=${encodeURIComponent(searchQuery)}`);
                                             }
                                         }}
                                     />
