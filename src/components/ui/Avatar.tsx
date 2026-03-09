@@ -1,3 +1,6 @@
+ 'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -28,13 +31,27 @@ export default function Avatar({
                 className
             )}
         >
-            <Image
-                src={src || '/avatar-placeholder.png'}
+            <AvatarImage
+                key={src || 'avatar-placeholder'}
+                src={src}
                 alt={name}
-                fill
                 sizes={size === 'lg' ? '96px' : size === 'md' ? '56px' : '40px'}
-                className="object-cover"
             />
         </div>
+    );
+}
+
+function AvatarImage({ src, alt, sizes }: { src?: string | null; alt: string; sizes: string }) {
+    const [failed, setFailed] = useState(false);
+
+    return (
+        <Image
+            src={!src || failed ? '/avatar-placeholder.png' : src}
+            alt={alt}
+            fill
+            sizes={sizes}
+            className="object-cover"
+            onError={() => setFailed(true)}
+        />
     );
 }
