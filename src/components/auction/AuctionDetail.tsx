@@ -16,7 +16,7 @@ import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import OfferPanel from './OfferPanel';
-import { Heart, CheckCircle2, Trash2 } from 'lucide-react';
+import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -398,21 +398,69 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
             {/* Congrats Modal Overlay */}
             {showCongrats && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white max-w-sm w-full p-8 text-center shadow-2xl animate-in zoom-in-95 duration-500 rounded-sm">
-                        <div className="mx-auto w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mb-6">
-                            <CheckCircle2 className="h-8 w-8" />
-                        </div>
-                        <h2 className="text-3xl font-black text-black tracking-tight mb-2">You Won!</h2>
-                        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-                            Congratulations! Your bid was the highest. You now have <span className="font-bold text-black">30 minutes</span> to confirm your order and secure the item.
-                        </p>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="relative w-full max-w-md overflow-hidden border border-emerald-200 bg-white shadow-2xl animate-in zoom-in-95 duration-500">
+                        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-br from-emerald-100 via-white to-amber-100" />
                         <button
-                            onClick={() => router.push(`/checkout/${auction.id}`)}
-                            className="w-full flex justify-center py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 transition-colors uppercase tracking-widest mb-3"
+                            onClick={() => setShowCongrats(false)}
+                            className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center border border-black/10 bg-white/90 text-gray-500 transition-colors hover:text-black"
+                            aria-label="Close winner popup"
                         >
-                            Confirm Order
+                            <X className="h-4 w-4" />
                         </button>
+
+                        <div className="relative p-6 sm:p-8">
+                            <div className="mb-5 flex items-center justify-between">
+                                <span className="inline-flex items-center gap-2 border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-emerald-700">
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    Winning Bid
+                                </span>
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg">
+                                    <Trophy className="h-7 w-7" />
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <h2 className="text-3xl font-black tracking-tight text-black sm:text-4xl">You won this auction.</h2>
+                                <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                                    Your bid came out on top. Confirm the order within <span className="font-black text-black">30 minutes</span> to secure the item before the reservation window closes.
+                                </p>
+                            </div>
+
+                            <div className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                                <div className="border border-gray-200 bg-gray-50 p-4">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">Item Won</p>
+                                    <p className="mt-2 text-lg font-black leading-tight text-black">{auction.title}</p>
+                                </div>
+                                <div className="border border-black bg-black px-5 py-4 text-white">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/60">Winning Price</p>
+                                    <p className="mt-2 text-2xl font-black tracking-tight">{formatCurrency(auction.current_price)}</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6 flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                <Clock3 className="h-4 w-4 shrink-0" />
+                                <p className="leading-relaxed">
+                                    After you confirm, you&apos;ll get the seller&apos;s handoff details and delivery instructions.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <button
+                                    onClick={() => router.push(`/checkout/${auction.id}`)}
+                                    className="inline-flex w-full items-center justify-center gap-2 bg-black px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-gray-900"
+                                >
+                                    Confirm Order
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={() => setShowCongrats(false)}
+                                    className="inline-flex w-full items-center justify-center border border-gray-200 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:border-black"
+                                >
+                                    Keep Browsing
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
