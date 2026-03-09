@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
-import { Gavel, Trophy, Clock, TrendingDown } from 'lucide-react';
+import { Gavel, Trophy, Clock, TrendingDown, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface BuyerStats {
@@ -213,6 +213,13 @@ export default function BuyerStats() {
                                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
                                                     >
                                                         Order
+                                                    </Link>
+                                                    <Link
+                                                        href={`/orders/${order.id}#chat`}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-colors"
+                                                    >
+                                                        <MessageCircle className="w-3 h-3" />
+                                                        Chat
                                                     </Link>
                                                 </div>
                                             ) : order?.status === 'void' || (status === 'sold' && isWinner && isExpired) ? (

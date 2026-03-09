@@ -8,7 +8,7 @@ import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 import AuctionStatusBadge from '@/components/auction/AuctionStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
-import { ArrowUpRight, Trash2, Shuffle } from 'lucide-react';
+import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
 import type { Auction } from '@/types/auction';
@@ -181,12 +181,12 @@ export default function ListingTable() {
                                                         Order
                                                     </Link>
                                                     <Link
-                                                        href={`/auctions/${auction.id}#trade-in-panel`}
-                                                        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors px-2 py-1"
-                                                        title="Open private trade-in messages"
+                                                        href={`/orders/${order.id}#chat`}
+                                                        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1"
+                                                        title="Open chat"
                                                     >
-                                                        <Shuffle className="w-3 h-3" />
-                                                        Trades
+                                                        <MessageCircle className="w-3 h-3" />
+                                                        Chat
                                                     </Link>
                                                     {sentOrderIds.has(order.id) || isSentInDb ? (
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-1">
@@ -213,16 +213,7 @@ export default function ListingTable() {
                                             );
                                         }
 
-                                        return (
-                                            <Link
-                                                href={`/auctions/${auction.id}#trade-in-panel`}
-                                                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors px-2 py-1"
-                                                title="Open private trade-in messages"
-                                            >
-                                                <Shuffle className="w-3 h-3" />
-                                                Trades
-                                            </Link>
-                                        );
+                                        return null;
                                     })()}
                                     <Link href={`/auctions/${auction.id}`}>
                                         <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />

@@ -65,10 +65,10 @@ export default function MobileNav() {
     };
 
     useEffect(() => {
-        if (!menuOpen) return;
-        const frame = window.requestAnimationFrame(() => setMenuOpen(false));
-        return () => window.cancelAnimationFrame(frame);
-    }, [menuOpen, pathname]);
+        queueMicrotask(() => {
+            setMenuOpen(false);
+        });
+    }, [pathname]);
 
     useEffect(() => {
         document.body.style.overflow = menuOpen ? 'hidden' : '';

@@ -5,6 +5,7 @@ import ConditionalNav from '@/components/layout/ConditionalNav';
 import MainContent from '@/components/layout/MainContent';
 import Footer from '@/components/layout/Footer';
 import Providers from '@/components/layout/Providers';
+import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -93,6 +94,7 @@ export default function RootLayout({
           <PushNotificationsInit />
           <ConditionalNav />
           <MainContent>
+            <FloatingChatToast />
             <FloatingOfferToast />
             <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
             <div className="hidden sm:block">

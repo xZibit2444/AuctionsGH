@@ -4,10 +4,11 @@ import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, formatFirstNameLastInitial } from '@/lib/utils';
-import { ShieldCheck, User, Package, Truck, CheckCircle2, ArrowUpRight, MapPin, MessageSquare } from 'lucide-react';
+import { ShieldCheck, User, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
+import OrderChat from '@/components/order/OrderChat';
 import ReviewForm from '@/components/order/ReviewForm';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import Avatar from '@/components/ui/Avatar';
@@ -430,25 +431,17 @@ export default function OrderPage({ params }: OrderPageProps) {
                         <DeliveryConfirmationForm orderId={order.id} deliveryStatus={deliveryStatus} onStatusChange={setDeliveryStatus} />
                     )}
 
-                    <div className="border border-gray-200 bg-white p-6">
-                        <div className="flex items-center gap-3 mb-3">
-                            <MessageSquare className="w-4 h-4 text-gray-400" />
-                            <div>
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Listing Comments</p>
-                                <p className="text-sm font-semibold text-black mt-1">Order chat has been removed.</p>
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 leading-relaxed">
-                            Questions and discussion now happen on the listing page in the public comment section.
-                            Open the auction to join the real-time conversation.
-                        </p>
-                        <Link
-                            href={`/auctions/${order.auction_id}#comments`}
-                            className="inline-flex items-center gap-2 mt-4 px-4 py-2.5 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                        >
-                            Open Listing Comments
-                            <ArrowUpRight className="w-4 h-4" />
-                        </Link>
+                    <div id="chat">
+                        <OrderChat
+                            orderId={order.id}
+                            userId={user!.id}
+                            isCompleted={isCompleted}
+                            otherPartyName={
+                                isBuyer
+                                    ? ((order.seller?.full_name ?? 'Seller').split(' ')[0])
+                                    : ((order.buyer?.full_name ?? 'Buyer').split(' ')[0])
+                            }
+                        />
                     </div>
 
                     {isCompleted && !hasReviewed && (
