@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { ITEM_CATEGORIES, CONDITION_LABELS } from '@/lib/constants';
 
 interface AuctionFiltersProps {
@@ -51,18 +51,18 @@ export default function AuctionFilters({
                 (sortBy === 'current_price' && ascending) ? 'price_asc' : 'price_desc';
 
     return (
-        <div className="bg-white border border-gray-200 p-4 space-y-4 shadow-sm mb-10">
+        <div className="bg-white border border-gray-200 p-4 space-y-4 shadow-sm mb-10 dark:bg-zinc-950 dark:border-zinc-800">
             {/* Top Row: Search */}
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search items…"
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-black focus:border-black sm:text-sm text-black transition-colors placeholder:text-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-black focus:border-black sm:text-sm text-black transition-colors placeholder:text-gray-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-950 dark:text-white dark:focus:ring-white dark:focus:border-white dark:placeholder:text-gray-500"
                 />
             </div>
 
@@ -74,7 +74,7 @@ export default function AuctionFilters({
                     <select
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:focus:ring-white dark:focus:border-white"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         {categories.map(c => (
@@ -88,7 +88,7 @@ export default function AuctionFilters({
                     <select
                         value={condition}
                         onChange={(e) => setCondition(e.target.value)}
-                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-white border border-gray-200 py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:focus:ring-white dark:focus:border-white"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         <option value="All">All Conditions</option>
@@ -103,7 +103,7 @@ export default function AuctionFilters({
                     <select
                         value={currentSortValue}
                         onChange={handleSortChange}
-                        className="block w-full text-black bg-gray-50 border border-gray-200 font-medium py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none"
+                        className="block w-full text-black bg-gray-50 border border-gray-200 font-medium py-2.5 pl-3 pr-8 text-sm truncate focus:outline-none focus:ring-1 focus:ring-black focus:border-black cursor-pointer appearance-none dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:focus:ring-white dark:focus:border-white"
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
                         <option value="ending_soon">Ending Soonest</option>
