@@ -18,6 +18,7 @@ import SellerRating from '@/components/ui/SellerRating';
 import OfferPanel from './OfferPanel';
 import { Heart, CheckCircle2, Trash2 } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { AuctionStatus } from '@/types/database';
 import { finalizeAuctionAction } from '@/app/actions/finalizeAuction';
@@ -26,6 +27,19 @@ import { deleteAuctionAction } from '@/app/actions/deleteAuction';
 interface AuctionDetailProps {
     auctionId: string;
 }
+
+type AuctionDetailData = {
+    orders?: { id: string; status: string }[] | { id: string; status: string } | null;
+    auction_winner_notes?: { note: string }[] | { note: string } | null;
+    profiles?: {
+        id: string;
+        username: string;
+        avatar_url: string | null;
+        location: string | null;
+        is_verified: boolean;
+        full_name?: string | null;
+    } | null;
+};
 
 export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const { auction, loading, setAuction } = useAuction(auctionId);
@@ -132,12 +146,13 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         );
     }
 
+    const auctionData = auction as typeof auction & AuctionDetailData;
     const images = auction.auction_images?.sort((a, b) => a.position - b.position) ?? [];
     const isWinner = auction.winner_id === user?.id;
     const isSeller = auction.seller_id === user?.id;
-    const orderRaw = (auction as any).orders;
+    const orderRaw = auctionData.orders;
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
-    const winnerNoteRaw = (auction as any).auction_winner_notes;
+    const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
 
     return (
@@ -226,9 +241,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     </div>
 
                     {/* Seller */}
-                    <div className="flex items-center gap-3">
+                    <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Avatar
-                            name={(auction.profiles as any)?.full_name ?? auction.profiles?.username ?? 'Seller'}
+                            name={auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller'}
                             size="sm"
                         />
                         <div>
@@ -243,7 +258,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 <SellerRating sellerId={auction.profiles.id} />
                             )}
                         </div>
-                    </div>
+                    </Link>
 
                     {/* Specs */}
                     <div className="grid grid-cols-2 gap-3 mt-6">
