@@ -36,7 +36,7 @@ export default function MobileNav() {
             <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-[var(--surface)] border-b border-[var(--border-color)] h-14 flex items-center justify-between px-4">
                 <Link href="/" onClick={handleLogoClick}>
                     <Image
-                        src="/logo.png"
+                        src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo.png'}
                         alt="AuctionsGH"
                         width={120}
                         height={40}

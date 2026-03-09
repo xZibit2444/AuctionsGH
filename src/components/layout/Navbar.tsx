@@ -7,9 +7,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Navbar() {
     const { user, profile, loading, signOut } = useAuth();
+    const { resolvedTheme } = useTheme();
     const router = useRouter();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -44,7 +46,7 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="shrink-0">
                         <Image
-                            src="/logo.png"
+                            src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo.png'}
                             alt="AuctionsGH"
                             width={120}
                             height={40}

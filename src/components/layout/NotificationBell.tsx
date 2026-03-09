@@ -65,7 +65,9 @@ export default function NotificationBell() {
 
     // Fetch initially
     useEffect(() => {
-        fetchNotifications();
+        queueMicrotask(() => {
+            fetchNotifications();
+        });
     }, [fetchNotifications]);
 
     // Subscribe to realtime inserts
@@ -129,12 +131,12 @@ export default function NotificationBell() {
         <div className="relative" ref={ref}>
             <button
                 onClick={handleOpen}
-                className="relative p-2 text-gray-400 hover:text-black transition-colors"
+                className="relative p-2 text-gray-400 hover:text-black transition-colors dark:text-gray-500 dark:hover:text-white"
                 aria-label="Notifications"
             >
                 <Bell className="h-5 w-5" />
                 {unread > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-in zoom-in duration-300">
+                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-in zoom-in duration-300 dark:border-zinc-950">
                         <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
                         {unread > 9 && (
                             <span className="sr-only">{unread} unread</span>
@@ -144,14 +146,14 @@ export default function NotificationBell() {
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-1 w-80 bg-white border border-gray-200 shadow-lg z-50">
+                <div className="absolute right-0 top-full mt-1 w-80 bg-white border border-gray-200 shadow-lg z-50 dark:bg-zinc-950 dark:border-zinc-800">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                        <p className="text-xs font-black text-black uppercase tracking-widest">Notifications</p>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
+                        <p className="text-xs font-black text-black uppercase tracking-widest dark:text-white">Notifications</p>
                         {unread > 0 && (
                             <button
                                 onClick={markAllRead}
-                                className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
+                                className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest dark:text-gray-500 dark:hover:text-white"
                             >
                                 Mark all read
                             </button>
@@ -159,28 +161,28 @@ export default function NotificationBell() {
                     </div>
 
                     {/* List */}
-                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-zinc-900">
                         {notifications.length === 0 ? (
                             <div className="py-10 text-center">
-                                <Bell className="h-6 w-6 text-gray-200 mx-auto mb-2" strokeWidth={1} />
-                                <p className="text-xs text-gray-400">No notifications yet</p>
+                                <Bell className="h-6 w-6 text-gray-200 mx-auto mb-2 dark:text-zinc-800" strokeWidth={1} />
+                                <p className="text-xs text-gray-400 dark:text-gray-500">No notifications yet</p>
                             </div>
                         ) : (
                             notifications.map((n) => {
                                 const inner = (
-                                    <div className={`flex gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 ${!n.is_read ? 'bg-gray-50/60' : ''}`}>
+                                    <div className={`flex gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-900 ${!n.is_read ? 'bg-gray-50/60 dark:bg-zinc-900/60' : ''}`}>
                                         <div className="mt-0.5 shrink-0">{typeIcon(n.type)}</div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm leading-snug truncate ${n.is_read ? 'text-gray-600' : 'font-semibold text-black'}`}>
+                                            <p className={`text-sm leading-snug truncate ${n.is_read ? 'text-gray-600 dark:text-gray-400' : 'font-semibold text-black dark:text-white'}`}>
                                                 {n.title}
                                             </p>
                                             {n.body && (
-                                                <p className="text-xs text-gray-400 mt-0.5 truncate">{n.body}</p>
+                                                <p className="text-xs text-gray-400 mt-0.5 truncate dark:text-gray-500">{n.body}</p>
                                             )}
-                                            <p className="text-[10px] text-gray-300 mt-1">{timeAgo(n.created_at)}</p>
+                                            <p className="text-[10px] text-gray-300 mt-1 dark:text-zinc-600">{timeAgo(n.created_at)}</p>
                                         </div>
                                         {!n.is_read && (
-                                            <span className="h-1.5 w-1.5 rounded-full bg-black shrink-0 mt-1.5" />
+                                            <span className="h-1.5 w-1.5 rounded-full bg-black shrink-0 mt-1.5 dark:bg-amber-400" />
                                         )}
                                     </div>
                                 );
@@ -215,10 +217,10 @@ export default function NotificationBell() {
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-gray-100 px-4 py-2.5">
+                    <div className="border-t border-gray-100 px-4 py-2.5 dark:border-zinc-800">
                         <button
                             onClick={() => { setOpen(false); router.push('/settings#notifications'); }}
-                            className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
+                            className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest dark:text-gray-500 dark:hover:text-white"
                         >
                             Notification settings →
                         </button>

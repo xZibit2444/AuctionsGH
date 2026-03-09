@@ -169,7 +169,14 @@ export default function Sidebar() {
                     <>
                         <div className="px-3 flex-1 flex items-center">
                             <Link href="/" onClick={handleLogoClick}>
-                                <Image src="/logo.png" alt="AuctionsGH" width={140} height={40} className="h-9 w-auto object-contain" priority />
+                                <Image
+                                    src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo.png'}
+                                    alt="AuctionsGH"
+                                    width={140}
+                                    height={40}
+                                    className="h-9 w-auto object-contain"
+                                    priority
+                                />
                             </Link>
                         </div>
                         <button
