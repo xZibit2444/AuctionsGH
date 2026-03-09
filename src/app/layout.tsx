@@ -77,8 +77,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${jakarta.variable} ${jakarta.className} bg-white text-gray-900 antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${jakarta.variable} ${jakarta.className} antialiased`}>
         <Providers>
           <PushNotificationsInit />
           <ConditionalNav />

@@ -15,6 +15,7 @@ import BidHistory from '@/components/bidding/BidHistory';
 import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
+import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import OfferPanel from './OfferPanel';
 import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
@@ -243,30 +244,38 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     </div>
 
                     {/* Seller */}
-                    <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <Avatar
-                            src={auctionData.profiles?.avatar_url}
-                            name={sellerDisplayName}
-                            size="sm"
-                        />
-                        <div>
-                            <div className="flex items-center gap-1.5 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                                    {sellerLabel || 'Seller'}
-                                </p>
-                                {auction.profiles?.is_verified && (
-                                    <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
-                                        <CheckCircle2 className="h-3 w-3" />
-                                        Verified
-                                    </span>
+                    <div className="flex items-start justify-between gap-3">
+                        <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
+                            <Avatar
+                                src={auctionData.profiles?.avatar_url}
+                                name={sellerDisplayName}
+                                size="sm"
+                            />
+                            <div>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                        {sellerLabel || 'Seller'}
+                                    </p>
+                                    {auction.profiles?.is_verified && (
+                                        <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Verified
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
+                                {auction.profiles?.id && (
+                                    <SellerRating sellerId={auction.profiles.id} />
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
-                            {auction.profiles?.id && (
-                                <SellerRating sellerId={auction.profiles.id} />
-                            )}
-                        </div>
-                    </Link>
+                        </Link>
+                        <FavoriteSellerButton
+                            sellerId={auction.seller_id}
+                            sellerName={sellerLabel}
+                            compact
+                            className="shrink-0"
+                        />
+                    </div>
 
                     {/* Specs */}
                     <div className="grid grid-cols-2 gap-3 mt-6">

@@ -2,7 +2,9 @@
 
 import { ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { FavoriteSellersProvider } from '@/contexts/FavoriteSellersContext';
 import { SavedAuctionsProvider } from '@/contexts/SavedAuctionsContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 /**
  * App-wide providers. AuthProvider is here so the auth state is shared
@@ -12,10 +14,14 @@ import { SavedAuctionsProvider } from '@/contexts/SavedAuctionsContext';
  */
 export default function Providers({ children }: { children: ReactNode }) {
     return (
-        <AuthProvider>
-            <SavedAuctionsProvider>
-                {children}
-            </SavedAuctionsProvider>
-        </AuthProvider>
+        <ThemeProvider>
+            <AuthProvider>
+                <FavoriteSellersProvider>
+                    <SavedAuctionsProvider>
+                        {children}
+                    </SavedAuctionsProvider>
+                </FavoriteSellersProvider>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }

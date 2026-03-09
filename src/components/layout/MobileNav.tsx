@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { Home, Search, Plus, Heart, LayoutDashboard } from 'lucide-react';
+import { Home, Search, Plus, Heart, LayoutDashboard, Moon, Sun } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
@@ -19,6 +20,7 @@ const tabs = [
 export default function MobileNav() {
     const pathname = usePathname();
     const { profile } = useAuth();
+    const { resolvedTheme, toggleTheme } = useTheme();
 
     const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (pathname !== '/') return;
@@ -31,7 +33,7 @@ export default function MobileNav() {
     return (
         <>
             {/* Mobile top header with logo */}
-            <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4">
+            <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-[var(--surface)] border-b border-[var(--border-color)] h-14 flex items-center justify-between px-4">
                 <Link href="/" onClick={handleLogoClick}>
                     <Image
                         src="/logo.png"
@@ -42,11 +44,20 @@ export default function MobileNav() {
                         priority
                     />
                 </Link>
-                <NotificationBell />
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={toggleTheme}
+                        className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)]"
+                        aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    >
+                        {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    </button>
+                    <NotificationBell />
+                </div>
             </header>
 
             {/* Mobile bottom tab bar */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 sm:hidden">
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface)] border-t border-[var(--border-color)] sm:hidden">
             <div className="flex items-center justify-around h-16 px-2">
                 {tabs.map((tab) => {
                     if (tab.href === '/auctions/create' && !profile?.is_admin) return null;

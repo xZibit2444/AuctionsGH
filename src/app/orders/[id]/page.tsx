@@ -13,6 +13,7 @@ import ReviewForm from '@/components/order/ReviewForm';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
+import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import type { DeliveryStatus } from '@/types/delivery';
 
 interface OrderPageProps {
@@ -251,7 +252,13 @@ export default function OrderPage({ params }: OrderPageProps) {
             ? 'bg-blue-100 text-blue-700'
             : 'bg-amber-100 text-amber-700';
     const sellerDisplayName = order.seller?.full_name || order.seller?.username || 'Seller';
-    const sellerLabel = formatFirstNameLastInitial(order.seller?.full_name || order.seller?.username);
+    const sellerLabel = (() => {
+        const rawName = order.seller?.full_name || order.seller?.username || '';
+        const formatted = formatFirstNameLastInitial(rawName);
+        if (formatted && formatted.trim() && formatted !== 'Seller') return formatted;
+        if (rawName.trim()) return rawName.trim();
+        return 'Seller';
+    })();
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -321,7 +328,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 </div>
 
                                 <div className="p-4">
-                                    <div className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
+                                    <div className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3">
                                         <Avatar
                                             src={order.seller?.avatar_url}
                                             name={sellerDisplayName}
@@ -330,8 +337,8 @@ export default function OrderPage({ params }: OrderPageProps) {
                                         />
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <p className="text-base font-black leading-none text-black">
-                                                    {sellerLabel || 'Seller'}
+                                                <p className="text-base font-black leading-none text-black dark:text-white">
+                                                    {sellerLabel}
                                                 </p>
                                                 {order.seller?.is_verified && (
                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
@@ -346,6 +353,12 @@ export default function OrderPage({ params }: OrderPageProps) {
                                                 </div>
                                             )}
                                         </div>
+                                        <FavoriteSellerButton
+                                            sellerId={order.seller?.id || order.seller_id}
+                                            sellerName={sellerLabel}
+                                            compact
+                                            className="shrink-0 self-start"
+                                        />
                                     </div>
 
                                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">

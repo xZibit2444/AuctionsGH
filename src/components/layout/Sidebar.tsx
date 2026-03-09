@@ -9,11 +9,12 @@ import {
     Home, Search, LayoutDashboard, Heart, Package,
     HelpCircle, Plus, LogOut, Settings,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
-    PanelLeftClose, PanelLeftOpen,
+    PanelLeftClose, PanelLeftOpen, Moon, Sun,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils';
 import { markAllReadAction } from '@/app/actions/notifications';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Notification {
     id: string;
@@ -58,6 +59,7 @@ export default function Sidebar() {
         if (typeof window === 'undefined') return false;
         return localStorage.getItem('sidebar-collapsed') === 'true';
     });
+    const { resolvedTheme, toggleTheme } = useTheme();
     const notifRef = useRef<HTMLDivElement>(null);
     const supabase = useMemo(() => createClient(), []);
 
@@ -149,16 +151,16 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-white border-r border-gray-100 flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
+        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[var(--surface)] border-r border-[var(--border-color)] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
 
             {/* Brand + collapse toggle */}
-            <div className="h-15 flex items-center border-b border-gray-100 shrink-0 relative">
+            <div className="h-15 flex items-center border-b border-[var(--border-color)] shrink-0 relative">
                 {collapsed ? (
                     <div className="flex-1 flex items-center justify-center">
                         <button
                             onClick={toggleCollapsed}
                             title="Expand sidebar"
-                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-[3px] transition-colors"
                         >
                             <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
@@ -173,7 +175,7 @@ export default function Sidebar() {
                         <button
                             onClick={toggleCollapsed}
                             title="Collapse sidebar"
-                            className="absolute right-2 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
+                            className="absolute right-2 p-1.5 text-gray-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-[3px] transition-colors"
                         >
                             <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
@@ -207,7 +209,7 @@ export default function Sidebar() {
                 })}
 
                 {/* Divider */}
-                {user && <div className="border-t border-gray-100 my-2" />}
+                {user && <div className="border-t border-[var(--border-color)] my-2" />}
 
                 {/* Notifications row (auth only) */}
                 {user && (
@@ -235,16 +237,16 @@ export default function Sidebar() {
 
                         {/* Notification panel — slides out to the right of sidebar */}
                         {notifOpen && (
-                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-white border-l border-gray-100 flex flex-col z-50 shadow-xl`}>
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-                                    <span className="text-sm font-black text-gray-900">Notifications</span>
+                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-[var(--surface)] border-l border-[var(--border-color)] flex flex-col z-50 shadow-xl`}>
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)] shrink-0">
+                                    <span className="text-sm font-black text-[var(--foreground)]">Notifications</span>
                                     <div className="flex items-center gap-2">
                                         {unread > 0 && (
                                             <button onClick={handleMarkAllRead} className="text-[11px] text-amber-500 hover:text-amber-600 font-semibold">
                                                 Mark all read
                                             </button>
                                         )}
-                                        <button onClick={() => setNotifOpen(false)} className="p-1 text-gray-400 hover:text-gray-700 transition-colors">
+                                        <button onClick={() => setNotifOpen(false)} className="p-1 text-gray-400 hover:text-[var(--foreground)] transition-colors">
                                             <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
@@ -259,11 +261,11 @@ export default function Sidebar() {
                                         <button
                                             key={n.id}
                                             onClick={() => handleNotifClick(n)}
-                                            className={`w-full text-left flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${!n.is_read ? 'bg-amber-50/50' : ''}`}
+                                            className={`w-full text-left flex items-start gap-3 px-4 py-3 border-b border-[var(--border-color)] hover:bg-[var(--surface-muted)] transition-colors ${!n.is_read ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''}`}
                                         >
                                             <div className="mt-0.5 shrink-0">{typeIcon(n.type)}</div>
                                             <div className="min-w-0 flex-1">
-                                                <p className={`text-xs font-semibold leading-snug ${n.is_read ? 'text-gray-500' : 'text-gray-900'}`}>{n.title}</p>
+                                                <p className={`text-xs font-semibold leading-snug ${n.is_read ? 'text-gray-500' : 'text-[var(--foreground)]'}`}>{n.title}</p>
                                                 {n.body && <p className="text-[11px] text-gray-400 mt-0.5 leading-snug line-clamp-2">{n.body}</p>}
                                                 <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
                                             </div>
@@ -300,8 +302,23 @@ export default function Sidebar() {
                 </div>
             )}
 
+            <div className="px-2 pb-2">
+                <button
+                    onClick={toggleTheme}
+                    title={collapsed ? 'Toggle dark mode' : undefined}
+                    className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium text-gray-500 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-all rounded-[3px]`}
+                >
+                    {resolvedTheme === 'dark' ? (
+                        <Sun className="h-4 w-4 opacity-70 group-hover:opacity-100" strokeWidth={1.75} />
+                    ) : (
+                        <Moon className="h-4 w-4 opacity-70 group-hover:opacity-100" strokeWidth={1.75} />
+                    )}
+                    {!collapsed && (resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode')}
+                </button>
+            </div>
+
             {/* User section */}
-            <div className="border-t border-gray-100 p-2 shrink-0">
+            <div className="border-t border-[var(--border-color)] p-2 shrink-0">
                 {!loading && user ? (
                     collapsed ? (
                         /* Collapsed: just avatar + sign out icon */
