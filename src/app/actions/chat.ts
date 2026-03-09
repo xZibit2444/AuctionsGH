@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +30,7 @@ export async function sendMessageAction(
     // Verify caller is a party to this order
     const { data: order, error: orderErr } = await supabaseAdmin
         .from('orders')
-        .select('id, buyer_id, seller_id, auction_id, auction:auctions(title)')
+        .select('id, buyer_id, seller_id, auction_id, status, auction:auctions(title)')
         .eq('id', orderId)
         .single();
 
@@ -38,6 +39,7 @@ export async function sendMessageAction(
     const isBuyer = order.buyer_id === user.id;
     const isSeller = order.seller_id === user.id;
     if (!isBuyer && !isSeller) return { success: false, error: 'Access denied.' };
+    if (isTerminalOrderStatus(order.status)) return { success: false, error: 'Chat is closed for this order.' };
 
     // Insert the message
     const { data: msg, error: msgErr } = await supabaseAdmin
@@ -53,7 +55,6 @@ export async function sendMessageAction(
     // Notify the other party
     const recipientId = isBuyer ? order.seller_id : order.buyer_id;
     const senderLabel = isBuyer ? 'Buyer' : 'Seller';
-    const auctionTitle = (order as any).auction?.title ?? 'your order';
 
     await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: recipientId,

@@ -5,6 +5,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 
 interface AdminOrderRow {
     id: string;
@@ -56,6 +57,10 @@ interface OrdersQueryClient {
 function statusTone(status: string) {
     if (status === 'completed' || status === 'pin_verified') {
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    }
+
+    if (status.startsWith('cancelled') || status === 'ghosted' || status === 'refunded') {
+        return 'bg-red-50 text-red-700 border-red-200';
     }
 
     if (status.includes('pending')) {
@@ -153,7 +158,7 @@ export default async function AdminOrdersPage() {
 
     const activeOrders = orders.filter((order) => {
         const deliveryStatus = order.delivery?.status ?? '';
-        return order.status !== 'completed' && order.status !== 'pin_verified' && deliveryStatus !== 'completed';
+        return !isTerminalOrderStatus(order.status) && deliveryStatus !== 'completed';
     });
 
     return (

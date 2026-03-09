@@ -10,11 +10,13 @@ import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
 import OrderChat from '@/components/order/OrderChat';
 import ReviewForm from '@/components/order/ReviewForm';
+import OrderCancellationPanel from '@/components/order/OrderCancellationPanel';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import type { DeliveryStatus } from '@/types/delivery';
+import { formatOrderStatusLabel, getOrderSurfaceStatus, isCancelledOrderStatus, isCompletedOrderStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
 
 interface OrderPageProps {
     params: Promise<{ id: string }>;
@@ -37,6 +39,8 @@ type OrderPageData = {
     seller_id: string;
     amount: number;
     status: string;
+    cancellation_reason?: string | null;
+    cancelled_at?: string | null;
     created_at: string;
     fulfillment_type: string | null;
     meetup_location: string | null;
@@ -242,11 +246,16 @@ export default function OrderPage({ params }: OrderPageProps) {
     }
 
     const isBuyer = user?.id === order.buyer_id;
-    const isCompleted = order.status === 'completed' || order.status === 'pin_verified' || deliveryStatus === 'delivered' || deliveryStatus === 'completed';
+    const surfaceStatus = getOrderSurfaceStatus(order.status, deliveryStatus);
+    const isCompleted = isCompletedOrderStatus(order.status) || deliveryStatus === 'delivered' || deliveryStatus === 'completed';
+    const isCancelled = isCancelledOrderStatus(order.status);
+    const isClosed = isTerminalOrderStatus(order.status) || deliveryStatus === 'completed' || deliveryStatus === 'delivered';
     const winnerNoteRaw = order.auction?.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
-    const statusLabel = isCompleted ? 'Completed' : deliveryStatus.replace('_', ' ');
-    const statusColor = isCompleted
+    const statusLabel = formatOrderStatusLabel(surfaceStatus);
+    const statusColor = isCancelled
+        ? 'bg-gray-100 text-gray-600'
+        : isCompleted
         ? 'bg-emerald-100 text-emerald-700'
         : deliveryStatus === 'sent'
             ? 'bg-blue-100 text-blue-700'
@@ -276,10 +285,10 @@ export default function OrderPage({ params }: OrderPageProps) {
                         Placed on {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                 </div>
-                {isCompleted && (
-                    <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 border border-emerald-100">
+                {isClosed && (
+                    <div className={`flex items-center gap-2 px-4 py-2 border ${isCancelled ? 'text-gray-600 bg-gray-50 border-gray-200' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
                         <CheckCircle2 className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-widest">Transaction Complete</span>
+                        <span className="text-xs font-bold uppercase tracking-widest">{isCancelled ? 'Order Closed' : 'Transaction Complete'}</span>
                     </div>
                 )}
             </div>
@@ -417,10 +426,18 @@ export default function OrderPage({ params }: OrderPageProps) {
                         </div>
                     )}
 
-                    <DeliveryTimeline status={deliveryStatus} />
+                    {!isCancelled && <DeliveryTimeline status={deliveryStatus} />}
                 </div>
 
                 <div className="space-y-6">
+                    <OrderCancellationPanel
+                        orderId={order.id}
+                        status={order.status}
+                        isBuyer={isBuyer}
+                        canCancel={!isClosed && (deliveryStatus === 'pending' || order.status === 'pending_meetup' || order.status === 'pending_payment')}
+                        cancellationReason={order.cancellation_reason}
+                    />
+
                     {isBuyer ? (
                         <DeliveryCodeDisplay
                             orderId={order.id}
@@ -435,7 +452,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         <OrderChat
                             orderId={order.id}
                             userId={user!.id}
-                            isCompleted={isCompleted}
+                            isCompleted={isClosed}
                             otherPartyName={
                                 isBuyer
                                     ? ((order.seller?.full_name ?? 'Seller').split(' ')[0])

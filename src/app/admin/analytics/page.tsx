@@ -621,7 +621,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                         <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Order status</span>
                         <select name="status" defaultValue={status} className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             <option value="">All statuses</option>
-                            {['pending_meetup', 'pending_payment', 'funds_held', 'in_delivery', 'completed', 'pin_verified', 'ghosted', 'pin_refused', 'refunded'].map((value) => (
+                            {['pending_meetup', 'pending_payment', 'funds_held', 'in_delivery', 'completed', 'pin_verified', 'ghosted', 'pin_refused', 'refunded', 'cancelled_by_buyer', 'cancelled_by_seller', 'cancelled_unpaid', 'cancelled_admin'].map((value) => (
                                 <option key={value} value={value}>{formatStatus(value)}</option>
                             ))}
                         </select>

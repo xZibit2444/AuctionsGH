@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
+import { formatOrderStatusLabel, getOrderSurfaceStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
 import Link from 'next/link';
 import { Package, MessageCircle, ChevronRight } from 'lucide-react';
 
@@ -30,6 +31,13 @@ const STATUS_COLORS: Record<string, string> = {
     delivered: 'bg-purple-50 text-purple-700',
     completed: 'bg-emerald-50 text-emerald-700',
     pin_verified: 'bg-emerald-50 text-emerald-700',
+    cancelled_by_buyer: 'bg-gray-100 text-gray-600',
+    cancelled_by_seller: 'bg-gray-100 text-gray-600',
+    cancelled_mutual: 'bg-gray-100 text-gray-600',
+    cancelled_unpaid: 'bg-gray-100 text-gray-600',
+    cancelled_admin: 'bg-gray-100 text-gray-600',
+    ghosted: 'bg-red-50 text-red-600',
+    refunded: 'bg-red-50 text-red-600',
     void: 'bg-red-50 text-red-600',
 };
 
@@ -83,10 +91,8 @@ export default function OrdersPage() {
     };
 
     const getStatusLabel = (order: OrderRow) => {
-        const s = order.status === 'completed' || order.status === 'pin_verified'
-            ? 'completed'
-            : getDeliveryStatus(order);
-        return s.replace('_', ' ');
+        const s = getOrderSurfaceStatus(order.status, getDeliveryStatus(order));
+        return formatOrderStatusLabel(s);
     };
 
     return (
@@ -125,11 +131,10 @@ export default function OrdersPage() {
                     {orders.map((order) => {
                         const images = order.auction?.auction_images ?? [];
                         const thumb = images.sort((a, b) => a.position - b.position)[0]?.url;
-                        const statusKey = order.status === 'completed' || order.status === 'pin_verified'
-                            ? 'completed'
-                            : getDeliveryStatus(order);
+                        const statusKey = getOrderSurfaceStatus(order.status, getDeliveryStatus(order));
                         const statusColor = STATUS_COLORS[statusKey] ?? 'bg-gray-100 text-gray-500';
                         const isBuyer = order.buyer_id === user?.id;
+                        const chatClosed = isTerminalOrderStatus(order.status);
 
                         return (
                             <div key={order.id} className="flex items-center gap-4 px-4 sm:px-5 py-4 hover:bg-gray-50 transition-colors">
@@ -172,13 +177,15 @@ export default function OrdersPage() {
                                     <span className={`hidden sm:inline-flex px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
                                         {getStatusLabel(order)}
                                     </span>
-                                    <Link
-                                        href={`/orders/${order.id}#chat`}
-                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                        title="Open chat"
-                                    >
-                                        <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
-                                    </Link>
+                                    {!chatClosed && (
+                                        <Link
+                                            href={`/orders/${order.id}#chat`}
+                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                            title="Open chat"
+                                        >
+                                            <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
+                                        </Link>
+                                    )}
                                     <Link
                                         href={`/orders/${order.id}`}
                                         className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
