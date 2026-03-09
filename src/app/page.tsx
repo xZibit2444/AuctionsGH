@@ -44,7 +44,7 @@ export default function HomePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8">
 
       {error && (
-        <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+        <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {error}
         </div>
       )}
@@ -69,13 +69,13 @@ export default function HomePage() {
       {isFiltering ? (
         <section>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="flex items-center gap-2 text-lg font-black text-gray-900 dark:text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-950/40">
+            <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100">
                 <Flame className="h-3.5 w-3.5 text-amber-600" />
               </span>
               Search Results
             </h2>
-            <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full dark:bg-zinc-900 dark:text-gray-300">
+            <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
               {auctions.length} found
             </span>
           </div>
@@ -113,13 +113,13 @@ export default function HomePage() {
           {/* Full grid */}
           <section>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="flex items-center gap-2 text-lg font-black text-gray-900 dark:text-white">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-950/40">
+              <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-100">
                   <Flame className="h-3.5 w-3.5 text-orange-500" />
                 </span>
                 All Live Auctions
               </h2>
-              <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full dark:bg-zinc-900 dark:text-gray-300">
+              <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
                 {loading ? '...' : `${auctions.length} active`}
               </span>
             </div>

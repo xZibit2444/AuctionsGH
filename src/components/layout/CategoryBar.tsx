@@ -43,7 +43,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
         <div className="relative group/cats">
             <button
                 onClick={() => scroll('left')}
-                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full dark:bg-zinc-950 dark:border-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-900"
+                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full"
                 aria-label="Scroll categories left"
             >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -62,8 +62,8 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                             onClick={() => onSelect(cat)}
                             className={`shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full border transition-all whitespace-nowrap ${
                                 active
-                                    ? 'bg-gray-900 text-white border-gray-900 shadow-md dark:bg-amber-400 dark:text-black dark:border-amber-400'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900 dark:bg-zinc-950 dark:text-gray-300 dark:border-zinc-800 dark:hover:border-zinc-600 dark:hover:text-white'
+                                    ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900'
                             }`}
                         >
                             {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2} />}
@@ -75,7 +75,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
 
             <button
                 onClick={() => scroll('right')}
-                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full dark:bg-zinc-950 dark:border-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-900"
+                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center bg-white border border-gray-200 shadow-md hover:bg-gray-50 opacity-0 group-hover/cats:opacity-100 transition-opacity rounded-full"
                 aria-label="Scroll categories right"
             >
                 <ChevronRight className="h-3.5 w-3.5" />
