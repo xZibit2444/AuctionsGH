@@ -138,8 +138,8 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Seller Profile</p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="text-3xl font-black tracking-tight text-black">{sellerLabel}</h1>
+                            <div className="flex items-center gap-2 min-w-0">
+                                <h1 className="text-3xl font-black tracking-tight text-black whitespace-nowrap">{sellerLabel || 'Seller'}</h1>
                                 {seller.is_verified && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         <ShieldCheck className="h-3 w-3" />

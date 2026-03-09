@@ -250,9 +250,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             size="sm"
                         />
                         <div>
-                            <div className="flex flex-wrap items-center gap-1.5">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {sellerLabel}
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                    {sellerLabel || 'Seller'}
                                 </p>
                                 {auction.profiles?.is_verified && (
                                     <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
