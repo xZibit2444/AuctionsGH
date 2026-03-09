@@ -1,0 +1,4 @@
+-- 036_trade_in_messages.sql
+-- Legacy placeholder retained so local migration history matches the remote project.
+-- The original trade-in messaging feature was removed from the app after this
+-- migration had already been applied to the remote database.
