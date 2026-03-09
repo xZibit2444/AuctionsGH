@@ -4,13 +4,15 @@ import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
-import { ShieldCheck, User, Package, Truck, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, User, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
 import OrderChat from '@/components/order/OrderChat';
 import ReviewForm from '@/components/order/ReviewForm';
 import { getPrimaryDelivery } from '@/lib/delivery';
+import Avatar from '@/components/ui/Avatar';
+import SellerRating from '@/components/ui/SellerRating';
 import type { DeliveryStatus } from '@/types/delivery';
 
 interface OrderPageProps {
@@ -85,7 +87,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                     *,
                     auction:auctions ( id, title, current_price, condition, auction_images(url), auction_winner_notes(note) ),
                     buyer:profiles!orders_buyer_id_fkey ( id, full_name, phone_number ),
-                    seller:profiles!orders_seller_id_fkey ( id, full_name, phone_number, location ),
+                    seller:profiles!orders_seller_id_fkey ( id, username, full_name, phone_number, location, is_verified ),
                     deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
                 `)
                 .eq('id', id)
@@ -269,29 +271,77 @@ export default function OrderPage({ params }: OrderPageProps) {
 
                     <div className="border border-gray-200 p-6 bg-white">
                         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isBuyer ? 'Seller Contact' : 'Buyer'}</h3>
-                        <div className="flex items-start gap-3">
-                            <User className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-                            <div className="space-y-1.5">
-                                <p className="font-bold text-black">
-                                    {isBuyer ? order.seller?.full_name : order.buyer?.full_name}
+                        {isBuyer ? (
+                            <Link
+                                href={`/sellers/${order.seller?.id}`}
+                                className="group block border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 hover:border-black transition-colors"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3 min-w-0">
+                                        <Avatar
+                                            name={order.seller?.full_name || order.seller?.username || 'Seller'}
+                                            size="md"
+                                            className="ring-0"
+                                        />
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="font-black text-black truncate">
+                                                    {order.seller?.full_name || 'Seller'}
+                                                </p>
+                                                {order.seller?.is_verified && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
+                                                        <CheckCircle2 className="h-3 w-3" />
+                                                        Verified
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-1">@{order.seller?.username || 'seller'}</p>
+                                            {order.seller?.id && (
+                                                <div className="mt-2">
+                                                    <SellerRating sellerId={order.seller.id} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors shrink-0">
+                                        View profile
+                                        <ArrowUpRight className="h-3.5 w-3.5" />
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-200">
+                                    <div className="border border-gray-200 bg-white px-3 py-2.5">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
+                                        <p className="text-sm font-semibold text-black">{order.seller?.phone_number || 'Not provided'}</p>
+                                    </div>
+                                    <div className="border border-gray-200 bg-white px-3 py-2.5">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Location</p>
+                                        <p className="text-sm font-semibold text-black inline-flex items-center gap-1.5">
+                                            <MapPin className="h-4 w-4 text-gray-400" />
+                                            {order.seller?.location || 'Not shared'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
+                                    Contact the seller to arrange delivery or pickup, or open their profile to see active listings and reviews.
                                 </p>
-                                <p className="text-sm text-gray-500">
-                                    <span className="font-semibold text-black">Phone: </span>
-                                    {(isBuyer ? order.seller?.phone_number : order.buyer?.phone_number) || 'Not provided'}
-                                </p>
-                                {isBuyer && order.seller?.location && (
+                            </Link>
+                        ) : (
+                            <div className="flex items-start gap-3">
+                                <User className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                                <div className="space-y-1.5">
+                                    <p className="font-bold text-black">
+                                        {order.buyer?.full_name}
+                                    </p>
                                     <p className="text-sm text-gray-500">
-                                        <span className="font-semibold text-black">Location: </span>
-                                        {order.seller.location}
+                                        <span className="font-semibold text-black">Phone: </span>
+                                        {order.buyer?.phone_number || 'Not provided'}
                                     </p>
-                                )}
-                                {isBuyer && (
-                                    <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-                                        Contact the seller to arrange delivery or pickup.
-                                    </p>
-                                )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="border border-gray-200 p-6 bg-white">
