@@ -31,7 +31,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     };
 
     return (
-        <Link href={`/auctions/${auction.id}`}>
+        <Link href={`/auctions/${auction.id}`} className="block">
             <article className="group bg-white border border-gray-200 overflow-hidden hover:border-black transition-colors duration-200 dark:bg-zinc-950 dark:border-zinc-800 dark:hover:border-zinc-600">
                 {/* Image */}
                 <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden dark:bg-zinc-900">
