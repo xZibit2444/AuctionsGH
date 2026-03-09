@@ -11,6 +11,36 @@ import Skeleton from '@/components/ui/Skeleton';
 import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
+import type { Auction } from '@/types/auction';
+
+type ListingDelivery = {
+    status: string;
+    delivered_at?: string | null;
+    created_at?: string | null;
+};
+
+type ListingOrder = {
+    id: string;
+    status: string;
+    deliveries?: ListingDelivery[] | ListingDelivery | null;
+};
+
+type ListingAuction = Auction & {
+    orders?: ListingOrder[] | ListingOrder | null;
+};
+
+function getAuctionOrder(auction: ListingAuction) {
+    const orderRaw = auction.orders;
+    return Array.isArray(orderRaw) ? orderRaw[0] ?? null : orderRaw ?? null;
+}
+
+function isCompletedDeal(order: ListingOrder | null) {
+    const delivery = order ? getPrimaryDelivery(order.deliveries) : null;
+    return order?.status === 'completed'
+        || order?.status === 'pin_verified'
+        || delivery?.status === 'completed'
+        || delivery?.status === 'delivered';
+}
 
 export default function ListingTable() {
     const { user } = useAuth();
@@ -76,7 +106,7 @@ export default function ListingTable() {
         setMarkingId(null);
     };
 
-    const visibleAuctions = auctions.filter((a) => !deletedIds.has(a.id));
+    const visibleAuctions = (auctions as ListingAuction[]).filter((a) => !deletedIds.has(a.id));
 
     return (
         <div className="overflow-x-auto">
@@ -109,10 +139,9 @@ export default function ListingTable() {
                             </td>
                             <td className="py-4 px-5 hidden sm:table-cell">
                                 {(() => {
-                                    const orderRaw = (auction as any).orders;
-                                    const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+                                    const order = getAuctionOrder(auction);
                                     if (order) {
-                                        const delivery = getPrimaryDelivery((order as any).deliveries);
+                                        const delivery = getPrimaryDelivery(order.deliveries);
                                         if (delivery?.status === 'completed') {
                                             return <AuctionStatusBadge status={auction.status} />;
                                         }
@@ -134,14 +163,13 @@ export default function ListingTable() {
                             <td className="py-4 px-5 hidden sm:table-cell text-right">
                                 <div className="flex justify-end items-center gap-4">
                                     {(() => {
-                                        const orderRaw = (auction as any).orders;
-                                        const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+                                        const order = getAuctionOrder(auction);
+                                        const delivery = order ? getPrimaryDelivery(order.deliveries) : null;
 
                                         const endsAt = auction.ends_at ? new Date(auction.ends_at).getTime() : 0;
                                         const isExpired = endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
 
                                         if (order) {
-                                            const delivery = getPrimaryDelivery((order as any).deliveries);
                                             const isSentInDb = delivery?.status === 'sent' || delivery?.status === 'delivered' || delivery?.status === 'completed';
 
                                             return (
@@ -190,7 +218,7 @@ export default function ListingTable() {
                                     <Link href={`/auctions/${auction.id}`}>
                                         <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
                                     </Link>
-                                    {auction.status !== 'sold' && (auction.bid_count ?? 0) === 0 && (
+                                    {((auction.status !== 'sold' && (auction.bid_count ?? 0) === 0) || (auction.status === 'sold' && isCompletedDeal(getAuctionOrder(auction)))) && (
                                         deleteConfirmId === auction.id ? (
                                             <div className="flex items-center gap-1">
                                                 <button
@@ -208,14 +236,14 @@ export default function ListingTable() {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <button
-                                                onClick={() => setDeleteConfirmId(auction.id)}
-                                                className="text-gray-300 hover:text-red-500 transition-colors"
-                                                title="Delete listing"
-                                                aria-label="Delete listing"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                                <button
+                                                    onClick={() => setDeleteConfirmId(auction.id)}
+                                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                                    title={auction.status === 'sold' ? 'Take down listing' : 'Delete listing'}
+                                                    aria-label={auction.status === 'sold' ? 'Take down listing' : 'Delete listing'}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                         )
                                     )}
                                 </div>

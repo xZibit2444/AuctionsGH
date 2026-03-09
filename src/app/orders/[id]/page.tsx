@@ -19,6 +19,38 @@ interface OrderPageProps {
     params: Promise<{ id: string }>;
 }
 
+type OrderParty = {
+    id: string;
+    username?: string | null;
+    full_name: string | null;
+    phone_number: string | null;
+    location?: string | null;
+    is_verified?: boolean;
+};
+
+type OrderPageData = {
+    id: string;
+    auction_id: string;
+    buyer_id: string;
+    seller_id: string;
+    amount: number;
+    status: string;
+    created_at: string;
+    fulfillment_type: string | null;
+    meetup_location: string | null;
+    buyer: OrderParty | null;
+    seller: OrderParty | null;
+    auction: {
+        id: string;
+        title: string;
+        current_price: number;
+        condition: string | null;
+        auction_images: { url: string }[] | null;
+        auction_winner_notes?: { note: string }[] | { note: string } | null;
+    } | null;
+    deliveries?: { id: string; status: string; delivered_at?: string | null }[] | { id: string; status: string; delivered_at?: string | null } | null;
+};
+
 const STATUS_STEPS: { key: DeliveryStatus; label: string }[] = [
     { key: 'pending', label: 'Order Placed' },
     { key: 'sent', label: 'Sent' },
@@ -65,7 +97,7 @@ function DeliveryTimeline({ status }: { status: DeliveryStatus }) {
 export default function OrderPage({ params }: OrderPageProps) {
     const { id } = use(params);
     const { user, loading: authLoading } = useAuth();
-    const [order, setOrder] = useState<any>(null);
+    const [order, setOrder] = useState<OrderPageData | null>(null);
     const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>('pending');
     const [loading, setLoading] = useState(true);
     const [hasReviewed, setHasReviewed] = useState(false);
@@ -96,11 +128,12 @@ export default function OrderPage({ params }: OrderPageProps) {
             if (!isMounted) return;
 
             if (!error && data) {
-                setOrder(data);
-                const dels = Array.isArray((data as any).deliveries)
-                    ? (data as any).deliveries
-                    : (data as any).deliveries
-                        ? [(data as any).deliveries]
+                const nextOrder = data as OrderPageData;
+                setOrder(nextOrder);
+                const dels = Array.isArray(nextOrder.deliveries)
+                    ? nextOrder.deliveries
+                    : nextOrder.deliveries
+                        ? [nextOrder.deliveries]
                         : [];
 
                 const primaryDelivery = getPrimaryDelivery(dels);
@@ -171,7 +204,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                     filter: `id=eq.${id}`,
                 },
                 (payload) => {
-                    setOrder((prev: any) => prev ? { ...prev, ...payload.new } : prev);
+                    setOrder((prev) => prev ? { ...prev, ...(payload.new as Partial<OrderPageData>) } : prev);
                 }
             )
             .subscribe();
@@ -274,16 +307,24 @@ export default function OrderPage({ params }: OrderPageProps) {
                         {isBuyer ? (
                             <Link
                                 href={`/sellers/${order.seller?.id}`}
-                                className="group block border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 hover:border-black transition-colors"
+                                className="group block overflow-hidden border border-gray-200 bg-white hover:border-black transition-colors"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex items-start gap-3 min-w-0">
+                                <div className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Seller Profile</p>
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">
+                                        Open
+                                        <ArrowUpRight className="h-3.5 w-3.5" />
+                                    </span>
+                                </div>
+
+                                <div className="p-4">
+                                    <div className="flex items-center gap-3">
                                         <Avatar
                                             name={order.seller?.full_name || order.seller?.username || 'Seller'}
                                             size="md"
-                                            className="ring-0"
+                                            className="ring-0 shrink-0"
                                         />
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <p className="font-black text-black truncate">
                                                     {order.seller?.full_name || 'Seller'}
@@ -304,29 +345,21 @@ export default function OrderPage({ params }: OrderPageProps) {
                                         </div>
                                     </div>
 
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors shrink-0">
-                                        View profile
-                                        <ArrowUpRight className="h-3.5 w-3.5" />
-                                    </span>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-200">
-                                    <div className="border border-gray-200 bg-white px-3 py-2.5">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
-                                        <p className="text-sm font-semibold text-black">{order.seller?.phone_number || 'Not provided'}</p>
-                                    </div>
-                                    <div className="border border-gray-200 bg-white px-3 py-2.5">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Location</p>
-                                        <p className="text-sm font-semibold text-black inline-flex items-center gap-1.5">
+                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
+                                            <p className="text-sm font-semibold text-black break-all">{order.seller?.phone_number || 'Not provided'}</p>
+                                        </div>
+                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
                                             <MapPin className="h-4 w-4 text-gray-400" />
                                             {order.seller?.location || 'Not shared'}
-                                        </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
-                                    Contact the seller to arrange delivery or pickup, or open their profile to see active listings and reviews.
-                                </p>
+                                    <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
+                                        Tap to view this seller&apos;s listings, reviews, and public profile.
+                                    </p>
+                                </div>
                             </Link>
                         ) : (
                             <div className="flex items-start gap-3">

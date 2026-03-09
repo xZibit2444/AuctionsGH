@@ -25,8 +25,25 @@ export async function deleteAuctionAction(
 
     if (fetchError || !auction) return { success: false, error: 'Auction not found' };
     if (auction.seller_id !== user.id) return { success: false, error: 'Not your auction' };
-    if (auction.status === 'sold') return { success: false, error: 'This auction has an active deal. It cannot be deleted until the order is completed.' };
-    if ((auction.bid_count ?? 0) > 0) return { success: false, error: 'Cannot delete an auction that has bids' };
+
+    const { data: latestOrder } = await supabaseAdmin
+        .from('orders')
+        .select('status')
+        .eq('auction_id', auctionId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    const dealCompleted = latestOrder
+        && (latestOrder.status === 'delivered' || latestOrder.status === 'completed' || latestOrder.status === 'pin_verified');
+
+    if (auction.status === 'sold' && !dealCompleted) {
+        return { success: false, error: 'This auction has an active deal. It can only be taken down after the order is completed.' };
+    }
+
+    if (auction.status !== 'sold' && (auction.bid_count ?? 0) > 0) {
+        return { success: false, error: 'Cannot delete an auction that has bids' };
+    }
 
     // Block deletion if there is an accepted offer and the deal has not finished
     const { data: acceptedOffer } = await supabaseAdmin
@@ -39,15 +56,7 @@ export async function deleteAuctionAction(
 
     if (acceptedOffer) {
         // Check whether the order was fully completed
-        const { data: order } = await supabaseAdmin
-            .from('orders')
-            .select('status')
-            .eq('auction_id', auctionId)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        const isDone = order && (order.status === 'delivered' || order.status === 'completed');
+        const isDone = dealCompleted;
         if (!isDone) {
             return { success: false, error: 'There is an active deal on this listing. It cannot be deleted until the order is completed.' };
         }

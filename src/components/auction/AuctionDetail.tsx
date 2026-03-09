@@ -338,8 +338,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         />
                     )}
 
-                    {/* Delete button — sellers only, no bids yet */}
-                    {isSeller && auction.status !== 'sold' && auction.bid_count === 0 && (
+                    {/* Delete / take down button */}
+                    {isSeller && (((auction.status !== 'sold' && auction.bid_count === 0) || (auction.status === 'sold' && (order?.status === 'completed' || order?.status === 'pin_verified')))) && (
                         <div className="flex justify-end mt-2">
                             <button
                                 onClick={handleDelete}
@@ -347,7 +347,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border transition-colors disabled:opacity-50 ${deleteConfirm ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'}`}
                             >
                                 <Trash2 className="h-4 w-4" />
-                                {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : 'Delete auction'}
+                                {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : auction.status === 'sold' ? 'Take down listing' : 'Delete auction'}
                             </button>
                             {deleteConfirm && (
                                 <button
