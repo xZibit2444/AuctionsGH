@@ -39,7 +39,7 @@ function AuctionsContent() {
     ];
 
     const { auctions, loading, error } = useAuctions({
-        status: 'active',
+        status: 'visible',
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
         orderBy,
@@ -96,7 +96,10 @@ function AuctionsContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
             {/* Page header */}
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
+                <div>
+                    <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
+                    <p className="text-xs text-gray-400 mt-1">Active and sold listings stay visible.</p>
+                </div>
                 {hasFilters && (
                     <button
                         onClick={() => { setInputVal(''); setQuery(''); setCategory('All'); syncUrl('', 'All', sort); }}

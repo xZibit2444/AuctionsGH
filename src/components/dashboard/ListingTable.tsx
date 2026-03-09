@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuctions } from '@/hooks/useAuctions';
+import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 import AuctionStatusBadge from '@/components/auction/AuctionStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
@@ -111,8 +112,7 @@ export default function ListingTable() {
                                     const orderRaw = (auction as any).orders;
                                     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
                                     if (order) {
-                                        const deliveryRaw = (order as any).deliveries;
-                                        const delivery = Array.isArray(deliveryRaw) ? deliveryRaw[0] : deliveryRaw;
+                                        const delivery = getPrimaryDelivery((order as any).deliveries);
                                         if (delivery?.status === 'completed') {
                                             return <AuctionStatusBadge status={auction.status} />;
                                         }
@@ -141,8 +141,7 @@ export default function ListingTable() {
                                         const isExpired = endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
 
                                         if (order) {
-                                            const deliveryRaw = (order as any).deliveries;
-                                            const delivery = Array.isArray(deliveryRaw) ? deliveryRaw[0] : deliveryRaw;
+                                            const delivery = getPrimaryDelivery((order as any).deliveries);
                                             const isSentInDb = delivery?.status === 'sent' || delivery?.status === 'delivered' || delivery?.status === 'completed';
 
                                             return (

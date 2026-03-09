@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { ClipboardList, Package, ShieldCheck, Truck, User, CheckCircle2, Circle } from 'lucide-react';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 
 interface AdminOrderRow {
@@ -147,7 +148,7 @@ export default async function AdminOrdersPage() {
 
     const orders = ((data ?? []) as AdminOrderRow[]).map((order) => ({
         ...order,
-        delivery: Array.isArray(order.deliveries) ? order.deliveries[0] ?? null : null,
+        delivery: getPrimaryDelivery(order.deliveries),
     }));
 
     const activeOrders = orders.filter((order) => {

@@ -6,7 +6,7 @@ import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 
 interface UseAuctionsOptions {
-    status?: AuctionStatus | 'all';
+    status?: AuctionStatus | 'all' | 'visible';
     brand?: string;
     sellerId?: string;
     search?: string;
@@ -89,7 +89,9 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     `;
                 let query = supabase.from('auctions').select(selectCols);
 
-                if (status !== 'all') {
+                if (status === 'visible') {
+                    query = query.in('status', ['active', 'sold']);
+                } else if (status !== 'all') {
                     query = query.eq('status', status);
                 }
                 if (brand && brand !== 'All') {

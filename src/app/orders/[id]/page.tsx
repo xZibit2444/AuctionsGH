@@ -10,6 +10,7 @@ import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
 import OrderChat from '@/components/order/OrderChat';
 import ReviewForm from '@/components/order/ReviewForm';
+import { getPrimaryDelivery } from '@/lib/delivery';
 import type { DeliveryStatus } from '@/types/delivery';
 
 interface OrderPageProps {
@@ -100,8 +101,9 @@ export default function OrderPage({ params }: OrderPageProps) {
                         ? [(data as any).deliveries]
                         : [];
 
-                if (dels[0]) {
-                    setDeliveryStatus(dels[0].status as DeliveryStatus);
+                const primaryDelivery = getPrimaryDelivery(dels);
+                if (primaryDelivery) {
+                    setDeliveryStatus(primaryDelivery.status as DeliveryStatus);
                 }
 
                 // Check if user already reviewed this order

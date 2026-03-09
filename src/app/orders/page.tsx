@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { Package, MessageCircle, ChevronRight } from 'lucide-react';
@@ -78,10 +79,7 @@ export default function OrdersPage() {
     }, [user, authLoading]);
 
     const getDeliveryStatus = (order: OrderRow) => {
-        const dels = Array.isArray(order.deliveries)
-            ? order.deliveries
-            : order.deliveries ? [order.deliveries] : [];
-        return dels[0]?.status ?? order.status;
+        return getPrimaryDelivery(order.deliveries)?.status ?? order.status;
     };
 
     const getStatusLabel = (order: OrderRow) => {
