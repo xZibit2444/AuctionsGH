@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X, User } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
     const { user, profile, loading, signOut } = useAuth();
+    const pathname = usePathname();
     const router = useRouter();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -37,12 +38,23 @@ export default function Navbar() {
         if (searchOpen) searchInputRef.current?.focus();
     }, [searchOpen]);
 
+    const isActive = (href: string, exact = false) =>
+        exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
+
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, exact = false) => {
+        if (!isActive(href, exact)) return;
+        e.preventDefault();
+        setDropdownOpen(false);
+        router.refresh();
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+
     return (
         <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-14 gap-3">
                     {/* Logo */}
-                    <Link href="/" className="shrink-0">
+                    <Link href="/" onClick={(e) => handleNavClick(e, '/', true)} className="shrink-0">
                         <Image
                             src="/logo.png"
                             alt="AuctionsGH"
@@ -55,8 +67,8 @@ export default function Navbar() {
 
                     {/* Desktop nav links */}
                     <div className="hidden sm:flex items-center gap-6 text-sm font-semibold text-gray-500">
-                        <Link href="/auctions" className="hover:text-black transition-colors">Browse</Link>
-                        <Link href="/saved" className="hover:text-black transition-colors">Saved</Link>
+                        <Link href="/auctions" onClick={(e) => handleNavClick(e, '/auctions')} className="hover:text-black transition-colors">Browse</Link>
+                        <Link href="/saved" onClick={(e) => handleNavClick(e, '/saved')} className="hover:text-black transition-colors">Saved</Link>
                     </div>
 
                     {/* Spacer */}
@@ -103,7 +115,7 @@ export default function Navbar() {
                         ) : user ? (
                             <>
                                 {profile?.is_admin && (
-                                    <Link href="/auctions/create">
+                                    <Link href="/auctions/create" onClick={(e) => handleNavClick(e, '/auctions/create')}>
                                         <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
                                             <Plus className="h-4 w-4" />
                                             Sell
@@ -139,29 +151,29 @@ export default function Navbar() {
                                                 <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
                                             </div>
                                             <div className="py-1">
-                                                <Link href="/dashboard" onClick={() => setDropdownOpen(false)}
+                                                <Link href="/dashboard" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/dashboard'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <LayoutDashboard className="h-4 w-4" strokeWidth={1.5} />
                                                     Dashboard
                                                 </Link>
-                                                <Link href="/saved" onClick={() => setDropdownOpen(false)}
+                                                <Link href="/saved" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/saved'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                                     </svg>
                                                     Saved Auctions
                                                 </Link>
-                                                <Link href="/profile" onClick={() => setDropdownOpen(false)}
+                                                <Link href="/profile" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/profile'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <User className="h-4 w-4" strokeWidth={1.5} />
                                                     Profile
                                                 </Link>
-                                                <Link href="/settings" onClick={() => setDropdownOpen(false)}
+                                                <Link href="/settings" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/settings'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <Settings className="h-4 w-4" strokeWidth={1.5} />
                                                     Settings
                                                 </Link>
-                                                <Link href="/faq" onClick={() => setDropdownOpen(false)}
+                                                <Link href="/faq" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/faq'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -182,12 +194,12 @@ export default function Navbar() {
                             </>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <Link href="/login">
+                                <Link href="/login" onClick={(e) => handleNavClick(e, '/login', true)}>
                                     <button className="px-4 py-2 text-sm font-semibold text-black hover:bg-gray-50 transition-colors">
                                         Log in
                                     </button>
                                 </Link>
-                                <Link href="/signup">
+                                <Link href="/signup" onClick={(e) => handleNavClick(e, '/signup', true)}>
                                     <button className="px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
                                         Sign up
                                     </button>

@@ -479,13 +479,20 @@ export default function SettingsPage() {
 
                                 {/* Avatar identity */}
                                 <div className="px-5 sm:px-6 py-5 border-b border-gray-200 flex items-center gap-4">
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="hidden"
+                                        onChange={(e) => void handleAvatarUpload(e.target.files?.[0])}
+                                    />
                                     <Avatar
                                         src={avatarUrl || profile?.avatar_url}
                                         name={profile?.full_name || profile?.username || user?.email || 'User'}
                                         size="lg"
                                         className="shrink-0 ring-0"
                                     />
-                                    <div className="min-w-0">
+                                    <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-1.5">
                                             <p className="text-sm font-black text-black truncate">
                                                 {profile?.full_name || profile?.username || 'No name set'}
@@ -497,6 +504,20 @@ export default function SettingsPage() {
                                             Member since {new Date(profile?.created_at ?? Date.now()).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                                         </p>
                                     </div>
+                                    {editing && (
+                                        <div className="space-y-2 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={avatarUploading}
+                                                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
+                                            >
+                                                {avatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                                                {avatarUploading ? 'Uploading...' : 'Upload Photo'}
+                                            </button>
+                                            <p className="text-[11px] text-gray-400">JPEG, PNG, or WebP. Max 5 MB.</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* READ-ONLY view */}
@@ -533,36 +554,6 @@ export default function SettingsPage() {
                                                 }}
                                                 placeholder="Mensah"
                                             />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Profile Picture</label>
-                                            <div className="flex items-center gap-4">
-                                                <Avatar
-                                                    src={avatarUrl || profile?.avatar_url}
-                                                    name={profileForm.full_name || profileForm.username || user?.email || 'User'}
-                                                    size="lg"
-                                                    className="ring-0"
-                                                />
-                                                <div className="space-y-2">
-                                                    <input
-                                                        ref={fileInputRef}
-                                                        type="file"
-                                                        accept="image/jpeg,image/png,image/webp"
-                                                        className="hidden"
-                                                        onChange={(e) => void handleAvatarUpload(e.target.files?.[0])}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        disabled={avatarUploading}
-                                                        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
-                                                    >
-                                                        {avatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-                                                        {avatarUploading ? 'Uploading...' : 'Upload Photo'}
-                                                    </button>
-                                                    <p className="text-[11px] text-gray-400">JPEG, PNG, or WebP. Max 5 MB.</p>
-                                                </div>
-                                            </div>
                                         </div>
                                         <EditField
                                             label="Username"

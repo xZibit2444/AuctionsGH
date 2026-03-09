@@ -79,6 +79,13 @@ export default function Sidebar() {
     const isActive = (href: string, exact?: boolean) =>
         exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
 
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, exact?: boolean) => {
+        if (!isActive(href, exact)) return;
+        e.preventDefault();
+        router.refresh();
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+
     const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (pathname !== '/') return;
         e.preventDefault();
@@ -167,7 +174,10 @@ export default function Sidebar() {
                 ) : (
                     <>
                         <div className="px-3 flex-1 flex items-center">
-                            <Link href="/" onClick={handleLogoClick}>
+                            <Link href="/" onClick={(e) => {
+                                handleLogoClick(e);
+                                handleNavClick(e, '/', true);
+                            }}>
                                 <Image
                                     src="/logo.png"
                                     alt="AuctionsGH"
@@ -199,6 +209,7 @@ export default function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={(e) => handleNavClick(e, item.href, item.exact)}
                             title={collapsed ? item.label : undefined}
                             className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${active
                                 ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black'
@@ -291,6 +302,7 @@ export default function Sidebar() {
                     {collapsed ? (
                         <Link
                             href="/auctions/create"
+                            onClick={(e) => handleNavClick(e, '/auctions/create')}
                             title="Create Listing"
                             className="flex items-center justify-center w-full py-2.5 bg-amber-400 text-black hover:bg-amber-300 transition-colors rounded-[3px]"
                         >
@@ -299,6 +311,7 @@ export default function Sidebar() {
                     ) : (
                         <Link
                             href="/auctions/create"
+                            onClick={(e) => handleNavClick(e, '/auctions/create')}
                             className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
                         >
                             <Plus className="h-4 w-4" />
@@ -314,7 +327,7 @@ export default function Sidebar() {
                     collapsed ? (
                         /* Collapsed: just avatar + sign out icon */
                         <div className="flex flex-col items-center gap-1">
-                            <Link href="/settings" title="Settings" className="h-8 w-8 bg-amber-400 text-black flex items-center justify-center font-black text-xs rounded-[3px] hover:bg-amber-300 transition-colors">
+                            <Link href="/settings" onClick={(e) => handleNavClick(e, '/settings')} title="Settings" className="h-8 w-8 bg-amber-400 text-black flex items-center justify-center font-black text-xs rounded-[3px] hover:bg-amber-300 transition-colors">
                                 {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ||
                                     profile?.username?.[0]?.toUpperCase() ||
                                     user.email?.[0]?.toUpperCase() || 'U'}
@@ -345,6 +358,7 @@ export default function Sidebar() {
                             </div>
                             <Link
                                 href="/profile"
+                                onClick={(e) => handleNavClick(e, '/profile')}
                                 className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
                             >
                                 <User className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
@@ -352,6 +366,7 @@ export default function Sidebar() {
                             </Link>
                             <Link
                                 href="/settings"
+                                onClick={(e) => handleNavClick(e, '/settings')}
                                 className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
                             >
                                 <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
@@ -369,7 +384,7 @@ export default function Sidebar() {
                 ) : !loading ? (
                     collapsed ? (
                         <div className="flex flex-col items-center gap-1.5 px-1">
-                            <Link href="/login" title="Log in" className="flex items-center justify-center w-full py-2 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-all rounded-[3px]">
+                            <Link href="/login" onClick={(e) => handleNavClick(e, '/login', true)} title="Log in" className="flex items-center justify-center w-full py-2 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-all rounded-[3px]">
                                 <LogOut className="h-4 w-4 rotate-180" strokeWidth={1.5} />
                             </Link>
                         </div>
@@ -377,12 +392,14 @@ export default function Sidebar() {
                         <div className="space-y-2 px-1">
                             <Link
                                 href="/login"
+                                onClick={(e) => handleNavClick(e, '/login', true)}
                                 className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px] dark:text-gray-300 dark:hover:text-white dark:border-zinc-800 dark:hover:border-zinc-600"
                             >
                                 Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
                             </Link>
                             <Link
                                 href="/signup"
+                                onClick={(e) => handleNavClick(e, '/signup', true)}
                                 className="flex items-center justify-center w-full px-3 py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
                             >
                                 Sign up

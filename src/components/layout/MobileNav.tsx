@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import {
@@ -43,8 +43,20 @@ const drawerItems = [
 
 export default function MobileNav() {
     const pathname = usePathname();
+    const router = useRouter();
     const { user, profile, loading, signOut } = useAuth();
     const [menuOpen, setMenuOpen] = useState(false);
+
+    const isActive = (href: string, exact?: boolean) =>
+        exact ? pathname === href : pathname === href || pathname.startsWith(href);
+
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, exact?: boolean) => {
+        if (!isActive(href, exact)) return;
+        e.preventDefault();
+        setMenuOpen(false);
+        router.refresh();
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    };
 
     const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (pathname !== '/') return;
@@ -79,7 +91,10 @@ export default function MobileNav() {
                     >
                         <Menu className="h-4 w-4" />
                     </button>
-                    <Link href="/" onClick={handleLogoClick}>
+                    <Link href="/" onClick={(e) => {
+                        handleLogoClick(e);
+                        handleNavClick(e, '/', true);
+                    }}>
                         <Image
                             src="/logo.png"
                             alt="AuctionsGH"
@@ -115,7 +130,10 @@ export default function MobileNav() {
                     )}
                 >
                     <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-4">
-                        <Link href="/" onClick={handleLogoClick}>
+                        <Link href="/" onClick={(e) => {
+                            handleLogoClick(e);
+                            handleNavClick(e, '/', true);
+                        }}>
                             <Image
                                 src="/logo.png"
                                 alt="AuctionsGH"
@@ -147,6 +165,7 @@ export default function MobileNav() {
                                         <Link
                                             key={item.href}
                                             href={item.href}
+                                            onClick={(e) => handleNavClick(e, item.href, item.exact)}
                                             className={cn(
                                                 'flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium transition-colors',
                                                 isActive
@@ -172,6 +191,7 @@ export default function MobileNav() {
                             <div className="mt-4">
                                 <Link
                                     href="/auctions/create"
+                                    onClick={(e) => handleNavClick(e, '/auctions/create')}
                                     className="flex items-center justify-center gap-2 rounded-[3px] bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300"
                                 >
                                     <Plus className="h-4 w-4" />
@@ -202,6 +222,7 @@ export default function MobileNav() {
 
                                 <Link
                                     href="/profile"
+                                    onClick={(e) => handleNavClick(e, '/profile')}
                                     className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
                                 >
                                     <User className="h-4 w-4 shrink-0" strokeWidth={1.75} />
@@ -209,6 +230,7 @@ export default function MobileNav() {
                                 </Link>
                                 <Link
                                     href="/settings"
+                                    onClick={(e) => handleNavClick(e, '/settings')}
                                     className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
                                 >
                                     <Settings className="h-4 w-4 shrink-0" strokeWidth={1.75} />
@@ -229,6 +251,7 @@ export default function MobileNav() {
                             <div className="space-y-2">
                                 <Link
                                     href="/login"
+                                    onClick={(e) => handleNavClick(e, '/login', true)}
                                     className="flex items-center justify-between rounded-[3px] border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-gray-900 dark:border-zinc-800 dark:text-gray-300 dark:hover:border-zinc-600 dark:hover:text-white"
                                 >
                                     Log in
@@ -236,6 +259,7 @@ export default function MobileNav() {
                                 </Link>
                                 <Link
                                     href="/signup"
+                                    onClick={(e) => handleNavClick(e, '/signup', true)}
                                     className="flex items-center justify-center rounded-[3px] bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300"
                                 >
                                     Sign up
@@ -260,6 +284,7 @@ export default function MobileNav() {
                             <Link
                                 key={tab.href}
                                 href={tab.href}
+                                onClick={(e) => handleNavClick(e, tab.href, tab.href === '/')}
                                 className={cn(
                                     'flex flex-col items-center gap-1 px-3 py-1 transition-colors',
                                     tab.highlighted

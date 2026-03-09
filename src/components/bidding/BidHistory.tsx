@@ -47,6 +47,7 @@ export default function BidHistory({ bids, loading }: BidHistoryProps) {
                                 }`}
                         >
                             <Avatar
+                                src={bid.profiles?.avatar_url}
                                 name={formatDisplayName(bid.profiles?.username)}
                                 size="sm"
                             />
