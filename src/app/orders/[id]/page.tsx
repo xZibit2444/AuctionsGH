@@ -321,16 +321,16 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 </div>
 
                                 <div className="p-4">
-                                    <div className="flex items-center gap-3">
+                                    <div className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
                                         <Avatar
                                             src={order.seller?.avatar_url}
                                             name={sellerDisplayName}
                                             size="md"
                                             className="ring-0 shrink-0"
                                         />
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                <p className="font-black text-black whitespace-nowrap">
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="text-base font-black leading-none text-black">
                                                     {sellerLabel || 'Seller'}
                                                 </p>
                                                 {order.seller?.is_verified && (

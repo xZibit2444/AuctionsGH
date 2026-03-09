@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 
+const SOLD_BROWSE_RETENTION_MS = 48 * 60 * 60 * 1000;
+
 interface UseAuctionsOptions {
     status?: AuctionStatus | 'all' | 'visible';
     brand?: string;
@@ -67,6 +69,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         bid_count,
                         ends_at,
                         created_at,
+                        updated_at,
                         seller_id,
                         storage_gb,
                         auction_images(url, position),
@@ -83,6 +86,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         bid_count,
                         ends_at,
                         created_at,
+                        updated_at,
                         seller_id,
                         storage_gb,
                         auction_images(url, position)
@@ -124,7 +128,14 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 if (fetchError) {
                     setError(fetchError.message);
                 } else {
-                    setAuctions(data as Auction[]);
+                    const nextAuctions = (data as Auction[]).filter((auction) => {
+                        if (status !== 'visible' || auction.status !== 'sold') return true;
+
+                        const soldAt = new Date(auction.updated_at).getTime();
+                        return Date.now() - soldAt <= SOLD_BROWSE_RETENTION_MS;
+                    });
+
+                    setAuctions(nextAuctions);
                 }
             } catch (err) {
                 if (!isMounted) return;

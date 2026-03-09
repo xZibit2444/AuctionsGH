@@ -98,7 +98,7 @@ function AuctionsContent() {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
-                    <p className="text-xs text-gray-400 mt-1">Active and sold listings stay visible.</p>
+                    <p className="text-xs text-gray-400 mt-1">Sold listings stay here for 48 hours, then remain only on the seller&apos;s page.</p>
                 </div>
                 {hasFilters && (
                     <button
