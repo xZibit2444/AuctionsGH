@@ -250,6 +250,8 @@ export default function OrderPage({ params }: OrderPageProps) {
         : deliveryStatus === 'sent'
             ? 'bg-blue-100 text-blue-700'
             : 'bg-amber-100 text-amber-700';
+    const sellerDisplayName = order.seller?.full_name || order.seller?.username || 'Seller';
+    const sellerFirstName = sellerDisplayName.trim().split(/\s+/)[0] || 'Seller';
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -322,14 +324,14 @@ export default function OrderPage({ params }: OrderPageProps) {
                                     <div className="flex items-center gap-3">
                                         <Avatar
                                             src={order.seller?.avatar_url}
-                                            name={order.seller?.full_name || order.seller?.username || 'Seller'}
+                                            name={sellerDisplayName}
                                             size="md"
                                             className="ring-0 shrink-0"
                                         />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <p className="font-black text-black truncate">
-                                                    {order.seller?.full_name || 'Seller'}
+                                                    {sellerFirstName}
                                                 </p>
                                                 {order.seller?.is_verified && (
                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
@@ -338,7 +340,10 @@ export default function OrderPage({ params }: OrderPageProps) {
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-gray-400 mt-1">@{order.seller?.username || 'seller'}</p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                @{order.seller?.username || 'seller'}
+                                                {order.seller?.full_name ? ` • ${order.seller.full_name}` : ''}
+                                            </p>
                                             {order.seller?.id && (
                                                 <div className="mt-2">
                                                     <SellerRating sellerId={order.seller.id} />

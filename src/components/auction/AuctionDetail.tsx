@@ -154,6 +154,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
+    const sellerDisplayName = auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller';
+    const sellerFirstName = sellerDisplayName.trim().split(/\s+/)[0] || 'Seller';
 
     return (
         <div className="max-w-5xl mx-auto py-4 sm:py-8">
@@ -244,15 +246,24 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Avatar
                             src={auctionData.profiles?.avatar_url}
-                            name={auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller'}
+                            name={sellerDisplayName}
                             size="sm"
                         />
                         <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {auction.profiles?.username ?? 'Seller'}
+                            <div className="flex flex-wrap items-center gap-1.5">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {sellerFirstName}
+                                </p>
                                 {auction.profiles?.is_verified && (
-                                    <span className="ml-1 text-emerald-600">✓</span>
+                                    <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        Verified
+                                    </span>
                                 )}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                                @{auction.profiles?.username ?? 'seller'}
+                                {auctionData.profiles?.full_name ? ` • ${auctionData.profiles.full_name}` : ''}
                             </p>
                             <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
                             {auction.profiles?.id && (
