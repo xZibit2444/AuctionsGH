@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
 import { getPrimaryDelivery } from '@/lib/delivery';
+import Avatar from '@/components/ui/Avatar';
 import { ChevronRight, Package, ShoppingBag, Store } from 'lucide-react';
 
 type ProfileTab = 'buying' | 'selling';
@@ -131,12 +132,20 @@ export default function ProfilePage() {
     return (
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 pb-24 sm:pb-10">
             <div className="mb-8 flex flex-col gap-4 border border-gray-200 bg-white p-6 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-600">Profile</p>
-                    <h1 className="mt-2 text-2xl font-black tracking-tight text-black sm:text-3xl">{displayName}</h1>
-                    <p className="mt-2 max-w-2xl text-sm text-gray-500">
-                        Review your successful purchases and completed sales in one place.
-                    </p>
+                <div className="flex items-center gap-4">
+                    <Avatar
+                        src={profile?.avatar_url}
+                        name={displayName}
+                        size="lg"
+                        className="shrink-0 ring-0"
+                    />
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-600">Profile</p>
+                        <h1 className="mt-2 text-2xl font-black tracking-tight text-black sm:text-3xl">{displayName}</h1>
+                        <p className="mt-2 max-w-2xl text-sm text-gray-500">
+                            Review your successful purchases and completed sales in one place.
+                        </p>
+                    </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:min-w-[240px]">
                     <div className="border border-gray-200 bg-gray-50 px-4 py-3">
