@@ -353,7 +353,9 @@ export default function Sidebar() {
                                     <p className="text-gray-900 text-xs font-semibold truncate leading-tight dark:text-white">
                                         {profile?.full_name || profile?.username || user.email?.split('@')[0]}
                                     </p>
-                                    <p className="text-gray-400 text-[10px] truncate dark:text-gray-500">{user.email}</p>
+                                    <p className="text-gray-400 text-[10px] truncate dark:text-gray-500">
+                                        {profile?.username ? `@${profile.username}` : user.email?.split('@')[0]}
+                                    </p>
                                 </div>
                             </div>
                             <Link
