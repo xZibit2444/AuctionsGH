@@ -357,14 +357,6 @@ export default function Sidebar() {
                                 </div>
                             </div>
                             <Link
-                                href="/profile"
-                                onClick={(e) => handleNavClick(e, '/profile')}
-                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
-                            >
-                                <User className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
-                                Profile
-                            </Link>
-                            <Link
                                 href="/settings"
                                 onClick={(e) => handleNavClick(e, '/settings')}
                                 className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
