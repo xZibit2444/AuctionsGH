@@ -466,7 +466,7 @@ export default function SettingsPage() {
                                         src={avatarUrl || profile?.avatar_url}
                                         name={profile?.full_name || profile?.username || user?.email || 'User'}
                                         size="lg"
-                                        className="h-14 w-14 shrink-0 ring-0"
+                                        className="shrink-0 ring-0"
                                     />
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
@@ -524,7 +524,7 @@ export default function SettingsPage() {
                                                     src={avatarUrl || profile?.avatar_url}
                                                     name={profileForm.full_name || profileForm.username || user?.email || 'User'}
                                                     size="lg"
-                                                    className="h-16 w-16 ring-0"
+                                                    className="ring-0"
                                                 />
                                                 <div className="space-y-2">
                                                     <input
