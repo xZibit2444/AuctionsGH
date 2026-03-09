@@ -17,6 +17,7 @@ import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import OfferPanel from './OfferPanel';
+import TradeInPanel from './TradeInPanel';
 import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
@@ -332,6 +333,16 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         <OfferPanel
                             auctionId={auction.id}
                             isSeller={false}
+                            userId={user?.id}
+                            auctionTitle={auction.title}
+                            isActive={auction.status === 'active'}
+                        />
+                    )}
+
+                    {(isSeller || auction.status === 'active') && (
+                        <TradeInPanel
+                            auctionId={auction.id}
+                            isSeller={isSeller}
                             userId={user?.id}
                             auctionTitle={auction.title}
                             isActive={auction.status === 'active'}
