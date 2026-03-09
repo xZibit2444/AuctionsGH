@@ -11,6 +11,21 @@ interface SendTradeInMessageInput {
     body: string;
 }
 
+type TradeThreadRow = {
+    id: string;
+    auction_id: string;
+    buyer_id: string;
+    seller_id: string;
+    offered_item: string;
+};
+
+type AuctionTradeTarget = {
+    id: string;
+    title: string;
+    seller_id: string;
+    status: string;
+};
+
 export async function sendTradeInMessageAction(
     input: SendTradeInMessageInput
 ): Promise<{ success: boolean; error?: string; threadId?: string; messageId?: string }> {
@@ -25,53 +40,50 @@ export async function sendTradeInMessageAction(
     if (body.length > 2000) return { success: false, error: 'Message is too long (max 2000 characters).' };
 
     const now = new Date().toISOString();
-    let thread: {
-        id: string;
-        auction_id: string;
-        buyer_id: string;
-        seller_id: string;
-        offered_item: string;
-    } | null = null;
+    let thread: TradeThreadRow | null = null;
     if (input.threadId) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (admin.from('auction_trade_threads') as any)
             .select('id, auction_id, buyer_id, seller_id, offered_item, auction:auctions(title)')
             .eq('id', input.threadId)
             .maybeSingle();
+        const existingThread = data as (TradeThreadRow & { auction?: { title?: string } | null }) | null;
 
-        if (error || !data) return { success: false, error: 'Trade conversation not found.' };
-        if (data.buyer_id !== user.id && data.seller_id !== user.id) {
+        if (error || !existingThread) return { success: false, error: 'Trade conversation not found.' };
+        if (existingThread.buyer_id !== user.id && existingThread.seller_id !== user.id) {
             return { success: false, error: 'Access denied.' };
         }
 
         thread = {
-            id: data.id,
-            auction_id: data.auction_id,
-            buyer_id: data.buyer_id,
-            seller_id: data.seller_id,
-            offered_item: data.offered_item,
+            id: existingThread.id,
+            auction_id: existingThread.auction_id,
+            buyer_id: existingThread.buyer_id,
+            seller_id: existingThread.seller_id,
+            offered_item: existingThread.offered_item,
         };
     } else {
         const offeredItem = input.offeredItem?.trim() ?? '';
         if (!input.auctionId) return { success: false, error: 'Missing auction.' };
         if (!offeredItem) return { success: false, error: 'Tell the seller what item you want to trade in.' };
 
-        const { data: auction, error: auctionError } = await admin
+        const { data: auctionRecord, error: auctionError } = await admin
             .from('auctions')
             .select('id, title, seller_id, status')
             .eq('id', input.auctionId)
             .maybeSingle();
+        const auction = auctionRecord as AuctionTradeTarget | null;
 
         if (auctionError || !auction) return { success: false, error: 'Auction not found.' };
         if (auction.seller_id === user.id) return { success: false, error: 'You cannot send a trade-in message on your own listing.' };
         if (auction.status !== 'active') return { success: false, error: 'Trade-in messages are only available on active listings.' };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: existingThread } = await (admin.from('auction_trade_threads') as any)
+        const { data: existingThreadRecord } = await (admin.from('auction_trade_threads') as any)
             .select('id, auction_id, buyer_id, seller_id, offered_item')
             .eq('auction_id', input.auctionId)
             .eq('buyer_id', user.id)
             .maybeSingle();
+        const existingThread = existingThreadRecord as TradeThreadRow | null;
 
         if (existingThread) {
             thread = existingThread;
@@ -85,7 +97,7 @@ export async function sendTradeInMessageAction(
             }
         } else {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: createdThread, error: createError } = await (admin.from('auction_trade_threads') as any)
+            const { data: createdThreadRecord, error: createError } = await (admin.from('auction_trade_threads') as any)
                 .insert({
                     auction_id: auction.id,
                     buyer_id: user.id,
@@ -95,6 +107,7 @@ export async function sendTradeInMessageAction(
                 })
                 .select('id, auction_id, buyer_id, seller_id, offered_item')
                 .single();
+            const createdThread = createdThreadRecord as TradeThreadRow | null;
 
             if (createError || !createdThread) {
                 return { success: false, error: createError?.message ?? 'Failed to start trade-in chat.' };
