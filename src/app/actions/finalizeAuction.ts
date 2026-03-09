@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 // We must use the service role key to bypass RLS since the client might not have permissions to arbitrarily finalize auctions.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -65,7 +66,7 @@ export async function finalizeAuctionAction(auctionId: string) {
             if (updateError) throw updateError;
 
             // Send notification to winner
-            await supabaseAdmin.from('notifications').insert({
+            await insertNotificationIfEnabled(supabaseAdmin as never, {
                 user_id: topBid.bidder_id,
                 type: 'auction_won',
                 title: 'You Won the Auction!',
@@ -74,7 +75,7 @@ export async function finalizeAuctionAction(auctionId: string) {
             });
 
             // Send notification to seller
-            await supabaseAdmin.from('notifications').insert({
+            await insertNotificationIfEnabled(supabaseAdmin as never, {
                 user_id: auction.seller_id,
                 type: 'auction_ended',
                 title: 'Your auction has ended',
@@ -95,7 +96,7 @@ export async function finalizeAuctionAction(auctionId: string) {
             if (updateError) throw updateError;
 
             // Notify seller it ended without bids
-            await supabaseAdmin.from('notifications').insert({
+            await insertNotificationIfEnabled(supabaseAdmin as never, {
                 user_id: auction.seller_id,
                 type: 'auction_ended',
                 title: 'Your auction ended with no bids',

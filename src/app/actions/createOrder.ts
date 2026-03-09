@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -95,7 +96,7 @@ export async function createOrderAction(data: CheckoutFormData) {
         // 4. Send Notifications
 
         // Notify Buyer — tell them where to find their delivery code
-        await supabaseAdmin.from('notifications').insert({
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: data.buyerId,
             type: 'system',
             title: 'Order Confirmed — View Your Delivery Code',
@@ -105,7 +106,7 @@ export async function createOrderAction(data: CheckoutFormData) {
         });
 
         // Notify Seller of the sale and next steps
-        await supabaseAdmin.from('notifications').insert({
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: auction.seller_id,
             type: 'system',
             title: 'Item Sold — Buyer Confirmed Order',

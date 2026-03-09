@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,6 +75,25 @@ export async function POST(request: Request) {
     if (result.error) {
         // Business-rule rejection (e.g. bid too low, auction ended)
         return NextResponse.json({ error: result.error }, { status: 422 });
+    }
+
+    const admin = createAdminClient();
+    const { data: auctionRecord } = await admin
+        .from('auctions')
+        .select('seller_id, title')
+        .eq('id', auction_id)
+        .maybeSingle();
+
+    const auction = auctionRecord as { seller_id: string; title: string } | null;
+
+    if (auction?.seller_id && auction.seller_id !== user.id) {
+        await insertNotificationIfEnabled(admin, {
+            user_id: auction.seller_id,
+            type: 'new_bid',
+            title: 'New bid on your listing',
+            body: `A new bid of GHS ${amount.toLocaleString()} was placed on "${auction.title}".`,
+            auction_id,
+        });
     }
 
     // Fire off the "Outbid" email notification in the background

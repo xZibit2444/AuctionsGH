@@ -2,6 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,7 +55,7 @@ export async function sendMessageAction(
     const senderLabel = isBuyer ? 'Buyer' : 'Seller';
     const auctionTitle = (order as any).auction?.title ?? 'your order';
 
-    await supabaseAdmin.from('notifications').insert({
+    await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: recipientId,
         type: 'new_message',
         title: `New message from ${senderLabel}`,

@@ -18,6 +18,7 @@ interface AuthContextValue {
     profile: Profile | null;
     loading: boolean;
     signOut: () => Promise<void>;
+    signOutAll: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextValue>({
     profile: null,
     loading: true,
     signOut: async () => {},
+    signOutAll: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -92,9 +94,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
     }, [supabase]);
 
+    const signOutAll = useCallback(async () => {
+        await supabase.auth.signOut({ scope: 'global' });
+        setUser(null);
+        setProfile(null);
+    }, [supabase]);
+
     const value = useMemo(
-        () => ({ user, profile, loading, signOut }),
-        [user, profile, loading, signOut]
+        () => ({ user, profile, loading, signOut, signOutAll }),
+        [user, profile, loading, signOut, signOutAll]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

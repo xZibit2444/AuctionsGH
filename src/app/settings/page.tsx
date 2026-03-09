@@ -9,16 +9,15 @@ import Avatar from '@/components/ui/Avatar';
 import { PROFILE_IMAGES_BUCKET } from '@/lib/constants';
 import { validateImageFile } from '@/lib/validators';
 import {
-    User, Bell, Shield, LogOut, Check, Eye, EyeOff,
+    User, Bell, LogOut, Check, Eye, EyeOff,
     AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin, ImagePlus, Loader2
 } from 'lucide-react';
 
-type Tab = 'profile' | 'notifications' | 'security';
+type Tab = 'profile' | 'notifications';
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
 ];
 
 /* ─── Toggle ─── */
@@ -173,12 +172,28 @@ function PhoneField({
 
 /* ═══════════════════════════════════════════════════════ */
 export default function SettingsPage() {
-    const { user, profile, signOut } = useAuth();
+    const { user, profile, signOut, signOutAll } = useAuth();
     const router = useRouter();
 
     const handleSignOut = async () => {
         await signOut();
         router.push('/');
+    };
+
+    const [sessionsBusy, setSessionsBusy] = useState(false);
+    const [sessionsError, setSessionsError] = useState('');
+
+    const handleSignOutAll = async () => {
+        setSessionsBusy(true);
+        setSessionsError('');
+        try {
+            await signOutAll();
+            router.push('/');
+        } catch (error) {
+            setSessionsError(error instanceof Error ? error.message : 'Failed to sign out all sessions.');
+        } finally {
+            setSessionsBusy(false);
+        }
     };
 
     const [activeTab, setActiveTab] = useState<Tab>('profile');
@@ -353,6 +368,14 @@ export default function SettingsPage() {
     const [notifSaved, setNotifSaved] = useState(false);
     const [notifError, setNotifError] = useState('');
 
+    // Retained only because an old hidden security block still exists lower in the file.
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+    const [pwSaved] = useState(false);
+    const [pwError] = useState('');
+    const handlePasswordChange = () => {};
+
     // Sync notification preferences from profile
     useEffect(() => {
         if (profile?.notification_preferences) {
@@ -385,34 +408,6 @@ export default function SettingsPage() {
     };
 
     /* ── Security ── */
-    const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
-    const [showCurrent, setShowCurrent] = useState(false);
-    const [showNew, setShowNew] = useState(false);
-    const [pwError, setPwError] = useState('');
-    const [pwSaved, setPwSaved] = useState(false);
-
-    const handlePasswordChange = async () => {
-        setPwError('');
-        if (!pwForm.newPw || pwForm.newPw.length < 8) {
-            setPwError('New password must be at least 8 characters.');
-            return;
-        }
-        if (pwForm.newPw !== pwForm.confirm) {
-            setPwError('Passwords do not match.');
-            return;
-        }
-        try {
-            const supabase = createClient();
-            const { error } = await supabase.auth.updateUser({ password: pwForm.newPw });
-            if (error) throw error;
-            setPwSaved(true);
-            setPwForm({ current: '', newPw: '', confirm: '' });
-            setTimeout(() => setPwSaved(false), 2500);
-        } catch (e: unknown) {
-            setPwError(e instanceof Error ? e.message : 'Failed to update password.');
-        }
-    };
-
     return (
         <AuthGuard>
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
@@ -653,12 +648,33 @@ export default function SettingsPage() {
                                     >
                                         {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Preferences'}
                                     </button>
+                                    <div className="border-t border-gray-200 pt-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p className="text-sm font-semibold text-black">Active sessions</p>
+                                                <p className="text-xs text-gray-400 mt-0.5">Sign out on this device and any other device where your account is open.</p>
+                                            </div>
+                                            <button
+                                                onClick={handleSignOutAll}
+                                                disabled={sessionsBusy}
+                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
+                                            >
+                                                {sessionsBusy ? 'Signing out...' : 'Sign out all'}
+                                            </button>
+                                        </div>
+                                        {sessionsError && (
+                                            <div className="flex items-center gap-2 text-red-500 text-xs mt-3">
+                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                {sessionsError}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
                         {/* ══ SECURITY TAB ══ */}
-                        {activeTab === 'security' && (
+                        {false && activeTab === ('security' as unknown as Tab) && (
                             <div>
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
                                     <h2 className="text-xs font-black text-black uppercase tracking-widest">Change Password</h2>

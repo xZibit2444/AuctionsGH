@@ -2,6 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -61,7 +62,7 @@ export async function makeOfferAction(
 
     const buyerLabel = (buyerProfile as any)?.full_name || (buyerProfile as any)?.username || 'A buyer';
 
-    await supabaseAdmin.from('notifications').insert({
+    await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: auction.seller_id,
         type: 'new_offer',
         title: 'New Offer on Your Listing',
@@ -136,7 +137,7 @@ export async function respondToOfferAction(
             .neq('id', offerId);
 
         // Notify buyer — they can proceed to checkout
-        await supabaseAdmin.from('notifications').insert({
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
@@ -145,7 +146,7 @@ export async function respondToOfferAction(
         });
 
         // Notify seller of confirmation
-        await supabaseAdmin.from('notifications').insert({
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: user.id,
             type: 'new_offer',
             title: 'Offer Accepted — Awaiting Buyer',
@@ -160,7 +161,7 @@ export async function respondToOfferAction(
             .eq('id', offer.auction_id)
             .single();
 
-        await supabaseAdmin.from('notifications').insert({
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
             type: 'system',
             title: 'Offer Declined',
