@@ -78,6 +78,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.documentElement.classList.remove('dark');
+              document.documentElement.style.colorScheme = 'light';
+              try { localStorage.removeItem('theme-preference'); } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`${jakarta.variable} ${jakarta.className} antialiased`}>
         <Providers>
           <PushNotificationsInit />

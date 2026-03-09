@@ -8,7 +8,7 @@ export default function Skeleton({ className }: SkeletonProps) {
     return (
         <div
             className={cn(
-                'skeleton-pulse rounded-xl bg-gray-200 dark:bg-gray-700',
+                'skeleton-pulse rounded-xl bg-gray-200',
                 className
             )}
         />
@@ -17,7 +17,7 @@ export default function Skeleton({ className }: SkeletonProps) {
 
 export function AuctionCardSkeleton() {
     return (
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="rounded-2xl border border-gray-200 overflow-hidden">
             <Skeleton className="h-48 w-full rounded-none" />
             <div className="p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4" />
