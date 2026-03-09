@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -12,54 +12,20 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-const STORAGE_KEY = 'theme-preference';
-
-function getSystemTheme(): Theme {
-    if (typeof window === 'undefined') return 'light';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>(() => {
-        if (typeof window === 'undefined') return 'light';
-        const storedTheme = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-        return storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : getSystemTheme();
-    });
-
     useEffect(() => {
         const root = document.documentElement;
-        root.classList.toggle('dark', theme === 'dark');
-        root.style.colorScheme = theme;
-    }, [theme]);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = () => {
-            const storedTheme = window.localStorage.getItem(STORAGE_KEY);
-            if (!storedTheme) {
-                const nextTheme = getSystemTheme();
-                setThemeState(nextTheme);
-            }
-        };
-
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
+        root.classList.remove('dark');
+        root.style.colorScheme = 'light';
+        window.localStorage.removeItem('theme-preference');
     }, []);
 
-    const setTheme = (nextTheme: Theme) => {
-        window.localStorage.setItem(STORAGE_KEY, nextTheme);
-        setThemeState(nextTheme);
-    };
-
-    const toggleTheme = () => {
-        setTheme(theme === 'dark' ? 'light' : 'dark');
-    };
-
     const value = {
-        theme,
-        resolvedTheme: theme,
-        setTheme,
-        toggleTheme,
+        theme: 'light' as Theme,
+        resolvedTheme: 'light' as Theme,
+        setTheme: () => {},
+        toggleTheme: () => {},
     };
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

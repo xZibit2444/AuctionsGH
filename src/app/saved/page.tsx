@@ -50,14 +50,14 @@ export default function SavedPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 sm:mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-black tracking-tight flex items-center gap-2">
+                        <h1 className="text-2xl font-black text-black tracking-tight flex items-center gap-2 dark:text-white">
                             Saved
                         </h1>
-                        <p className="text-sm text-gray-400 mt-0.5">Auctions you&apos;ve liked</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">Auctions you&apos;ve liked</p>
                     </div>
                     <Link
                         href="/auctions"
-                        className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
+                        className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest dark:text-gray-500 dark:hover:text-white"
                     >
                         Browse more
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -65,16 +65,16 @@ export default function SavedPage() {
                 </div>
 
                 {loading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200 dark:bg-zinc-800">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="bg-white aspect-[3/4] skeleton-pulse" />
+                            <div key={i} className="bg-white dark:bg-zinc-950 aspect-[3/4] skeleton-pulse" />
                         ))}
                     </div>
                 ) : auctions.length === 0 ? (
-                    <div className="text-center py-20 border border-gray-200">
-                        <Heart className="h-8 w-8 text-gray-200 mx-auto mb-4" strokeWidth={1} />
-                        <p className="text-sm font-semibold text-black mb-1">No saved auctions yet</p>
-                        <p className="text-xs text-gray-400 mb-6">
+                    <div className="text-center py-20 border border-gray-200 dark:border-zinc-800">
+                        <Heart className="h-8 w-8 text-gray-200 dark:text-zinc-700 mx-auto mb-4" strokeWidth={1} />
+                        <p className="text-sm font-semibold text-black dark:text-white mb-1">No saved auctions yet</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
                             Tap the heart on any listing to save it here.
                         </p>
                         <Link
@@ -86,9 +86,9 @@ export default function SavedPage() {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200 dark:bg-zinc-800">
                         {auctions.map((auction) => (
-                            <div key={auction.id} className="bg-white">
+                            <div key={auction.id} className="bg-transparent">
                                 <AuctionCard auction={auction} />
                             </div>
                         ))}

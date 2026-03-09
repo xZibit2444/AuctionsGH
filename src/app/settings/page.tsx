@@ -270,10 +270,27 @@ export default function SettingsPage() {
                 data: { publicUrl },
             } = supabase.storage.from(PROFILE_IMAGES_BUCKET).getPublicUrl(filePath);
 
+            // Persist avatar immediately so the user doesn't need a second save step.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error: profileUpdateError } = await (supabase.from('profiles') as any)
+                .update({ avatar_url: publicUrl })
+                .eq('id', user.id);
+
+            if (profileUpdateError) throw profileUpdateError;
+
             setAvatarUrl(publicUrl);
+            setProfileSaved(true);
+            router.refresh();
+            setTimeout(() => setProfileSaved(false), 2500);
         } catch (e: unknown) {
-            setProfileError(e instanceof Error ? e.message : 'Failed to upload profile photo.');
+            const message = e instanceof Error ? e.message : 'Failed to upload profile photo.';
+            if (message.toLowerCase().includes('bucket')) {
+                setProfileError('Profile photo upload is not set up correctly yet. Create the "profile-images" storage bucket in Supabase and try again.');
+            } else {
+                setProfileError(message);
+            }
         } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
             setAvatarUploading(false);
         }
     };

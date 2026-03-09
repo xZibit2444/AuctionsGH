@@ -5,13 +5,11 @@ import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X } from 'lucide-react';
+import { Plus, Search, Settings, LayoutDashboard, LogOut, ChevronDown, X, User } from 'lucide-react';
 import NotificationBell from './NotificationBell';
-import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Navbar() {
     const { user, profile, loading, signOut } = useAuth();
-    const { resolvedTheme } = useTheme();
     const router = useRouter();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -46,7 +44,7 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="shrink-0">
                         <Image
-                            src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo.png'}
+                            src="/logo.png"
                             alt="AuctionsGH"
                             width={120}
                             height={40}
@@ -152,6 +150,11 @@ export default function Navbar() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                                     </svg>
                                                     Saved Auctions
+                                                </Link>
+                                                <Link href="/profile" onClick={() => setDropdownOpen(false)}
+                                                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
+                                                    <User className="h-4 w-4" strokeWidth={1.5} />
+                                                    Profile
                                                 </Link>
                                                 <Link href="/settings" onClick={() => setDropdownOpen(false)}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">

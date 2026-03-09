@@ -7,14 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import {
     Home, Search, LayoutDashboard, Heart, Package,
-    HelpCircle, Plus, LogOut, Settings,
+    HelpCircle, Plus, LogOut, Settings, User,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
-    PanelLeftClose, PanelLeftOpen, Moon, Sun,
+    PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils';
 import { markAllReadAction } from '@/app/actions/notifications';
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface Notification {
     id: string;
@@ -43,6 +42,7 @@ const NAV_ITEMS = [
     { href: '/', label: 'Home', icon: Home, exact: true },
     { href: '/auctions', label: 'Browse', icon: Search },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authRequired: true },
+    { href: '/profile', label: 'Profile', icon: User, authRequired: true },
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
     { href: '/orders', label: 'Orders', icon: Package, authRequired: true },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
@@ -59,7 +59,6 @@ export default function Sidebar() {
         if (typeof window === 'undefined') return false;
         return localStorage.getItem('sidebar-collapsed') === 'true';
     });
-    const { resolvedTheme, toggleTheme } = useTheme();
     const notifRef = useRef<HTMLDivElement>(null);
     const supabase = useMemo(() => createClient(), []);
 
@@ -170,7 +169,7 @@ export default function Sidebar() {
                         <div className="px-3 flex-1 flex items-center">
                             <Link href="/" onClick={handleLogoClick}>
                                 <Image
-                                    src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo.png'}
+                                    src="/logo.png"
                                     alt="AuctionsGH"
                                     width={140}
                                     height={40}
@@ -202,8 +201,8 @@ export default function Sidebar() {
                             href={item.href}
                             title={collapsed ? item.label : undefined}
                             className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${active
-                                ? 'bg-amber-50 text-gray-900'
-                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                                ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black'
+                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900'}`}
                         >
                             <Icon
                                 className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100 text-amber-500' : 'opacity-60 group-hover:opacity-100'}`}
@@ -224,7 +223,7 @@ export default function Sidebar() {
                         <button
                             onClick={() => setNotifOpen(o => !o)}
                             title={collapsed ? 'Notifications' : undefined}
-                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-amber-50 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900'}`}
                         >
                             <div className="relative shrink-0">
                                 <Bell className={`h-4 w-4 opacity-60 group-hover:opacity-100 ${notifOpen ? 'opacity-100' : ''}`} strokeWidth={1.5} />
@@ -309,21 +308,6 @@ export default function Sidebar() {
                 </div>
             )}
 
-            <div className="px-2 pb-2">
-                <button
-                    onClick={toggleTheme}
-                    title={collapsed ? 'Toggle dark mode' : undefined}
-                    className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium text-gray-500 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-all rounded-[3px]`}
-                >
-                    {resolvedTheme === 'dark' ? (
-                        <Sun className="h-4 w-4 opacity-70 group-hover:opacity-100" strokeWidth={1.75} />
-                    ) : (
-                        <Moon className="h-4 w-4 opacity-70 group-hover:opacity-100" strokeWidth={1.75} />
-                    )}
-                    {!collapsed && (resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode')}
-                </button>
-            </div>
-
             {/* User section */}
             <div className="border-t border-[var(--border-color)] p-2 shrink-0">
                 {!loading && user ? (
@@ -338,7 +322,7 @@ export default function Sidebar() {
                             <button
                                 onClick={() => signOut()}
                                 title="Sign out"
-                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors dark:hover:text-white dark:hover:bg-zinc-900"
                             >
                                 <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
                             </button>
@@ -353,22 +337,29 @@ export default function Sidebar() {
                                         user.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-gray-900 text-xs font-semibold truncate leading-tight">
+                                    <p className="text-gray-900 text-xs font-semibold truncate leading-tight dark:text-white">
                                         {profile?.full_name || profile?.username || user.email?.split('@')[0]}
                                     </p>
-                                    <p className="text-gray-400 text-[10px] truncate">{user.email}</p>
+                                    <p className="text-gray-400 text-[10px] truncate dark:text-gray-500">{user.email}</p>
                                 </div>
                             </div>
                             <Link
+                                href="/profile"
+                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
+                            >
+                                <User className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
+                                Profile
+                            </Link>
+                            <Link
                                 href="/settings"
-                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px]"
+                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
                             >
                                 <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Settings
                             </Link>
                             <button
                                 onClick={() => signOut()}
-                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px]"
+                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
                             >
                                 <LogOut className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Sign out
@@ -386,7 +377,7 @@ export default function Sidebar() {
                         <div className="space-y-2 px-1">
                             <Link
                                 href="/login"
-                                className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px]"
+                                className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px] dark:text-gray-300 dark:hover:text-white dark:border-zinc-800 dark:hover:border-zinc-600"
                             >
                                 Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
                             </Link>
