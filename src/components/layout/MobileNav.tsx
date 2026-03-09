@@ -86,7 +86,7 @@ export default function MobileNav() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setMenuOpen(true)}
-                        className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)] dark:text-gray-300"
+                        className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)]"
                         aria-label="Open navigation menu"
                     >
                         <Menu className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default function MobileNav() {
                         </Link>
                         <button
                             onClick={() => setMenuOpen(false)}
-                            className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)] dark:text-gray-300"
+                            className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)]"
                             aria-label="Close navigation menu"
                         >
                             <X className="h-4 w-4" />
@@ -169,14 +169,14 @@ export default function MobileNav() {
                                             className={cn(
                                                 'flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium transition-colors',
                                                 isActive
-                                                    ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white'
+                                                    ? 'bg-amber-50 text-black'
+                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-black'
                                             )}
                                         >
                                             <Icon
                                                 className={cn(
                                                     'h-4 w-4 shrink-0',
-                                                    isActive ? 'text-amber-500 dark:text-black' : 'opacity-70'
+                                                    isActive ? 'text-amber-500' : 'opacity-70'
                                                 )}
                                                 strokeWidth={isActive ? 2.5 : 1.75}
                                             />
@@ -216,14 +216,14 @@ export default function MobileNav() {
                                         <p className="truncate text-sm font-semibold text-[var(--foreground)]">
                                             {profile?.full_name || profile?.username || user.email?.split('@')[0]}
                                         </p>
-                                        <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                                        <p className="truncate text-xs text-gray-500">{user.email}</p>
                                     </div>
                                 </div>
 
                                 <Link
                                     href="/profile"
                                     onClick={(e) => handleNavClick(e, '/profile')}
-                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
                                 >
                                     <User className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Profile
@@ -231,7 +231,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/settings"
                                     onClick={(e) => handleNavClick(e, '/settings')}
-                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
                                 >
                                     <Settings className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Settings
@@ -241,7 +241,7 @@ export default function MobileNav() {
                                         setMenuOpen(false);
                                         void signOut();
                                     }}
-                                    className="flex w-full items-center gap-3 rounded-[3px] px-3 py-3 text-left text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                                    className="flex w-full items-center gap-3 rounded-[3px] px-3 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
                                 >
                                     <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Sign out
@@ -252,7 +252,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/login"
                                     onClick={(e) => handleNavClick(e, '/login', true)}
-                                    className="flex items-center justify-between rounded-[3px] border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-gray-900 dark:border-zinc-800 dark:text-gray-300 dark:hover:border-zinc-600 dark:hover:text-white"
+                                    className="flex items-center justify-between rounded-[3px] border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-black"
                                 >
                                     Log in
                                     <ChevronRight className="h-4 w-4 opacity-60" />
@@ -288,10 +288,10 @@ export default function MobileNav() {
                                 className={cn(
                                     'flex flex-col items-center gap-1 px-3 py-1 transition-colors',
                                     tab.highlighted
-                                        ? 'bg-black text-white p-3 -mt-5 shadow-lg dark:bg-amber-400 dark:text-black'
+                                        ? 'bg-black p-3 -mt-5 text-white shadow-lg'
                                         : isActive
-                                            ? 'text-black dark:text-white'
-                                            : 'text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200'
+                                            ? 'text-black'
+                                            : 'text-gray-400 hover:text-gray-700'
                                 )}
                             >
                                 <Icon
