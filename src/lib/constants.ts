@@ -16,6 +16,9 @@ export const MAX_IMAGES_PER_AUCTION = 6;
 /** Supabase Storage bucket for auction images */
 export const AUCTION_IMAGES_BUCKET = 'auction-images';
 
+/** Supabase Storage bucket for profile images */
+export const PROFILE_IMAGES_BUCKET = 'profile-images';
+
 /** Item categories (Jiji-inspired) */
 export const ITEM_CATEGORIES = [
     'Phones & Tablets',

@@ -5,9 +5,12 @@ import { useAuth } from '@/hooks/useAuth';
 import AuthGuard from '@/components/auth/AuthGuard';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Avatar from '@/components/ui/Avatar';
+import { PROFILE_IMAGES_BUCKET } from '@/lib/constants';
+import { validateImageFile } from '@/lib/validators';
 import {
     User, Bell, Shield, LogOut, Check, Eye, EyeOff,
-    AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin
+    AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin, ImagePlus, Loader2
 } from 'lucide-react';
 
 type Tab = 'profile' | 'notifications' | 'security';
@@ -192,6 +195,9 @@ export default function SettingsPage() {
     const [lastName, setLastName] = useState('');
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Sync form when profile loads
     useEffect(() => {
@@ -207,6 +213,7 @@ export default function SettingsPage() {
                 phone_number: profile.phone_number ?? '',
                 location: profile.location ?? '',
             });
+            setAvatarUrl(profile.avatar_url ?? '');
         }
     }, [profile]);
 
@@ -223,8 +230,52 @@ export default function SettingsPage() {
             phone_number: profile?.phone_number ?? '',
             location: profile?.location ?? '',
         });
+        setAvatarUrl(profile?.avatar_url ?? '');
         setProfileError('');
         setEditing(false);
+    };
+
+    const handleAvatarUpload = async (file?: File | null) => {
+        if (!user || !file) return;
+
+        const validationError = validateImageFile(file);
+        if (validationError) {
+            setProfileError(validationError);
+            return;
+        }
+
+        setAvatarUploading(true);
+        setProfileError('');
+
+        const supabase = createClient();
+        const mimeToExt: Record<string, string> = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/webp': 'webp',
+        };
+        const fileExt = mimeToExt[file.type] ?? 'jpg';
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from(PROFILE_IMAGES_BUCKET)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true,
+                });
+
+            if (uploadError) throw uploadError;
+
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from(PROFILE_IMAGES_BUCKET).getPublicUrl(filePath);
+
+            setAvatarUrl(publicUrl);
+        } catch (e: unknown) {
+            setProfileError(e instanceof Error ? e.message : 'Failed to upload profile photo.');
+        } finally {
+            setAvatarUploading(false);
+        }
     };
 
     const handleProfileSave = async () => {
@@ -250,6 +301,7 @@ export default function SettingsPage() {
                     username: profileForm.username,
                     phone_number: profileForm.phone_number,
                     location: profileForm.location,
+                    avatar_url: avatarUrl || null,
                 })
                 .eq('id', user.id);
             if (error) {
@@ -264,6 +316,7 @@ export default function SettingsPage() {
                 return;
             }
             setProfileSaved(true);
+            router.refresh();
             setEditing(false);
             setTimeout(() => setProfileSaved(false), 2500);
         } catch (e: unknown) {
@@ -343,10 +396,6 @@ export default function SettingsPage() {
         }
     };
 
-    const initials =
-        (profile?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)) ||
-        user?.email?.[0]?.toUpperCase() || 'U';
-
     return (
         <AuthGuard>
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
@@ -413,9 +462,12 @@ export default function SettingsPage() {
 
                                 {/* Avatar identity */}
                                 <div className="px-5 sm:px-6 py-5 border-b border-gray-200 flex items-center gap-4">
-                                    <div className="h-14 w-14 shrink-0 bg-black text-white flex items-center justify-center text-xl font-black select-none">
-                                        {initials}
-                                    </div>
+                                    <Avatar
+                                        src={avatarUrl || profile?.avatar_url}
+                                        name={profile?.full_name || profile?.username || user?.email || 'User'}
+                                        size="lg"
+                                        className="h-14 w-14 shrink-0 ring-0"
+                                    />
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <p className="text-sm font-black text-black truncate">
@@ -464,6 +516,36 @@ export default function SettingsPage() {
                                                 }}
                                                 placeholder="Mensah"
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Profile Picture</label>
+                                            <div className="flex items-center gap-4">
+                                                <Avatar
+                                                    src={avatarUrl || profile?.avatar_url}
+                                                    name={profileForm.full_name || profileForm.username || user?.email || 'User'}
+                                                    size="lg"
+                                                    className="h-16 w-16 ring-0"
+                                                />
+                                                <div className="space-y-2">
+                                                    <input
+                                                        ref={fileInputRef}
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/webp"
+                                                        className="hidden"
+                                                        onChange={(e) => void handleAvatarUpload(e.target.files?.[0])}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        disabled={avatarUploading}
+                                                        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
+                                                    >
+                                                        {avatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                                                        {avatarUploading ? 'Uploading...' : 'Upload Photo'}
+                                                    </button>
+                                                    <p className="text-[11px] text-gray-400">JPEG, PNG, or WebP. Max 5 MB.</p>
+                                                </div>
+                                            </div>
                                         </div>
                                         <EditField
                                             label="Username"

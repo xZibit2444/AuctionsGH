@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { cn, getInitials } from '@/lib/utils';
 
 interface AvatarProps {
@@ -14,6 +15,7 @@ const sizes = {
 };
 
 export default function Avatar({
+    src,
     name,
     size = 'md',
     className,
@@ -21,12 +23,19 @@ export default function Avatar({
     return (
         <div
             className={cn(
-                'rounded-full bg-gray-100 text-black flex items-center justify-center font-bold ring-2 ring-white',
+                'relative overflow-hidden rounded-full bg-gray-100 text-black flex items-center justify-center font-bold ring-2 ring-white',
                 sizes[size],
                 className
             )}
         >
-            {getInitials(name)}
+            <Image
+                src={src || '/avatar-placeholder.svg'}
+                alt={name}
+                fill
+                sizes={size === 'lg' ? '56px' : size === 'md' ? '40px' : '32px'}
+                className={cn('object-cover', !src && 'opacity-60')}
+            />
+            {!src && <span className="relative z-10">{getInitials(name)}</span>}
         </div>
     );
 }

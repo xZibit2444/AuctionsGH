@@ -243,6 +243,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     {/* Seller */}
                     <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Avatar
+                            src={auctionData.profiles?.avatar_url}
                             name={auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller'}
                             size="sm"
                         />

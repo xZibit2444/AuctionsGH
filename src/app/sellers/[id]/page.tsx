@@ -132,7 +132,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
             <div className="border border-gray-200 bg-white p-6 sm:p-8 mb-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <Avatar name={sellerName} size="lg" className="h-16 w-16 text-lg shrink-0 ring-0" />
+                        <Avatar src={seller.avatar_url} name={sellerName} size="lg" className="h-16 w-16 text-lg shrink-0 ring-0" />
                         <div>
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Seller Profile</p>

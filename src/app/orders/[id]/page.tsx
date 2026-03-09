@@ -21,6 +21,7 @@ interface OrderPageProps {
 
 type OrderParty = {
     id: string;
+    avatar_url?: string | null;
     username?: string | null;
     full_name: string | null;
     phone_number: string | null;
@@ -119,7 +120,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                     *,
                     auction:auctions ( id, title, current_price, condition, auction_images(url), auction_winner_notes(note) ),
                     buyer:profiles!orders_buyer_id_fkey ( id, full_name, phone_number ),
-                    seller:profiles!orders_seller_id_fkey ( id, username, full_name, phone_number, location, is_verified ),
+                    seller:profiles!orders_seller_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
                     deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
                 `)
                 .eq('id', id)
@@ -320,6 +321,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 <div className="p-4">
                                     <div className="flex items-center gap-3">
                                         <Avatar
+                                            src={order.seller?.avatar_url}
                                             name={order.seller?.full_name || order.seller?.username || 'Seller'}
                                             size="md"
                                             className="ring-0 shrink-0"
