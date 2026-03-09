@@ -87,7 +87,7 @@ export function formatDisplayName(name?: string | null): string {
     if (!name) return 'AN'; // Anonymous
 
     // Remove email domain if it's an email
-    let cleanName = name.includes('@') ? name.split('@')[0] : name;
+    const cleanName = name.includes('@') ? name.split('@')[0] : name;
 
     // Split by common separators (spaces, underscores, dots, hyphens)
     const rawParts = cleanName.split(/[\s_.-]+/);
@@ -123,4 +123,20 @@ export function formatDisplayName(name?: string | null): string {
 
     // Default: grab the first two letters of the string
     return singleName.substring(0, 2).toUpperCase();
+}
+
+/**
+ * Format a personal name as "First L." for compact UI labels.
+ */
+export function formatFirstNameLastInitial(name?: string | null): string {
+    if (!name) return 'Seller';
+
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'Seller';
+    if (parts.length === 1) return parts[0];
+
+    const firstName = parts[0];
+    const lastInitial = parts[parts.length - 1][0]?.toUpperCase();
+
+    return lastInitial ? `${firstName} ${lastInitial}.` : firstName;
 }

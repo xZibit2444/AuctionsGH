@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatFirstNameLastInitial } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -155,7 +155,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
     const sellerDisplayName = auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller';
-    const sellerFirstName = sellerDisplayName.trim().split(/\s+/)[0] || 'Seller';
+    const sellerLabel = formatFirstNameLastInitial(auctionData.profiles?.full_name ?? auction.profiles?.username);
 
     return (
         <div className="max-w-5xl mx-auto py-4 sm:py-8">
@@ -252,7 +252,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         <div>
                             <div className="flex flex-wrap items-center gap-1.5">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {sellerFirstName}
+                                    {sellerLabel}
                                 </p>
                                 {auction.profiles?.is_verified && (
                                     <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
@@ -261,10 +261,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500">
-                                @{auction.profiles?.username ?? 'seller'}
-                                {auctionData.profiles?.full_name ? ` • ${auctionData.profiles.full_name}` : ''}
-                            </p>
                             <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
                             {auction.profiles?.id && (
                                 <SellerRating sellerId={auction.profiles.id} />

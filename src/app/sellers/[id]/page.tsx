@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Clock3, MapPin, Package, ShieldCheck, Star } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { formatCurrency, timeAgo } from '@/lib/utils';
+import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 
@@ -126,7 +126,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
         ? Math.round((reviews.reduce((sum, review) => sum + review.rating, 0) / ratingCount) * 10) / 10
         : null;
     const sellerName = seller.full_name || seller.username;
-    const sellerFirstName = sellerName.trim().split(/\s+/)[0] || 'Seller';
+    const sellerLabel = formatFirstNameLastInitial(seller.full_name || seller.username);
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -139,7 +139,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Seller Profile</p>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="text-3xl font-black tracking-tight text-black">{sellerFirstName}</h1>
+                                <h1 className="text-3xl font-black tracking-tight text-black">{sellerLabel}</h1>
                                 {seller.is_verified && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         <ShieldCheck className="h-3 w-3" />
@@ -147,10 +147,6 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                                @{seller.username}
-                                {seller.full_name ? ` • ${seller.full_name}` : ''}
-                            </p>
                             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500">
                                 {seller.location && (
                                     <span className="inline-flex items-center gap-1.5">
