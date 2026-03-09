@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
-import { Package, MessageCircle, ChevronRight } from 'lucide-react';
+import { Package, ChevronRight } from 'lucide-react';
 
 interface OrderRow {
     id: string;
@@ -172,13 +172,6 @@ export default function OrdersPage() {
                                     <span className={`hidden sm:inline-flex px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
                                         {getStatusLabel(order)}
                                     </span>
-                                    <Link
-                                        href={`/orders/${order.id}#chat`}
-                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                        title="Open chat"
-                                    >
-                                        <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
-                                    </Link>
                                     <Link
                                         href={`/orders/${order.id}`}
                                         className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"

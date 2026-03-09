@@ -8,7 +8,7 @@ import { getPrimaryDelivery } from '@/lib/delivery';
 import { formatCurrency } from '@/lib/utils';
 import AuctionStatusBadge from '@/components/auction/AuctionStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
-import { ArrowUpRight, Trash2, MessageCircle, Shuffle } from 'lucide-react';
+import { ArrowUpRight, Trash2, Shuffle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
 import type { Auction } from '@/types/auction';
@@ -179,14 +179,6 @@ export default function ListingTable() {
                                                         className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors px-2 py-1"
                                                     >
                                                         Order
-                                                    </Link>
-                                                    <Link
-                                                        href={`/orders/${order.id}#chat`}
-                                                        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1"
-                                                        title="Open chat"
-                                                    >
-                                                        <MessageCircle className="w-3 h-3" />
-                                                        Chat
                                                     </Link>
                                                     <Link
                                                         href={`/auctions/${auction.id}#trade-in-panel`}
