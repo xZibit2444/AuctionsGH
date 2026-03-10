@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
 import { formatCurrency } from '@/lib/utils';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
+import ShareButton from '@/components/ui/ShareButton';
 
 interface Offer {
     id: string;
@@ -44,6 +45,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
     const fetchOffers = useCallback(async () => {
         if (!userId) { setLoading(false); return; }
         const supabase = createClient();
+        // Database types in the repo do not include auction_offers yet.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q = (supabase.from('auction_offers') as any)
             .select('*, buyer_profile:profiles!buyer_id(full_name, username)')
             .eq('auction_id', auctionId)
@@ -54,7 +57,9 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
         setLoading(false);
     }, [auctionId, isSeller, userId]);
 
-    useEffect(() => { fetchOffers(); }, [fetchOffers]);
+    useEffect(() => {
+        queueMicrotask(() => { void fetchOffers(); });
+    }, [fetchOffers]);
 
     useEffect(() => {
         const supabase = createClient();
@@ -102,11 +107,20 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
     return (
         <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
             {/* Header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
-                <Tag className="h-3.5 w-3.5 text-amber-400" />
-                <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                    {isSeller ? 'Buyer Offers' : 'Make an Offer'}
-                </p>
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-black">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                    <p className="text-[11px] font-black text-white uppercase tracking-widest">
+                        {isSeller ? 'Buyer Offers' : 'Make an Offer'}
+                    </p>
+                </div>
+                <ShareButton
+                    title={`${auctionTitle} live offers`}
+                    text={`View the live offers for ${auctionTitle} on AuctionsGH.`}
+                    url={`/auctions/${auctionId}#offer-panel`}
+                    compact
+                    className="border-white/15 bg-white/5 text-white hover:border-white hover:text-white"
+                />
             </div>
 
             {/* Chat messages */}

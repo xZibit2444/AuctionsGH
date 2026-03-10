@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Clock3, MapPin, Package, ShieldCheck, Star } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
+import ShareButton from '@/components/ui/ShareButton';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
@@ -165,7 +166,14 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
 
                     <div className="flex flex-col gap-4 min-w-full md:min-w-[28rem]">
                         <div className="flex justify-start md:justify-end">
-                            <FavoriteSellerButton sellerId={seller.id} sellerName={sellerLabel} />
+                            <div className="flex flex-wrap items-center gap-3">
+                                <ShareButton
+                                    title={`${sellerName} Seller Profile`}
+                                    text={`View ${sellerName}'s seller profile on AuctionsGH.`}
+                                    url={`/sellers/${seller.id}`}
+                                />
+                                <FavoriteSellerButton sellerId={seller.id} sellerName={sellerLabel} />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <StatCard label="Current" value={String(currentListings.length)} />

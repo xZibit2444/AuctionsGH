@@ -15,6 +15,7 @@ import { getPrimaryDelivery } from '@/lib/delivery';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
+import ShareButton from '@/components/ui/ShareButton';
 import type { DeliveryStatus } from '@/types/delivery';
 import { formatOrderStatusLabel, getOrderSurfaceStatus, isCancelledOrderStatus, isCompletedOrderStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
 
@@ -285,12 +286,19 @@ export default function OrderPage({ params }: OrderPageProps) {
                         Placed on {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                 </div>
-                {isClosed && (
-                    <div className={`flex items-center gap-2 px-4 py-2 border ${isCancelled ? 'text-gray-600 bg-gray-50 border-gray-200' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
-                        <CheckCircle2 className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-widest">{isCancelled ? 'Order Closed' : 'Transaction Complete'}</span>
-                    </div>
-                )}
+                <div className="flex flex-wrap items-center gap-3">
+                    <ShareButton
+                        title={`Order ${order.id.split('-')[0].toUpperCase()}`}
+                        text={`View this AuctionsGH order for ${order.auction?.title ?? 'your item'}.`}
+                        url={`/orders/${order.id}`}
+                    />
+                    {isClosed && (
+                        <div className={`flex items-center gap-2 px-4 py-2 border ${isCancelled ? 'text-gray-600 bg-gray-50 border-gray-200' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
+                            <CheckCircle2 className="w-5 h-5" />
+                            <span className="text-xs font-bold uppercase tracking-widest">{isCancelled ? 'Order Closed' : 'Transaction Complete'}</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
