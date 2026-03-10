@@ -8,13 +8,18 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const now = new Date();
 
-    // Static public routes
     const staticRoutes: MetadataRoute.Sitemap = [
         {
             url: SITE_URL,
             lastModified: now,
             changeFrequency: 'hourly',
             priority: 1.0,
+        },
+        {
+            url: `${SITE_URL}/auctions`,
+            lastModified: now,
+            changeFrequency: 'hourly',
+            priority: 0.95,
         },
         {
             url: `${SITE_URL}/faq`,
@@ -48,30 +53,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ];
 
-    // Dynamic auction routes — active and recently ended
     let auctionRoutes: MetadataRoute.Sitemap = [];
+    let sellerRoutes: MetadataRoute.Sitemap = [];
+
     try {
         const supabase = await createClient();
-        const { data } = await supabase
-            .from('auctions')
-            .select('id, updated_at')
-            .in('status', ['active', 'sold'])
-            .order('updated_at', { ascending: false })
-            .limit(500);
+        const [{ data: auctions }, { data: sellers }] = await Promise.all([
+            supabase
+                .from('auctions')
+                .select('id, updated_at')
+                .in('status', ['active', 'sold'])
+                .order('updated_at', { ascending: false })
+                .limit(500),
+            supabase
+                .from('profiles')
+                .select('id, updated_at')
+                .eq('is_admin', true)
+                .order('updated_at', { ascending: false })
+                .limit(250),
+        ]);
 
-        const auctions = data as Array<{ id: string; updated_at: string }> | null;
+        const auctionRows = auctions as Array<{ id: string; updated_at: string }> | null;
+        const sellerRows = sellers as Array<{ id: string; updated_at: string }> | null;
 
-        if (auctions) {
-            auctionRoutes = auctions.map((a) => ({
-                url: `${SITE_URL}/auctions/${a.id}`,
-                lastModified: a.updated_at ? new Date(a.updated_at) : now,
-                changeFrequency: 'hourly' as const,
+        if (auctionRows) {
+            auctionRoutes = auctionRows.map((auction) => ({
+                url: `${SITE_URL}/auctions/${auction.id}`,
+                lastModified: auction.updated_at ? new Date(auction.updated_at) : now,
+                changeFrequency: 'hourly',
                 priority: 0.8,
             }));
         }
+
+        if (sellerRows) {
+            sellerRoutes = sellerRows.map((seller) => ({
+                url: `${SITE_URL}/sellers/${seller.id}`,
+                lastModified: seller.updated_at ? new Date(seller.updated_at) : now,
+                changeFrequency: 'daily',
+                priority: 0.7,
+            }));
+        }
     } catch {
-        // Sitemap generation continues with static routes only if DB is unreachable
+        // Continue with static routes if the database is unavailable.
     }
 
-    return [...staticRoutes, ...auctionRoutes];
+    return [...staticRoutes, ...auctionRoutes, ...sellerRoutes];
 }
