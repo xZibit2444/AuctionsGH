@@ -140,3 +140,29 @@ export function formatFirstNameLastInitial(name?: string | null): string {
 
     return lastInitial ? `${firstName} ${lastInitial}.` : firstName;
 }
+
+export function getUserDisplayLabel(options: {
+    fullName?: string | null;
+    username?: string | null;
+    fallbackId?: string | null;
+    genericLabel?: string;
+}) {
+    const genericLabel = options.genericLabel ?? 'Seller';
+    const fullName = options.fullName?.trim();
+    const username = options.username?.trim();
+
+    if (fullName) {
+        return formatFirstNameLastInitial(fullName);
+    }
+
+    if (username) {
+        return username;
+    }
+
+    const fallbackId = options.fallbackId?.trim();
+    if (fallbackId) {
+        return `${genericLabel} ${fallbackId.slice(0, 6).toUpperCase()}`;
+    }
+
+    return genericLabel;
+}

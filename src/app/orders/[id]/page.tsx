@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { formatCurrency, formatFirstNameLastInitial } from '@/lib/utils';
+import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
 import { ShieldCheck, User, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
@@ -260,14 +260,14 @@ export default function OrderPage({ params }: OrderPageProps) {
         : deliveryStatus === 'sent'
             ? 'bg-blue-100 text-blue-700'
             : 'bg-amber-100 text-amber-700';
-    const sellerDisplayName = order.seller?.full_name || order.seller?.username || 'Seller';
-    const sellerLabel = (() => {
-        const rawName = order.seller?.full_name || order.seller?.username || '';
-        const formatted = formatFirstNameLastInitial(rawName);
-        if (formatted && formatted.trim() && formatted !== 'Seller') return formatted;
-        if (rawName.trim()) return rawName.trim();
-        return 'Seller';
-    })();
+    const sellerDisplayName = order.seller?.full_name?.trim()
+        || order.seller?.username?.trim()
+        || `Seller ${order.seller_id.slice(0, 6).toUpperCase()}`;
+    const sellerLabel = getUserDisplayLabel({
+        fullName: order.seller?.full_name,
+        username: order.seller?.username,
+        fallbackId: order.seller?.id || order.seller_id,
+    });
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

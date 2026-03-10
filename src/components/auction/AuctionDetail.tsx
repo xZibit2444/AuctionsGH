@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency, formatFirstNameLastInitial } from '@/lib/utils';
+import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -156,8 +156,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
-    const sellerDisplayName = auctionData.profiles?.full_name ?? auction.profiles?.username ?? 'Seller';
-    const sellerLabel = formatFirstNameLastInitial(auctionData.profiles?.full_name ?? auction.profiles?.username);
+    const sellerDisplayName = auctionData.profiles?.full_name?.trim()
+        || auctionData.profiles?.username?.trim()
+        || `Seller ${auction.seller_id.slice(0, 6).toUpperCase()}`;
+    const sellerLabel = getUserDisplayLabel({
+        fullName: auctionData.profiles?.full_name,
+        username: auctionData.profiles?.username,
+        fallbackId: auction.seller_id,
+    });
 
     return (
         <div className="max-w-5xl mx-auto py-4 sm:py-8">

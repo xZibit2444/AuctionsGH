@@ -23,7 +23,7 @@ export function useAuction(auctionId: string) {
           *,
           auction_images (url, position),
           profiles!auctions_seller_id_fkey (
-            id, username, avatar_url, location, is_verified
+            id, username, full_name, avatar_url, location, is_verified
           ),
           orders(id, status)
         `
@@ -34,18 +34,22 @@ export function useAuction(auctionId: string) {
             if (fetchError) {
                 setError(fetchError.message);
             } else {
-                const baseAuction = data as unknown as AuctionFull & {
+                type AuctionWithWinnerNote = AuctionFull & {
                     auction_winner_notes?: { note: string }[] | null;
                 };
+                type WinnerNoteRow = { note: string } | null;
+
+                const baseAuction = data as unknown as AuctionWithWinnerNote;
 
                 // Best-effort fetch for optional winner note. This should never block checkout/details.
-                const { data: noteData } = await (supabase as any)
+                const { data: noteData } = await supabase
                     .from('auction_winner_notes')
                     .select('note')
                     .eq('auction_id', auctionId)
                     .maybeSingle();
 
-                if ((noteData as any)?.note) {
+                const winnerNote = noteData as WinnerNoteRow;
+                if (winnerNote?.note) {
                     baseAuction.auction_winner_notes = [{ note: noteData.note }];
                 }
 
