@@ -10,6 +10,26 @@ import {
 
 // ── Auth Schemas ──
 
+function normalizeGhanaPhoneNumber(value: string) {
+    const compact = value.replace(/[\s()-]/g, '');
+
+    if (/^0\d{9}$/.test(compact)) {
+        return `+233${compact.slice(1)}`;
+    }
+
+    if (/^233\d{9}$/.test(compact)) {
+        return `+${compact}`;
+    }
+
+    return compact;
+}
+
+const ghanaPhoneSchema = z
+    .string()
+    .min(1, 'Phone number is required')
+    .transform(normalizeGhanaPhoneNumber)
+    .refine((value) => GHANA_PHONE_REGEX.test(value), 'Please enter a valid Ghana phone number');
+
 const passwordSchema = z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -32,10 +52,7 @@ export const signupSchema = z.object({
         .max(20, 'Username must be at most 20 characters')
         .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
     full_name: z.string().min(2, 'Please enter your full name'),
-    phone_number: z
-        .string()
-        .min(1, 'Phone number is required')
-        .regex(GHANA_PHONE_REGEX, 'Please enter a valid Ghana phone number (+233XXXXXXXXX)'),
+    phone_number: ghanaPhoneSchema,
     location: z.string().min(1, 'Please select your city'),
 });
 
@@ -84,11 +101,14 @@ export const updateProfileSchema = z.object({
         .regex(/^[a-zA-Z0-9_]+$/)
         .optional(),
     full_name: z.string().min(2).optional(),
-    phone_number: z
-        .string()
-        .regex(GHANA_PHONE_REGEX, 'Please enter a valid Ghana phone number')
-        .optional()
-        .or(z.literal('')),
+    phone_number: z.preprocess(
+        (value) => typeof value === 'string' && value !== '' ? normalizeGhanaPhoneNumber(value) : value,
+        z
+            .string()
+            .regex(GHANA_PHONE_REGEX, 'Please enter a valid Ghana phone number')
+            .optional()
+            .or(z.literal(''))
+    ),
     location: z.string().optional(),
 });
 

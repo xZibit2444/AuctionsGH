@@ -67,14 +67,33 @@ describe('signupSchema', () => {
         expect(result.success).toBe(true);
     });
 
-    it('rejects an invalid Ghana phone number', () => {
+    it('accepts a Ghana number entered in local format', () => {
         const result = signupSchema.safeParse({ ...validSignup, phone_number: '0201234567' });
-        expect(result.success).toBe(false);
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.phone_number).toBe('+233201234567');
+        }
     });
 
     it('rejects a non-Ghana country code', () => {
         const result = signupSchema.safeParse({ ...validSignup, phone_number: '+447911123456' });
         expect(result.success).toBe(false);
+    });
+
+    it('accepts a Ghana number without the plus sign', () => {
+        const result = signupSchema.safeParse({ ...validSignup, phone_number: '233201234567' });
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.phone_number).toBe('+233201234567');
+        }
+    });
+
+    it('accepts a Ghana number with spaces', () => {
+        const result = signupSchema.safeParse({ ...validSignup, phone_number: '+233 20 123 4567' });
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.phone_number).toBe('+233201234567');
+        }
     });
 
     it('rejects passwords without uppercase', () => {
@@ -203,9 +222,12 @@ describe('updateProfileSchema', () => {
         expect(result.success).toBe(true);
     });
 
-    it('rejects an invalid phone in an update', () => {
+    it('accepts a local Ghana phone number in an update', () => {
         const result = updateProfileSchema.safeParse({ phone_number: '0541234567' });
-        expect(result.success).toBe(false);
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.phone_number).toBe('+233541234567');
+        }
     });
 
     it('accepts an empty string for phone_number (to clear it)', () => {

@@ -192,7 +192,7 @@ export default function SignupForm() {
                 <Input
                     id="phone_number"
                     label="Phone Number"
-                    placeholder="+233244000000"
+                    placeholder="0201234567 or +233201234567"
                     value={values.phone_number}
                     onChange={(event) => updateValue('phone_number', event.target.value)}
                     error={fieldErrors.phone_number}
