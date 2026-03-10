@@ -16,6 +16,7 @@ import WinnerBanner from '@/components/bidding/WinnerBanner';
 import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
+import ShareButton from '@/components/ui/ShareButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
 import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
@@ -227,23 +228,29 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         <div className="flex items-center justify-between mb-2">
                             <AuctionStatusBadge status={auction.status} />
 
-                            {/* Save Button */}
-                            <button
-                                onClick={handleSave}
-                                className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${isSaved
-                                    ? 'border-black text-black bg-gray-50'
-                                    : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
-                                    } ${savePending ? 'opacity-50' : ''}`}
-                            >
-                                <Heart
-                                    className="h-4 w-4"
-                                    fill={isSaved ? 'currentColor' : 'none'}
-                                    strokeWidth={2}
+                            <div className="flex items-center gap-2">
+                                <ShareButton
+                                    title={auction.title}
+                                    text={`View this listing on AuctionsGH: ${auction.title}`}
+                                    url={`/auctions/${auction.id}`}
                                 />
-                                <span className="text-xs font-bold uppercase tracking-wider">
-                                    {isSaved ? 'Saved' : 'Save'}
-                                </span>
-                            </button>
+                                <button
+                                    onClick={handleSave}
+                                    className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${isSaved
+                                        ? 'border-black text-black bg-gray-50'
+                                        : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                                        } ${savePending ? 'opacity-50' : ''}`}
+                                >
+                                    <Heart
+                                        className="h-4 w-4"
+                                        fill={isSaved ? 'currentColor' : 'none'}
+                                        strokeWidth={2}
+                                    />
+                                    <span className="text-xs font-bold uppercase tracking-wider">
+                                        {isSaved ? 'Saved' : 'Save'}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {auction.title}

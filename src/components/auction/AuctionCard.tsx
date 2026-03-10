@@ -8,6 +8,7 @@ import AuctionStatusBadge from './AuctionStatusBadge';
 import { Package, Heart } from 'lucide-react';
 import { useSavedAuctionsContext } from '@/contexts/SavedAuctionsContext';
 import type { Auction } from '@/types/auction';
+import ShareButton from '@/components/ui/ShareButton';
 
 interface AuctionCardProps {
     auction: Auction & { auction_images?: { url: string; position: number }[] };
@@ -53,18 +54,26 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                         <AuctionStatusBadge status={auction.status} />
                     </div>
 
-                    {/* Save / Heart button */}
-                    <button
-                        onClick={handleSave}
-                        className={`absolute top-3 right-3 p-1.5 bg-white border transition-colors ${isSaved ? 'border-black text-black' : 'border-gray-200 text-gray-400 hover:border-black hover:text-black'} ${savePending ? 'opacity-50' : ''}`}
-                        aria-label={isSaved ? 'Remove from saved' : 'Save auction'}
-                    >
-                        <Heart
-                            className="h-3.5 w-3.5"
-                            fill={isSaved ? 'currentColor' : 'none'}
-                            strokeWidth={2}
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                        <ShareButton
+                            title={auction.title}
+                            text={`View this listing on AuctionsGH: ${auction.title}`}
+                            url={`/auctions/${auction.id}`}
+                            compact
+                            className="bg-white"
                         />
-                    </button>
+                        <button
+                            onClick={handleSave}
+                            className={`p-1.5 bg-white border transition-colors ${isSaved ? 'border-black text-black' : 'border-gray-200 text-gray-400 hover:border-black hover:text-black'} ${savePending ? 'opacity-50' : ''}`}
+                            aria-label={isSaved ? 'Remove from saved' : 'Save auction'}
+                        >
+                            <Heart
+                                className="h-3.5 w-3.5"
+                                fill={isSaved ? 'currentColor' : 'none'}
+                                strokeWidth={2}
+                            />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
