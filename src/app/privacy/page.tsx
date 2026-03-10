@@ -28,7 +28,7 @@ const sections = [
                 </p>
                 <p className="mt-3">
                     If you have privacy questions, contact us at <a href="mailto:hello@auctionsgh.com" className="text-black underline">hello@auctionsgh.com</a>{' '}
-                    or +233 257396067.
+                    through our contact page.
                 </p>
             </>
         ),
@@ -171,7 +171,7 @@ export default function PrivacyPolicyPage() {
                     <p className="text-sm text-white/80 leading-7">
                         For privacy requests or questions, contact AuctionsGH at{' '}
                         <a href="mailto:hello@auctionsgh.com" className="text-white underline">hello@auctionsgh.com</a>,{' '}
-                        call +233 257396067, or visit the <Link href="/contact" className="text-white underline">contact page</Link>.
+                        or visit the <Link href="/contact" className="text-white underline">contact page</Link>.
                     </p>
                 </section>
             </div>

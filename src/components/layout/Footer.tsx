@@ -45,7 +45,6 @@ export default function Footer() {
                         </h3>
                         <ul className="space-y-2.5 text-sm text-gray-500">
                             <li>Accra, Ghana</li>
-                            <li>+233 257396067</li>
                             <li>hello@auctionsgh.com</li>
                         </ul>
                     </div>

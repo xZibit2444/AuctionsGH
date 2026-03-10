@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Mail, MapPin, Phone, ShieldCheck } from 'lucide-react';
+import { Mail, MapPin, ShieldCheck } from 'lucide-react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 
@@ -30,13 +30,6 @@ const contactOptions = [
         value: 'support@auctionsgh.com',
         href: 'mailto:support@auctionsgh.com',
         icon: Mail,
-    },
-    {
-        title: 'Phone Support',
-        description: 'Reach the AuctionsGH team directly for urgent marketplace issues.',
-        value: '+233 25 739 6067',
-        href: 'tel:+233257396067',
-        icon: Phone,
     },
     {
         title: 'Location',
