@@ -19,7 +19,7 @@ export async function getDeliveryCodeAction(orderId: string): Promise<{ code: st
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { code: null, error: 'Unauthenticated' };
 
-    const { data, error } = await supabaseAdmin
+    const { data } = await supabaseAdmin
         .from('deliveries')
         .select('delivery_code, buyer_id')
         .eq('order_id', orderId)
@@ -80,7 +80,11 @@ export async function markShippedAction(orderId: string): Promise<{ success: boo
 
     const { error: updateErr } = await supabaseAdmin
         .from('deliveries')
-        .update({ status: 'sent' })
+        .update({
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+            seller_code_reminder_last_sent_at: null,
+        })
         .eq('id', delivery.id);
 
     if (updateErr) return { success: false, error: 'Failed to update status' };
@@ -117,7 +121,11 @@ export async function confirmDeliveryAction(
     // Mark delivery as delivered
     const { error: deliveryUpdateErr } = await supabaseAdmin
         .from('deliveries')
-        .update({ status: 'delivered', delivered_at: new Date().toISOString() })
+        .update({
+            status: 'delivered',
+            delivered_at: new Date().toISOString(),
+            seller_code_reminder_last_sent_at: null,
+        })
         .eq('id', delivery.id);
 
     if (deliveryUpdateErr) return { success: false, error: 'Failed to confirm delivery' };

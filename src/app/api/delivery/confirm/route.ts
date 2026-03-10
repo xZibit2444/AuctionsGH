@@ -3,6 +3,13 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
+type DeliveryConfirmationRow = {
+    id: string;
+    seller_id: string;
+    delivery_code: string;
+    status: string;
+};
+
 /**
  * 10 confirmation attempts per 10-minute window per user.
  * Protects the 6-digit delivery code from brute-force attacks.
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
         }
 
         const supabaseAdmin = createAdminClient();
-        const { data: delivery, error: fetchErr } = await (supabaseAdmin as any)
+        const { data: delivery, error: fetchErr } = await supabaseAdmin
             .from('deliveries')
             .select('id, seller_id, delivery_code, status')
             .eq('order_id', orderId)
@@ -50,7 +57,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Delivery not found' }, { status: 404 });
         }
 
-        const d = delivery as any;
+        const d = delivery as DeliveryConfirmationRow;
 
         // Only the seller can confirm
         if (d.seller_id !== user.id) {
@@ -68,9 +75,13 @@ export async function POST(req: NextRequest) {
         }
 
         // Mark delivery as delivered
-        const { error: updateErr } = await (supabaseAdmin as any)
+        const { error: updateErr } = await supabaseAdmin
             .from('deliveries')
-            .update({ status: 'delivered', delivered_at: new Date().toISOString() })
+            .update({
+                status: 'delivered',
+                delivered_at: new Date().toISOString(),
+                seller_code_reminder_last_sent_at: null,
+            })
             .eq('id', d.id);
 
         if (updateErr) {
@@ -78,7 +89,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Update order status to completed
-        await (supabaseAdmin as any)
+        await supabaseAdmin
             .from('orders')
             .update({ status: 'completed', updated_at: new Date().toISOString() })
             .eq('id', orderId);
