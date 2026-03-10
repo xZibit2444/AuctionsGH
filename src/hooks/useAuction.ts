@@ -50,7 +50,7 @@ export function useAuction(auctionId: string) {
 
                 const winnerNote = noteData as WinnerNoteRow;
                 if (winnerNote?.note) {
-                    baseAuction.auction_winner_notes = [{ note: noteData.note }];
+                    baseAuction.auction_winner_notes = [{ note: winnerNote.note }];
                 }
 
                 setAuction(baseAuction as unknown as AuctionFull);
