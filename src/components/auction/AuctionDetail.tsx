@@ -292,7 +292,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     </div>
 
                     {/* Specs */}
-                    <div className="grid grid-cols-2 gap-3 mt-6">
+                    <div className="grid grid-cols-2 gap-3 auto-rows-fr mt-6">
                         {[
                             { label: 'Brand', value: auction.brand },
                             { label: 'Model', value: auction.model },
@@ -303,12 +303,19 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Meetup Area', value: auction.meetup_area ?? 'Accra Central' },
                             { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
                             { label: 'Inspect First', value: auction.inspection_available ? 'Yes' : 'No' },
-                        ].map(({ label, value }) => (
-                            <div key={label} className="bg-white border border-gray-200 px-4 py-3">
-                                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">{label}</p>
-                                <p className="text-sm font-bold text-black">{value}</p>
-                            </div>
-                        ))}
+                        ].map(({ label, value }, index, items) => {
+                            const isLastOddCard = items.length % 2 === 1 && index === items.length - 1;
+
+                            return (
+                                <div
+                                    key={label}
+                                    className={`bg-white border border-gray-200 px-4 py-3 min-h-[88px] flex flex-col justify-between ${isLastOddCard ? 'col-span-2' : ''}`}
+                                >
+                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{label}</p>
+                                    <p className="text-sm font-bold text-black">{value}</p>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* Price + Countdown */}
@@ -343,13 +350,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                     {/* Offer panel for buyers (logged-in or not) */}
                     {!isSeller && (
-                        <OfferPanel
-                            auctionId={auction.id}
-                            isSeller={false}
-                            userId={user?.id}
-                            auctionTitle={auction.title}
-                            isActive={auction.status === 'active'}
-                        />
+                        <>
+                            <div className="flex justify-end">
+                                <ShareButton
+                                    title={`${auction.title} live offers`}
+                                    text={`View the live offers for ${auction.title} on AuctionsGH.`}
+                                    url={`/auctions/${auction.id}#offer-panel`}
+                                />
+                            </div>
+                            <OfferPanel
+                                auctionId={auction.id}
+                                isSeller={false}
+                                userId={user?.id}
+                                isActive={auction.status === 'active'}
+                            />
+                        </>
                     )}
 
                     {isSeller && auction.status === 'active' && (
@@ -360,13 +375,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                     {/* Incoming offers panel for the seller — always show so history is visible */}
                     {isSeller && (
-                        <OfferPanel
-                            auctionId={auction.id}
-                            isSeller={true}
-                            userId={user!.id}
-                            auctionTitle={auction.title}
-                            isActive={auction.status === 'active'}
-                        />
+                        <>
+                            <div className="flex justify-end">
+                                <ShareButton
+                                    title={`${auction.title} live offers`}
+                                    text={`View the live offers for ${auction.title} on AuctionsGH.`}
+                                    url={`/auctions/${auction.id}#offer-panel`}
+                                />
+                            </div>
+                            <OfferPanel
+                                auctionId={auction.id}
+                                isSeller={true}
+                                userId={user!.id}
+                                isActive={auction.status === 'active'}
+                            />
+                        </>
                     )}
 
                     {/* Delete / take down button */}

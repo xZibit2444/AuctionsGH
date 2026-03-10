@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
 import { formatCurrency } from '@/lib/utils';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
-import ShareButton from '@/components/ui/ShareButton';
 
 interface Offer {
     id: string;
@@ -23,11 +22,10 @@ interface OfferPanelProps {
     auctionId: string;
     isSeller: boolean;
     userId?: string | null;
-    auctionTitle: string;
     isActive?: boolean;
 }
 
-export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, isActive = true }: OfferPanelProps) {
+export default function OfferPanel({ auctionId, isSeller, userId, isActive = true }: OfferPanelProps) {
     const isLoggedIn = !!userId;
     const router = useRouter();
     const [offers, setOffers] = useState<Offer[]>([]);
@@ -107,20 +105,11 @@ export default function OfferPanel({ auctionId, isSeller, userId, auctionTitle, 
     return (
         <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-black">
-                <div className="flex items-center gap-2 min-w-0">
-                    <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                    <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                        {isSeller ? 'Buyer Offers' : 'Make an Offer'}
-                    </p>
-                </div>
-                <ShareButton
-                    title={`${auctionTitle} live offers`}
-                    text={`View the live offers for ${auctionTitle} on AuctionsGH.`}
-                    url={`/auctions/${auctionId}#offer-panel`}
-                    compact
-                    className="border-white/15 bg-white/5 text-white hover:border-white hover:text-white"
-                />
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
+                <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <p className="text-[11px] font-black text-white uppercase tracking-widest">
+                    {isSeller ? 'Buyer Offers' : 'Make an Offer'}
+                </p>
             </div>
 
             {/* Chat messages */}
