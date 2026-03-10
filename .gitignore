@@ -36,6 +36,14 @@ yarn-error.log*
 # VS Code MCP config (may contain secrets)
 .vscode/mcp.json
 
+# generated local service config
+android/app/google-services.json
+supabase/.temp/
+
+# local debug and scratch outputs
+out*.txt
+push_error*
+
 # vercel
 .vercel
 

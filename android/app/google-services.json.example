@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "649850582710",
-    "project_id": "auctionsgh-2087f",
-    "storage_bucket": "auctionsgh-2087f.firebasestorage.app"
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_STORAGE_BUCKET"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:649850582710:android:3b49b8a61b37d5460a1817",
+        "mobilesdk_app_id": "YOUR_MOBILE_SDK_APP_ID",
         "android_client_info": {
           "package_name": "com.auctionsgh.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCMXaUNRRdQiO5cHaLA26mW-MwHuAmvTvM"
+          "current_key": "YOUR_FIREBASE_ANDROID_API_KEY"
         }
       ],
       "services": {

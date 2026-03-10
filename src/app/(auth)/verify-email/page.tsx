@@ -63,18 +63,18 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
                         <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
                             We sent a verification link to{' '}
                             <span className="font-bold text-black">{email}</span>.
-                            Click the link in the email to activate your account.
+                            Click the link in the email to activate your account, then sign in.
                         </p>
                     ) : (
                         <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
                             We sent a verification link to your email address.
-                            Click the link to activate your account.
+                            Click the link to activate your account, then sign in.
                         </p>
                     )}
 
                     <div className="space-y-3 bg-gray-50 border border-gray-200 p-4 text-xs text-gray-500 leading-relaxed mb-8">
                         <p><span className="font-bold text-black">Didn&apos;t receive it?</span> Check your spam or junk folder.</p>
-                        <p>The link expires in 24 hours. If it&apos;s expired, go back to sign in and request a new one.</p>
+                        <p>If the link expires, create the account again or resend the verification from your auth provider settings.</p>
                     </div>
 
                     <Link

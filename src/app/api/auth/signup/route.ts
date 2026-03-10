@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { buildServerAuthRedirectUrl } from '@/lib/authRedirect';
+import { sendSignupVerificationEmail } from '@/lib/email/sender';
 import { signupSchema } from '@/lib/validators';
 
 export async function POST(req: NextRequest) {
@@ -16,19 +18,19 @@ export async function POST(req: NextRequest) {
 
         const { email, password, username, full_name, phone_number, location } = result.data;
 
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
+        const origin = buildServerAuthRedirectUrl('/login?verified=1', req.url);
+        if (!origin) {
+            return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+        }
 
-        const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
-
-        const { data, error } = await supabase.auth.signUp({
+        const supabase = createAdminClient();
+        const { data, error } = await supabase.auth.admin.generateLink({
+            type: 'signup',
             email,
             password,
             options: {
                 data: { username, full_name, phone_number, location },
-                emailRedirectTo: `${origin}/callback`,
+                redirectTo: origin,
             },
         });
 
@@ -40,8 +42,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 400 });
         }
 
-        if (!data.user) {
+        if (!data.user || !data.properties?.action_link) {
             return NextResponse.json({ error: 'Signup failed. Please try again.' }, { status: 500 });
+        }
+
+        const emailResult = await sendSignupVerificationEmail(
+            email,
+            full_name,
+            data.properties.action_link
+        );
+
+        if (!emailResult.success) {
+            await supabase.auth.admin.deleteUser(data.user.id);
+            return NextResponse.json(
+                { error: 'Could not send verification email. Please try again.' },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json({ success: true }, { status: 201 });
