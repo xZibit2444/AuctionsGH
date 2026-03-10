@@ -84,7 +84,7 @@ export async function markShippedAction(orderId: string): Promise<{ success: boo
             status: 'sent',
             sent_at: new Date().toISOString(),
             seller_code_reminder_last_sent_at: null,
-        })
+        } as never)
         .eq('id', delivery.id);
 
     if (updateErr) return { success: false, error: 'Failed to update status' };
@@ -125,7 +125,7 @@ export async function confirmDeliveryAction(
             status: 'delivered',
             delivered_at: new Date().toISOString(),
             seller_code_reminder_last_sent_at: null,
-        })
+        } as never)
         .eq('id', delivery.id);
 
     if (deliveryUpdateErr) return { success: false, error: 'Failed to confirm delivery' };
@@ -133,7 +133,7 @@ export async function confirmDeliveryAction(
     // Also update the parent order status to 'completed'
     await supabaseAdmin
         .from('orders')
-        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
         .eq('id', orderId);
 
     return { success: true };
@@ -171,14 +171,14 @@ export async function confirmDeliveredByBuyerAction(
 
     const { error: deliveryUpdateErr } = await supabaseAdmin
         .from('deliveries')
-        .update({ status: 'completed', delivered_at: nowIso })
+        .update({ status: 'completed', delivered_at: nowIso } as never)
         .eq('id', delivery.id);
 
     if (deliveryUpdateErr) return { success: false, error: 'Failed to complete delivery' };
 
     await supabaseAdmin
         .from('orders')
-        .update({ status: 'completed', updated_at: nowIso })
+        .update({ status: 'completed', updated_at: nowIso } as never)
         .eq('id', orderId);
 
     return { success: true };

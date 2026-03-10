@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
                 status: 'delivered',
                 delivered_at: new Date().toISOString(),
                 seller_code_reminder_last_sent_at: null,
-            })
+            } as never)
             .eq('id', d.id);
 
         if (updateErr) {
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         // Update order status to completed
         await supabaseAdmin
             .from('orders')
-            .update({ status: 'completed', updated_at: new Date().toISOString() })
+            .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
             .eq('id', orderId);
 
         return NextResponse.json({ success: true });

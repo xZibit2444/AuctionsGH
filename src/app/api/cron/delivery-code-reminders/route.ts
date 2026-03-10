@@ -72,7 +72,7 @@ export async function GET(request: Request) {
 
         const { error: updateError } = await supabase
             .from('deliveries')
-            .update({ seller_code_reminder_last_sent_at: nowIso })
+            .update({ seller_code_reminder_last_sent_at: nowIso } as never)
             .eq('id', delivery.id)
             .eq('status', 'sent');
 
