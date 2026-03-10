@@ -346,7 +346,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                         />
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <p className="text-base font-black leading-none text-black dark:text-white">
+                                                <p className="text-base font-black leading-none text-black">
                                                     {sellerLabel}
                                                 </p>
                                                 {order.seller?.is_verified && (

@@ -260,7 +260,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             />
                             <div>
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                    <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
                                         {sellerLabel || 'Seller'}
                                     </p>
                                     {auction.profiles?.is_verified && (
