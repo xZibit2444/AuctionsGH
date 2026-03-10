@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight, CheckCircle2, MailCheck, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 import { LISTING_CITIES } from '@/lib/constants';
@@ -129,27 +130,60 @@ export default function SignupForm() {
 
     if (successEmail) {
         return (
-            <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <div className="space-y-2">
-                    <h2 className="text-lg font-black tracking-tight text-black">Check your inbox</h2>
-                    <p className="text-sm leading-relaxed text-gray-600">
-                        We sent a verification link to <span className="font-semibold text-black">{successEmail}</span>.
-                        Open that email to activate your account before signing in.
-                    </p>
+            <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-[0_24px_80px_-40px_rgba(0,0,0,0.35)]">
+                <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#0a0a0a_0%,#1a1a1a_55%,#2d2d2d_100%)] px-6 py-6 text-white">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
+                        <MailCheck className="h-7 w-7" />
+                    </div>
+                    <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Account created
+                        </div>
+                        <h2 className="text-2xl font-black tracking-tight">Verify your email to continue</h2>
+                        <p className="max-w-md text-sm leading-relaxed text-white/72">
+                            Your AuctionsGH account is almost ready. Open the verification email we just sent and confirm your address before signing in.
+                        </p>
+                    </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                    <Link
-                        href={`/verify-email?email=${encodeURIComponent(successEmail)}`}
-                        className="inline-flex items-center justify-center bg-black px-5 py-3 text-sm font-semibold text-white"
-                    >
-                        Open verification screen
-                    </Link>
-                    <Link
-                        href="/login"
-                        className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-semibold text-black"
-                    >
-                        Back to sign in
-                    </Link>
+
+                <div className="space-y-6 px-6 py-6">
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Sent to</p>
+                        <p className="mt-2 break-all text-lg font-bold tracking-tight text-gray-950">{successEmail}</p>
+                    </div>
+
+                    <div className="grid gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-2">
+                        <div className="rounded-2xl bg-white p-4 ring-1 ring-gray-100">
+                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Next step</p>
+                            <p className="mt-2 text-sm font-semibold text-gray-950">Open the verification link in your inbox.</p>
+                            <p className="mt-1 text-sm leading-relaxed text-gray-500">Check spam or promotions if it does not appear immediately.</p>
+                        </div>
+                        <div className="rounded-2xl bg-white p-4 ring-1 ring-gray-100">
+                            <div className="flex items-center gap-2 text-gray-950">
+                                <ShieldCheck className="h-4 w-4 text-amber-500" />
+                                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Access rule</p>
+                            </div>
+                            <p className="mt-2 text-sm font-semibold text-gray-950">Sign-in stays locked until email confirmation is complete.</p>
+                            <p className="mt-1 text-sm leading-relaxed text-gray-500">This protects account recovery and prevents fake signups.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                        <Link
+                            href={`/verify-email?email=${encodeURIComponent(successEmail)}`}
+                            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-900"
+                        >
+                            Open verification screen
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
+                        <Link
+                            href="/login"
+                            className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:border-black"
+                        >
+                            Back to sign in
+                        </Link>
+                    </div>
                 </div>
             </div>
         );
