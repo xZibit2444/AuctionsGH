@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { buildServerAuthRedirectUrl } from '@/lib/authRedirect';
+import { resolveServerSiteUrl } from '@/lib/authRedirect';
 import { sendSignupVerificationEmail } from '@/lib/email/sender';
 import { signupSchema } from '@/lib/validators';
 
@@ -19,10 +19,11 @@ export async function POST(req: NextRequest) {
         const { email, password, username, full_name, phone_number, location } = result.data;
         const normalizedUsername = username.trim().toLowerCase();
 
-        const origin = buildServerAuthRedirectUrl('/login?verified=1', req.url);
-        if (!origin) {
+        const siteUrl = resolveServerSiteUrl(req.url);
+        if (!siteUrl) {
             return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
         }
+        const redirectTo = `${siteUrl}/login?verified=1`;
 
         const supabase = createAdminClient();
 
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
             password,
             options: {
                 data: { username: normalizedUsername, full_name, phone_number, location },
-                redirectTo: origin,
+                redirectTo,
             },
         });
 
