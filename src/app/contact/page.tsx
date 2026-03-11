@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Mail, MapPin, ShieldCheck } from 'lucide-react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {
     title: 'Contact Us',
@@ -13,13 +14,13 @@ export const metadata: Metadata = {
         description: 'Reach out to AuctionsGH for support, seller questions, and marketplace help.',
         url: `${SITE_URL}/contact`,
         siteName: 'AuctionsGH',
-        images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'Contact AuctionsGH' }],
+        images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: 'Contact AuctionsGH' }],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'Contact AuctionsGH',
         description: 'Reach out to AuctionsGH for support, seller questions, and marketplace help.',
-        images: ['/logo.png'],
+        images: [DEFAULT_OG_IMAGE],
     },
 };
 

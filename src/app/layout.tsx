@@ -21,6 +21,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
       "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
     images: [
       {
-        url: '/logo.png',
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: 'AuctionsGH — Online Auction Marketplace',
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
     title: "AuctionsGH — Ghana's Online Auction Marketplace",
     description:
       "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
-    images: ['/logo.png'],
+    images: [DEFAULT_OG_IMAGE],
   },
   alternates: {
     canonical: SITE_URL,

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AlertTriangle, LockKeyhole, ScanSearch, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {
     title: 'Safety Tips',
@@ -13,13 +14,13 @@ export const metadata: Metadata = {
         description: 'Marketplace safety guidance for buyers and sellers. Learn how to transact securely on AuctionsGH.',
         url: `${SITE_URL}/safety`,
         siteName: 'AuctionsGH',
-        images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'AuctionsGH Safety' }],
+        images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: 'AuctionsGH Safety' }],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'Safety Tips | AuctionsGH',
         description: 'Marketplace safety guidance for buyers and sellers on AuctionsGH.',
-        images: ['/logo.png'],
+        images: [DEFAULT_OG_IMAGE],
     },
 };
 

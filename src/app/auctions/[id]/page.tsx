@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
             auction.description ||
             `Bid on a ${auction.condition} ${auction.brand} ${auction.model} — current price GH₵${auction.current_price}. Live auction on AuctionsGH.`;
         const pageUrl = `${SITE_URL}/auctions/${id}`;
+        const imageUrl = `${pageUrl}/opengraph-image`;
 
         return {
             title,
@@ -48,13 +49,13 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
                 url: pageUrl,
                 type: 'website',
                 siteName: 'AuctionsGH',
-                images: [{ url: '/logo.png', width: 1200, height: 630, alt: title }],
+                images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
             },
             twitter: {
                 card: 'summary_large_image',
                 title: `${title} | AuctionsGH`,
                 description,
-                images: ['/logo.png'],
+                images: [imageUrl],
             },
         };
     } catch {

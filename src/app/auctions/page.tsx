@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import AuctionsPageClient from '@/components/auction/AuctionsPageClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 type AuctionsPageProps = {
     searchParams: Promise<{ q?: string; brand?: string; sort?: string }>;
@@ -37,13 +38,13 @@ export async function generateMetadata({ searchParams }: AuctionsPageProps): Pro
             url: canonical,
             siteName: 'AuctionsGH',
             type: 'website',
-            images: [{ url: '/logo.png', width: 1200, height: 630, alt: title }],
+            images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: title }],
         },
         twitter: {
             card: 'summary_large_image',
             title: `${title} | AuctionsGH`,
             description,
-            images: ['/logo.png'],
+            images: [DEFAULT_OG_IMAGE],
         },
     };
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {
     title: 'FAQ',
@@ -11,13 +12,13 @@ export const metadata: Metadata = {
         description: 'Everything you need to know about bidding, buying, and selling on AuctionsGH.',
         url: `${SITE_URL}/faq`,
         siteName: 'AuctionsGH',
-        images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'AuctionsGH FAQ' }],
+        images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: 'AuctionsGH FAQ' }],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'FAQ | AuctionsGH',
         description: 'Frequently asked questions about bidding, buying, and selling on AuctionsGH.',
-        images: ['/logo.png'],
+        images: [DEFAULT_OG_IMAGE],
     },
 };
 
