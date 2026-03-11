@@ -173,14 +173,30 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
 
                             return (
                                 <div key={comment.id} className="flex items-start gap-3">
-                                    <Avatar
-                                        src={comment.profile?.avatar_url}
-                                        name={name || 'User'}
-                                        size="sm"
-                                    />
+                                    {comment.profile?.id ? (
+                                        <Link href={`/users/${comment.profile.id}`} className="shrink-0 hover:opacity-80 transition-opacity">
+                                            <Avatar
+                                                src={comment.profile.avatar_url}
+                                                name={name || 'User'}
+                                                size="sm"
+                                            />
+                                        </Link>
+                                    ) : (
+                                        <Avatar
+                                            src={comment.profile?.avatar_url}
+                                            name={name || 'User'}
+                                            size="sm"
+                                        />
+                                    )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <p className="text-sm font-semibold text-black">{name || 'User'}</p>
+                                            {comment.profile?.id ? (
+                                                <Link href={`/users/${comment.profile.id}`} className="text-sm font-semibold text-black hover:underline underline-offset-2">
+                                                    {name || 'User'}
+                                                </Link>
+                                            ) : (
+                                                <p className="text-sm font-semibold text-black">{name || 'User'}</p>
+                                            )}
                                             {isMine && (
                                                 <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-black text-white">
                                                     You

@@ -85,7 +85,7 @@ function PersonBlock({
     location,
 }: {
     label: string;
-    person: { full_name: string | null; phone_number: string | null } | null;
+    person: { id: string; full_name: string | null; phone_number: string | null } | null;
     location?: string | null;
 }) {
     return (
@@ -94,9 +94,15 @@ function PersonBlock({
             <div className="flex items-start gap-3">
                 <User className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
                 <div className="min-w-0">
-                    <p className="text-sm font-bold text-black">
-                        {person?.full_name || 'Unnamed user'}
-                    </p>
+                    {person?.id ? (
+                        <Link href={`/users/${person.id}`} className="text-sm font-bold text-black hover:underline underline-offset-2">
+                            {person.full_name || 'Unnamed user'}
+                        </Link>
+                    ) : (
+                        <p className="text-sm font-bold text-black">
+                            {person?.full_name || 'Unnamed user'}
+                        </p>
+                    )}
                     <p className="text-xs text-gray-500">
                         {person?.phone_number || 'No phone number'}
                     </p>

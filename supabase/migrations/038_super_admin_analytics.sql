@@ -380,6 +380,7 @@ BEGIN
         FROM (
           SELECT
             a.id AS auction_id,
+            a.seller_id,
             a.title,
             a.brand,
             a.model,

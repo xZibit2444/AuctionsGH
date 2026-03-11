@@ -2,6 +2,7 @@ import { formatCurrency, timeAgo, formatDisplayName } from '@/lib/utils';
 import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
 import type { BidWithBidder } from '@/types/bid';
+import Link from 'next/link';
 
 interface BidHistoryProps {
     bids: BidWithBidder[];
@@ -46,20 +47,38 @@ export default function BidHistory({ bids, loading }: BidHistoryProps) {
                                 : 'hover:bg-gray-50 border border-transparent'
                                 }`}
                         >
-                            <Avatar
-                                src={bid.profiles?.avatar_url}
-                                name={formatDisplayName(bid.profiles?.username)}
-                                size="sm"
-                            />
+                            {bid.profiles?.id ? (
+                                <Link href={`/users/${bid.profiles.id}`} className="shrink-0 hover:opacity-80 transition-opacity">
+                                    <Avatar
+                                        src={bid.profiles?.avatar_url}
+                                        name={formatDisplayName(bid.profiles?.username)}
+                                        size="sm"
+                                    />
+                                </Link>
+                            ) : (
+                                <Avatar
+                                    src={bid.profiles?.avatar_url}
+                                    name={formatDisplayName(bid.profiles?.username)}
+                                    size="sm"
+                                />
+                            )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-black truncate tracking-tight">
-                                    {formatDisplayName(bid.profiles?.username)}
+                                <div className="flex items-center gap-2 min-w-0">
+                                    {bid.profiles?.id ? (
+                                        <Link href={`/users/${bid.profiles.id}`} className="truncate text-sm font-bold text-black tracking-tight hover:underline underline-offset-2">
+                                            {formatDisplayName(bid.profiles?.username)}
+                                        </Link>
+                                    ) : (
+                                        <p className="text-sm font-bold text-black truncate tracking-tight">
+                                            {formatDisplayName(bid.profiles?.username)}
+                                        </p>
+                                    )}
                                     {i === 0 && (
-                                        <span className="ml-2 bg-black text-white px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold">
+                                        <span className="bg-black text-white px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold">
                                             Highest
                                         </span>
                                     )}
-                                </p>
+                                </div>
                                 <p className="text-xs font-medium text-gray-500 mt-0.5">
                                     {timeAgo(bid.created_at)}
                                 </p>

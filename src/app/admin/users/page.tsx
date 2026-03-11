@@ -172,11 +172,13 @@ function UsersContent() {
                                                 {(user.full_name || user.username).slice(0, 2).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-base font-black text-black truncate">
+                                                <Link href={`/users/${user.id}`} className="block truncate text-base font-black text-black hover:underline underline-offset-2">
                                                     {user.full_name || user.username}
-                                                </p>
+                                                </Link>
                                                 <p className="text-xs text-gray-400 truncate">
-                                                    @{user.username} · {user.location || 'No location'}
+                                                    <Link href={`/users/${user.id}`} className="hover:text-black">
+                                                        @{user.username}
+                                                    </Link> · {user.location || 'No location'}
                                                 </p>
                                             </div>
                                             {user.is_verified && (
@@ -204,7 +206,9 @@ function UsersContent() {
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">User ID</p>
-                                                <p className="font-mono text-xs text-black break-all">{user.id}</p>
+                                                <Link href={`/users/${user.id}`} className="font-mono text-xs text-black break-all hover:underline underline-offset-2">
+                                                    {user.id}
+                                                </Link>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Joined</p>

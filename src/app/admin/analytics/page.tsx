@@ -115,6 +115,7 @@ interface BuyerMetric {
 
 interface MarketplaceRow {
     auction_id: string;
+    seller_id: string;
     title: string;
     brand: string | null;
     model: string | null;
@@ -404,13 +405,17 @@ function Leaderboard({
             {rows.slice(0, 6).map((row) => {
                 const name = row.full_name || row.username || (kind === 'seller' ? 'Seller' : 'Buyer');
                 const value = Number(getValue(row) || 0);
-                const href = kind === 'seller' ? `/sellers/${'seller_id' in row ? row.seller_id : ''}` : null;
+                const href = kind === 'seller'
+                    ? `/users/${'seller_id' in row ? row.seller_id : ''}`
+                    : `/users/${'buyer_id' in row ? row.buyer_id : ''}`;
 
                 return (
                     <div key={kind === 'seller' ? (row as SellerMetric).seller_id : (row as BuyerMetric).buyer_id}>
                         <div className="mb-2 flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-black">{name}</p>
+                                <Link href={href} className="truncate text-sm font-bold text-black hover:underline underline-offset-2">
+                                    {name}
+                                </Link>
                                 <p className="text-xs text-gray-500">
                                     {kind === 'seller'
                                         ? `${(row as SellerMetric).completed_orders} completed orders`
@@ -421,11 +426,9 @@ function Leaderboard({
                                 <p className="text-sm font-black text-black">
                                     {money ? formatCurrency(value) : formatCompactNumber(value)}
                                 </p>
-                                {href && (
-                                    <Link href={href} className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black">
-                                        Open
-                                    </Link>
-                                )}
+                                <Link href={href} className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black">
+                                    Open
+                                </Link>
                             </div>
                         </div>
                         <div className="h-2 bg-gray-100">
@@ -700,7 +703,11 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                                         </p>
                                         <p className="text-[11px] text-gray-400 mt-1">{new Date(row.created_at).toLocaleString('en-GH')}</p>
                                     </td>
-                                    <td className="py-4 pr-4 text-gray-700">{row.seller_name || 'Seller'}</td>
+                                    <td className="py-4 pr-4 text-gray-700">
+                                        <Link href={`/users/${row.seller_id}`} className="hover:text-black hover:underline underline-offset-2">
+                                            {row.seller_name || 'Seller'}
+                                        </Link>
+                                    </td>
                                     <td className="py-4 pr-4 text-gray-700">{row.listing_city || '—'}</td>
                                     <td className="py-4 pr-4">
                                         <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-gray-600">
@@ -757,7 +764,9 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                                                     {initialBadge(name, 'S')}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-black">{name}</p>
+                                                    <Link href={`/users/${seller.seller_id}`} className="font-bold text-black hover:underline underline-offset-2">
+                                                        {name}
+                                                    </Link>
                                                     <p className="text-xs text-gray-500">
                                                         {(seller.is_verified ? 'Verified' : 'Unverified')} • {seller.location || 'No location'}
                                                     </p>
@@ -780,7 +789,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                                             </div>
                                         </td>
                                         <td className="py-4">
-                                            <Link href={`/sellers/${seller.seller_id}`} className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-black">
+                                            <Link href={`/users/${seller.seller_id}`} className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-black">
                                                 View <ChevronRight className="h-3 w-3" />
                                             </Link>
                                         </td>

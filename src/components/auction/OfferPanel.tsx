@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
 import { formatCurrency } from '@/lib/utils';
@@ -15,7 +16,7 @@ interface Offer {
     amount: number;
     status: 'pending' | 'accepted' | 'declined';
     created_at: string;
-    buyer_profile?: { full_name: string | null; username: string } | null;
+    buyer_profile?: { id: string; full_name: string | null; username: string } | null;
 }
 
 interface OfferPanelProps {
@@ -46,7 +47,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
         // Database types in the repo do not include auction_offers yet.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q = (supabase.from('auction_offers') as any)
-            .select('*, buyer_profile:profiles!buyer_id(full_name, username)')
+            .select('*, buyer_profile:profiles!buyer_id(id, full_name, username)')
             .eq('auction_id', auctionId)
             .order('created_at', { ascending: true });
         if (!isSeller) q = q.eq('buyer_id', userId);
@@ -135,7 +136,13 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                             <div key={o.id} className="space-y-1.5">
                                 {/* Label for seller view */}
                                 {isSeller && (
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{buyerName}</p>
+                                    o.buyer_profile?.id ? (
+                                        <Link href={`/users/${o.buyer_profile.id}`} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-black">
+                                            {buyerName}
+                                        </Link>
+                                    ) : (
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{buyerName}</p>
+                                    )
                                 )}
 
                                 {/* Offer bubble */}

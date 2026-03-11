@@ -11,11 +11,11 @@ import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 
-interface SellerPageProps {
+interface UserPageProps {
     params: Promise<{ id: string }>;
 }
 
-type SellerProfile = {
+type PublicProfile = {
     id: string;
     username: string;
     full_name: string | null;
@@ -25,7 +25,7 @@ type SellerProfile = {
     created_at: string;
 };
 
-type SellerAuction = {
+type PublicAuction = {
     id: string;
     title: string;
     brand: string;
@@ -37,7 +37,7 @@ type SellerAuction = {
     auction_images: { url: string; position: number }[] | null;
 };
 
-type SellerReview = {
+type PublicReview = {
     id: string;
     rating: number;
     comment: string | null;
@@ -49,10 +49,10 @@ type SellerReview = {
     } | null;
 };
 
-async function getSellerPageData(id: string) {
+async function getPublicProfileData(id: string) {
     const admin = createAdminClient();
 
-    const [{ data: seller }, { data: auctions }, { data: reviews }] = await Promise.all([
+    const [{ data: profile }, { data: auctions }, { data: reviews }] = await Promise.all([
         admin
             .from('profiles')
             .select('id, username, full_name, avatar_url, location, is_verified, created_at')
@@ -71,13 +71,13 @@ async function getSellerPageData(id: string) {
     ]);
 
     return {
-        seller: seller as SellerProfile | null,
-        auctions: (auctions ?? []) as SellerAuction[],
-        reviews: (reviews ?? []) as SellerReview[],
+        profile: profile as PublicProfile | null,
+        auctions: (auctions ?? []) as PublicAuction[],
+        reviews: (reviews ?? []) as PublicReview[],
     };
 }
 
-function listingPreview(auction: SellerAuction) {
+function listingPreview(auction: PublicAuction) {
     return [...(auction.auction_images ?? [])].sort((a, b) => a.position - b.position)[0]?.url ?? null;
 }
 
@@ -88,18 +88,19 @@ function statusTone(status: string) {
     return 'bg-gray-50 text-gray-500 border-gray-200';
 }
 
-export async function generateMetadata({ params }: SellerPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: UserPageProps): Promise<Metadata> {
     const { id } = await params;
-    const { seller } = await getSellerPageData(id);
+    const { profile, auctions } = await getPublicProfileData(id);
 
-    if (!seller) {
-        return { title: 'Seller Not Found' };
+    if (!profile) {
+        return { title: 'Profile Not Found' };
     }
 
-    const sellerName = seller.full_name || seller.username;
-    const title = `${sellerName} Seller Profile`;
-    const description = `View ${sellerName}'s seller profile, listings, and buyer reviews on AuctionsGH.`;
-    const url = `${SITE_URL}/sellers/${seller.id}`;
+    const name = profile.full_name || profile.username;
+    const role = auctions.length > 0 ? 'seller' : 'member';
+    const title = `${name} Profile`;
+    const description = `View ${name}'s public ${role} profile, reviews, and listings on AuctionsGH.`;
+    const url = `${SITE_URL}/users/${profile.id}`;
 
     return {
         title,
@@ -115,36 +116,42 @@ export async function generateMetadata({ params }: SellerPageProps): Promise<Met
     };
 }
 
-export default async function SellerProfilePage({ params }: SellerPageProps) {
+export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const { id } = await params;
-    const { seller, auctions, reviews } = await getSellerPageData(id);
+    const { profile, auctions, reviews } = await getPublicProfileData(id);
 
-    if (!seller) {
+    if (!profile) {
         notFound();
     }
 
-    const currentListings = auctions.filter((auction) => auction.status === 'active');
+    const activeListings = auctions.filter((auction) => auction.status === 'active');
     const listingHistory = auctions.filter((auction) => auction.status !== 'active');
     const ratingCount = reviews.length;
     const ratingAverage = ratingCount > 0
         ? Math.round((reviews.reduce((sum, review) => sum + review.rating, 0) / ratingCount) * 10) / 10
         : null;
-    const sellerName = seller.full_name || seller.username;
-    const sellerLabel = formatFirstNameLastInitial(seller.full_name || seller.username);
+    const profileName = profile.full_name || profile.username;
+    const profileLabel = formatFirstNameLastInitial(profile.full_name || profile.username);
+    const isSeller = auctions.length > 0;
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <div className="border border-gray-200 bg-white p-6 sm:p-8 mb-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <Avatar src={seller.avatar_url} name={sellerName} size="lg" className="shrink-0 ring-0" />
+                        <Avatar src={profile.avatar_url} name={profileName} size="lg" className="shrink-0 ring-0" />
                         <div>
                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Seller Profile</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Public Profile</p>
+                                {isSeller && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
+                                        Seller
+                                    </span>
+                                )}
                             </div>
                             <div className="flex items-center gap-2 min-w-0">
-                                <h1 className="text-3xl font-black tracking-tight text-black whitespace-nowrap">{sellerLabel || 'Seller'}</h1>
-                                {seller.is_verified && (
+                                <h1 className="text-3xl font-black tracking-tight text-black whitespace-nowrap">{profileLabel || 'User'}</h1>
+                                {profile.is_verified && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         <ShieldCheck className="h-3 w-3" />
                                         Verified
@@ -152,15 +159,15 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                                 )}
                             </div>
                             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500">
-                                {seller.location && (
+                                {profile.location && (
                                     <span className="inline-flex items-center gap-1.5">
                                         <MapPin className="h-4 w-4" />
-                                        {seller.location}
+                                        {profile.location}
                                     </span>
                                 )}
                                 <span className="inline-flex items-center gap-1.5">
                                     <Clock3 className="h-4 w-4" />
-                                    Selling since {new Date(seller.created_at).toLocaleDateString('en-GH', { month: 'short', year: 'numeric' })}
+                                    Joined {new Date(profile.created_at).toLocaleDateString('en-GH', { month: 'short', year: 'numeric' })}
                                 </span>
                             </div>
                         </div>
@@ -170,17 +177,21 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                         <div className="flex justify-start md:justify-end">
                             <div className="flex flex-wrap items-center gap-3">
                                 <ShareButton
-                                    title={`${sellerName} Seller Profile`}
-                                    text={`View ${sellerName}'s seller profile on AuctionsGH.`}
-                                    url={`/sellers/${seller.id}`}
+                                    title={`${profileName} Profile`}
+                                    text={`View ${profileName}'s public profile on AuctionsGH.`}
+                                    url={`/users/${profile.id}`}
                                 />
-                                <FavoriteSellerButton sellerId={seller.id} sellerName={sellerLabel} />
-                                <SellerAdminMenu sellerId={seller.id} sellerName={sellerName} />
+                                {isSeller && (
+                                    <>
+                                        <FavoriteSellerButton sellerId={profile.id} sellerName={profileLabel} />
+                                        <SellerAdminMenu sellerId={profile.id} sellerName={profileName} />
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <StatCard label="Current" value={String(currentListings.length)} />
-                            <StatCard label="All Listings" value={String(auctions.length)} />
+                            <StatCard label="Current" value={String(activeListings.length)} />
+                            <StatCard label="Listings" value={String(auctions.length)} />
                             <StatCard label="Reviews" value={String(ratingCount)} />
                             <StatCard label="Rating" value={ratingAverage?.toFixed(1) ?? '-'} />
                         </div>
@@ -192,15 +203,15 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                 <div className="xl:col-span-2 space-y-8">
                     <section>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-black tracking-tight text-black">Current Listings</h2>
-                            <span className="text-xs font-semibold text-gray-400">{currentListings.length} active</span>
+                            <h2 className="text-lg font-black tracking-tight text-black">Active Listings</h2>
+                            <span className="text-xs font-semibold text-gray-400">{activeListings.length} active</span>
                         </div>
 
-                        {currentListings.length === 0 ? (
-                            <EmptyState message="This seller has no active listings right now." />
+                        {activeListings.length === 0 ? (
+                            <EmptyState message={isSeller ? 'No active listings right now.' : 'This member has no public listings.'} />
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {currentListings.map((auction) => {
+                                {activeListings.map((auction) => {
                                     const preview = listingPreview(auction);
                                     return (
                                         <Link key={auction.id} href={`/auctions/${auction.id}`} className="border border-gray-200 bg-white overflow-hidden hover:border-black transition-colors">
@@ -264,15 +275,15 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
 
                 <aside className="space-y-6">
                     <section className="border border-gray-200 bg-white p-5">
-                        <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Seller Details</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Profile Details</h2>
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start justify-between gap-4">
                                 <span className="text-gray-500">Location</span>
-                                <span className="font-semibold text-black text-right">{seller.location || 'Not shared'}</span>
+                                <span className="font-semibold text-black text-right">{profile.location || 'Not shared'}</span>
                             </div>
                             <div className="flex items-start justify-between gap-4">
-                                <span className="text-gray-500">Phone</span>
-                                <span className="font-semibold text-black text-right">Private</span>
+                                <span className="text-gray-500">Public role</span>
+                                <span className="font-semibold text-black text-right">{isSeller ? 'Seller' : 'Buyer / Member'}</span>
                             </div>
                         </div>
                     </section>
@@ -297,19 +308,21 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                     </section>
 
                     <section className="border border-gray-200 bg-white p-5">
-                        <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Buyer Reviews</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Reviews</h2>
                         {reviews.length === 0 ? (
                             <p className="text-sm text-gray-500">Reviews will appear here after completed orders.</p>
                         ) : (
                             <div className="space-y-4">
                                 {reviews.map((review) => {
                                     const reviewerName = review.reviewer?.full_name || review.reviewer?.username || 'Buyer';
+                                    const reviewerHref = review.reviewer?.id ? `/users/${review.reviewer.id}` : null;
+
                                     return (
                                         <div key={review.id} className="border border-gray-100 bg-gray-50 p-4">
                                             <div className="flex items-center justify-between gap-3 mb-2">
                                                 <div>
-                                                    {review.reviewer?.id ? (
-                                                        <Link href={`/users/${review.reviewer.id}`} className="text-sm font-bold text-black hover:underline underline-offset-2">
+                                                    {reviewerHref ? (
+                                                        <Link href={reviewerHref} className="text-sm font-bold text-black hover:underline underline-offset-2">
                                                             {reviewerName}
                                                         </Link>
                                                     ) : (

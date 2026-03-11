@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
-import { ShieldCheck, User, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
+import { ShieldCheck, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
@@ -125,7 +125,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                 .select(`
                     *,
                     auction:auctions ( id, title, current_price, condition, auction_images(url), auction_winner_notes(note) ),
-                    buyer:profiles!orders_buyer_id_fkey ( id, full_name, phone_number ),
+                    buyer:profiles!orders_buyer_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
                     seller:profiles!orders_seller_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
                     deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
                 `)
@@ -269,6 +269,15 @@ export default function OrderPage({ params }: OrderPageProps) {
         username: order.seller?.username,
         fallbackId: order.seller?.id || order.seller_id,
     });
+    const buyerDisplayName = order.buyer?.full_name?.trim()
+        || order.buyer?.username?.trim()
+        || `Buyer ${order.buyer_id.slice(0, 6).toUpperCase()}`;
+    const buyerLabel = getUserDisplayLabel({
+        fullName: order.buyer?.full_name,
+        username: order.buyer?.username,
+        fallbackId: order.buyer?.id || order.buyer_id,
+        genericLabel: 'Buyer',
+    });
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -333,7 +342,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isBuyer ? 'Seller Contact' : 'Buyer'}</h3>
                         {isBuyer ? (
                             <Link
-                                href={`/sellers/${order.seller?.id}`}
+                                href={`/users/${order.seller?.id || order.seller_id}`}
                                 className="group block overflow-hidden border border-gray-200 bg-white hover:border-black transition-colors"
                             >
                                 <div className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -395,18 +404,57 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 </div>
                             </Link>
                         ) : (
-                            <div className="flex items-start gap-3">
-                                <User className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-                                <div className="space-y-1.5">
-                                    <p className="font-bold text-black">
-                                        {order.buyer?.full_name}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        <span className="font-semibold text-black">Phone: </span>
-                                        {order.buyer?.phone_number || 'Not provided'}
+                            <Link
+                                href={`/users/${order.buyer?.id || order.buyer_id}`}
+                                className="group block overflow-hidden border border-gray-200 bg-white hover:border-black transition-colors"
+                            >
+                                <div className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Buyer Profile</p>
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">
+                                        Open
+                                        <ArrowUpRight className="h-3.5 w-3.5" />
+                                    </span>
+                                </div>
+
+                                <div className="p-4">
+                                    <div className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
+                                        <Avatar
+                                            src={order.buyer?.avatar_url}
+                                            name={buyerDisplayName}
+                                            size="md"
+                                            className="ring-0 shrink-0"
+                                        />
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="text-base font-black leading-none text-black">
+                                                    {buyerLabel}
+                                                </p>
+                                                {order.buyer?.is_verified && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
+                                                        <CheckCircle2 className="h-3 w-3" />
+                                                        Verified
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
+                                            <p className="text-sm font-semibold text-black break-all">{order.buyer?.phone_number || 'Not provided'}</p>
+                                        </div>
+                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
+                                            <MapPin className="h-4 w-4 text-gray-400" />
+                                            {order.buyer?.location || 'Not shared'}
+                                        </div>
+                                    </div>
+
+                                    <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
+                                        Tap to view this buyer&apos;s public profile and reviews.
                                     </p>
                                 </div>
-                            </div>
+                            </Link>
                         )}
                     </div>
 

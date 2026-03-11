@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import AdminGuard from '@/components/auth/AdminGuard';
 import { createClient } from '@/lib/supabase/client';
@@ -66,8 +67,14 @@ function ApplicationRow({ app, onReviewed }: { app: Application; onReviewed: () 
                         {app.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                        <p className="text-sm font-bold text-black truncate">{app.full_name}</p>
-                        <p className="text-xs text-gray-400 truncate">@{app.profiles?.username} · {app.location}</p>
+                        <Link href={`/users/${app.user_id}`} className="block truncate text-sm font-bold text-black hover:underline underline-offset-2">
+                            {app.full_name}
+                        </Link>
+                        <p className="text-xs text-gray-400 truncate">
+                            <Link href={`/users/${app.user_id}`} className="hover:text-black">
+                                @{app.profiles?.username}
+                            </Link> · {app.location}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
@@ -169,7 +176,13 @@ function ApplicationsContent() {
         setLoading(false);
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            void load();
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [load]);
 
     const filtered = filter === 'all' ? apps : apps.filter(a => a.status === filter);
     const counts: Record<FilterTab, number> = {

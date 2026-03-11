@@ -265,7 +265,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                     {/* Seller */}
                     <div className="flex items-start justify-between gap-3">
-                        <Link href={`/sellers/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
+                        <Link href={`/users/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
                             <Avatar
                                 src={auctionData.profiles?.avatar_url}
                                 name={sellerDisplayName}

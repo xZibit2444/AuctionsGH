@@ -222,6 +222,7 @@ export default function ProfilePage() {
                         const counterpart = tab === 'buying'
                             ? getDisplayName(order.seller, 'Seller')
                             : getDisplayName(order.buyer, 'Buyer');
+                        const counterpartId = tab === 'buying' ? order.seller?.id : order.buyer?.id;
 
                         return (
                             <div key={order.id} className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-gray-50 sm:px-5">
@@ -245,7 +246,16 @@ export default function ProfilePage() {
                                         </span>
                                     </div>
                                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                                        <span>{tab === 'buying' ? `Bought from ${counterpart}` : `Sold to ${counterpart}`}</span>
+                                        <span>
+                                            {tab === 'buying' ? 'Bought from ' : 'Sold to '}
+                                            {counterpartId ? (
+                                                <Link href={`/users/${counterpartId}`} className="font-semibold text-black hover:underline underline-offset-2">
+                                                    {counterpart}
+                                                </Link>
+                                            ) : (
+                                                counterpart
+                                            )}
+                                        </span>
                                         <span className="text-gray-300">•</span>
                                         <span>{new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                     </div>
