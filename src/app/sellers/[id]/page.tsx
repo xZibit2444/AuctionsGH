@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Clock3, MapPin, Package, ShieldCheck, Star } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
+import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
@@ -173,6 +174,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                                     url={`/sellers/${seller.id}`}
                                 />
                                 <FavoriteSellerButton sellerId={seller.id} sellerName={sellerLabel} />
+                                <SellerAdminMenu sellerId={seller.id} sellerName={sellerName} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

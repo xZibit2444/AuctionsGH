@@ -28,6 +28,7 @@ type ListingOrder = {
 
 type ListingAuction = Auction & {
     orders?: ListingOrder[] | ListingOrder | null;
+    auction_offers?: { status: string }[] | null;
 };
 
 interface ListingTableProps {
@@ -47,6 +48,11 @@ function isCompletedDeal(order: ListingOrder | null) {
         || order?.status === 'pin_verified'
         || delivery?.status === 'completed'
         || delivery?.status === 'delivered';
+}
+
+function hasActiveAcceptedOffer(auction: ListingAuction, order: ListingOrder | null) {
+    const acceptedOfferExists = (auction.auction_offers ?? []).some((offer) => offer.status === 'accepted');
+    return acceptedOfferExists && !isCompletedDeal(order);
 }
 
 export default function ListingTable({
@@ -156,8 +162,9 @@ export default function ListingTable({
                         const isSentInDb = delivery?.status === 'sent' || delivery?.status === 'delivered' || delivery?.status === 'completed';
                         const endsAt = auction.ends_at ? new Date(auction.ends_at).getTime() : 0;
                         const isExpired = endsAt > 0 && (renderTimestamp - endsAt > 30 * 60 * 1000);
-                        const canSellerDelete = ((auction.status !== 'sold' && (auction.bid_count ?? 0) === 0)
-                            || (auction.status === 'sold' && isCompletedDeal(order)));
+                        const activeAcceptedOffer = hasActiveAcceptedOffer(auction, order);
+                        const canSellerDelete = (auction.status !== 'sold' || (auction.status === 'sold' && isCompletedDeal(order)))
+                            && !activeAcceptedOffer;
                         const canDelete = adminMode
                             ? isSuperAdmin && auction.status === 'active'
                             : canSellerDelete;

@@ -72,10 +72,6 @@ export async function deleteAuctionAction(
         return { success: false, error: 'This auction has an active deal. It can only be taken down after the order is completed.' };
     }
 
-    if (auction.status !== 'sold' && (auction.bid_count ?? 0) > 0) {
-        return { success: false, error: 'Cannot delete an auction that has bids' };
-    }
-
     // Block deletion if there is an accepted offer and the deal has not finished
     const { data: acceptedOffer } = await supabaseAdmin
         .from('auction_offers')

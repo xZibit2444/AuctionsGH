@@ -73,7 +73,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         seller_id,
                         storage_gb,
                         auction_images(url, position),
-                        orders(id, status, deliveries(status))
+                        orders(id, status, deliveries(status)),
+                        auction_offers(status)
                     `
                     : `
                         id,

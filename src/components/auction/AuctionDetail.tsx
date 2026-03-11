@@ -33,6 +33,7 @@ interface AuctionDetailProps {
 
 type AuctionDetailData = {
     orders?: { id: string; status: string }[] | { id: string; status: string } | null;
+    auction_offers?: { status: string }[] | null;
     auction_winner_notes?: { note: string }[] | { note: string } | null;
     profiles?: {
         id: string;
@@ -155,6 +156,10 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const isSeller = auction.seller_id === user?.id;
     const orderRaw = auctionData.orders;
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+    const hasAcceptedOffer = (auctionData.auction_offers ?? []).some((offer) => offer.status === 'accepted');
+    const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
+    const canSellerDelete = !hasAcceptedOffer
+        && (auction.status !== 'sold' || completedDeal);
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
     const sellerDisplayName = auctionData.profiles?.full_name?.trim()
@@ -393,7 +398,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     )}
 
                     {/* Delete / take down button */}
-                    {isSeller && (((auction.status !== 'sold' && auction.bid_count === 0) || (auction.status === 'sold' && (order?.status === 'completed' || order?.status === 'pin_verified')))) && (
+                    {isSeller && canSellerDelete && (
                         <div className="flex justify-end mt-2">
                             <button
                                 onClick={handleDelete}
