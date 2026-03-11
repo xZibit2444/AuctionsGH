@@ -83,6 +83,24 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Signup failed. Please try again.' }, { status: 500 });
         }
 
+        const { error: profileUpsertError } = await supabase
+            .from('profiles')
+            .upsert({
+                id: data.user.id,
+                username: normalizedUsername,
+                full_name,
+                phone_number,
+                location,
+            });
+
+        if (profileUpsertError) {
+            await supabase.auth.admin.deleteUser(data.user.id);
+            return NextResponse.json(
+                { error: 'Could not create your account profile. Please try again.' },
+                { status: 500 }
+            );
+        }
+
         const emailResult = await sendSignupVerificationEmail(
             email,
             full_name,

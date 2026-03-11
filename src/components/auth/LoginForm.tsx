@@ -37,7 +37,7 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
         setLoading('email');
         setError(null);
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
@@ -51,10 +51,19 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
             return;
         }
 
+        const userId = signInData.user?.id;
+
+        if (!userId) {
+            setError('Could not verify account status. Please try again.');
+            setLoading(null);
+            return;
+        }
+
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('is_banned')
-            .single() as {
+            .eq('id', userId)
+            .maybeSingle() as {
                 data: Pick<Profile, 'is_banned'> | null;
                 error: unknown;
             };
