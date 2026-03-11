@@ -3,7 +3,17 @@
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Gavel, ShieldCheck } from 'lucide-react';
 
-export default function HeroCarousel() {
+interface HeroCarouselProps {
+    activeCount: number;
+    endingSoonCount: number;
+    topBidLabel: string;
+}
+
+export default function HeroCarousel({
+    activeCount,
+    endingSoonCount,
+    topBidLabel,
+}: HeroCarouselProps) {
     return (
         <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#071120] via-[#0c1a35] to-[#111827]">
             {/* Subtle dot grid */}
@@ -67,6 +77,26 @@ export default function HeroCarousel() {
                             >
                                 {tag}
                             </span>
+                        ))}
+                    </div>
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                        {[
+                            { label: 'Live listings', value: `${activeCount}+` },
+                            { label: 'Ending soon', value: `${endingSoonCount}` },
+                            { label: 'Top live bid', value: topBidLabel },
+                        ].map((item) => (
+                            <div
+                                key={item.label}
+                                className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-sm"
+                            >
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">
+                                    {item.label}
+                                </p>
+                                <p className="mt-2 text-lg font-black tracking-tight text-white">
+                                    {item.value}
+                                </p>
+                            </div>
                         ))}
                     </div>
                 </div>
