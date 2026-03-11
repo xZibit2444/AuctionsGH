@@ -1,13 +1,9 @@
 'use server';
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-);
+const supabaseAdmin = createAdminClient();
 
 export async function deleteAuctionAction(
     auctionId: string
@@ -15,6 +11,14 @@ export async function deleteAuctionAction(
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { data: callerProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('is_super_admin')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    const isSuperAdmin = callerProfile?.is_super_admin === true;
 
     // Verify ownership and deletability
     const { data: auction, error: fetchError } = await supabaseAdmin
@@ -24,7 +28,22 @@ export async function deleteAuctionAction(
         .single();
 
     if (fetchError || !auction) return { success: false, error: 'Auction not found' };
-    if (auction.seller_id !== user.id) return { success: false, error: 'Not your auction' };
+    const isOwner = auction.seller_id === user.id;
+    const canSuperAdminDeleteLive = isSuperAdmin && auction.status === 'active';
+
+    if (!isOwner && !canSuperAdminDeleteLive) {
+        return { success: false, error: 'Not allowed to delete this auction' };
+    }
+
+    if (canSuperAdminDeleteLive) {
+        const { error } = await supabaseAdmin
+            .from('auctions')
+            .delete()
+            .eq('id', auctionId);
+
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+    }
 
     const { data: latestOrder } = await supabaseAdmin
         .from('orders')

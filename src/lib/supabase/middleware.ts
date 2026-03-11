@@ -65,5 +65,18 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile?.is_banned) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        url.searchParams.set('error', 'banned');
+        return NextResponse.redirect(url);
+    }
+
     return supabaseResponse;
 }

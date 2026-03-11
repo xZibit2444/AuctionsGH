@@ -48,6 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error);
                 }
+                if (data?.is_banned) {
+                    await client.auth.signOut();
+                    setUser(null);
+                    setProfile(null);
+                    return;
+                }
                 setProfile(data || null);
             } catch {
                 setProfile(null);

@@ -30,6 +30,10 @@ export interface Database {
                     is_verified: boolean;
                     is_admin: boolean;
                     is_super_admin: boolean;
+                    is_banned: boolean;
+                    banned_at: string | null;
+                    banned_reason: string | null;
+                    banned_by: string | null;
                     notification_preferences: {
                         new_bid: boolean;
                         auction_ending: boolean;
@@ -50,6 +54,10 @@ export interface Database {
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;
+                    is_banned?: boolean;
+                    banned_at?: string | null;
+                    banned_reason?: string | null;
+                    banned_by?: string | null;
                     notification_preferences?: object | null;
                     fcm_token?: string | null;
                     created_at?: string;
@@ -65,6 +73,10 @@ export interface Database {
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;
+                    is_banned?: boolean;
+                    banned_at?: string | null;
+                    banned_reason?: string | null;
+                    banned_by?: string | null;
                     notification_preferences?: object | null;
                     fcm_token?: string | null;
                     updated_at?: string;

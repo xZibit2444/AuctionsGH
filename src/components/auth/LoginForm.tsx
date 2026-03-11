@@ -24,6 +24,8 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
         ? 'That link has expired. Please try signing in again.'
         : urlError === 'auth'
             ? 'Authentication failed. Please try again.'
+            : urlError === 'banned'
+                ? 'This account has been permanently banned. Contact support if you believe this is an error.'
             : urlError
                 ? decodeURIComponent(urlError)
                 : null;
@@ -43,6 +45,18 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
                 ? 'Verify your email before signing in. Check your inbox for the verification link.'
                 : signInError.message;
             setError(message);
+            setLoading(null);
+            return;
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_banned')
+            .single();
+
+        if (profile?.is_banned) {
+            await supabase.auth.signOut();
+            setError('This account has been permanently banned. Contact support if you believe this is an error.');
             setLoading(null);
             return;
         }
