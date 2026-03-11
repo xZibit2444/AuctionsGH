@@ -136,6 +136,86 @@ export default function ListingTable() {
                                 <span className="sm:hidden block mt-1.5">
                                     <AuctionStatusBadge status={auction.status} />
                                 </span>
+                                <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
+                                    {(() => {
+                                        const order = getAuctionOrder(auction);
+                                        const delivery = order ? getPrimaryDelivery(order.deliveries) : null;
+                                        const isSentInDb = delivery?.status === 'sent' || delivery?.status === 'delivered' || delivery?.status === 'completed';
+
+                                        return (
+                                            <>
+                                                <Link
+                                                    href={`/auctions/${auction.id}`}
+                                                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                >
+                                                    View
+                                                    <ArrowUpRight className="h-3 w-3" />
+                                                </Link>
+
+                                                {order && (
+                                                    <>
+                                                        <Link
+                                                            href={`/orders/${order.id}`}
+                                                            className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-1"
+                                                        >
+                                                            Order
+                                                        </Link>
+                                                        <Link
+                                                            href={`/orders/${order.id}#chat`}
+                                                            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1"
+                                                        >
+                                                            <MessageCircle className="w-3 h-3" />
+                                                            Chat
+                                                        </Link>
+                                                        {sentOrderIds.has(order.id) || isSentInDb ? (
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-1">
+                                                                Sent
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => void handleMarkSent(order.id)}
+                                                                disabled={markingId === order.id}
+                                                                className="text-[10px] font-black uppercase tracking-widest text-white bg-black px-2 py-1 disabled:opacity-50"
+                                                            >
+                                                                {markingId === order.id ? 'Saving...' : 'Mark Sent'}
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {((auction.status !== 'sold' && (auction.bid_count ?? 0) === 0) || (auction.status === 'sold' && isCompletedDeal(order))) && (
+                                                    deleteConfirmId === auction.id ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => void handleDelete(auction.id)}
+                                                                disabled={deletingId === auction.id}
+                                                                className="text-[10px] font-black uppercase tracking-widest text-white bg-red-600 px-2 py-1 disabled:opacity-50"
+                                                            >
+                                                                {deletingId === auction.id ? 'Deleting...' : 'Confirm'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeleteConfirmId(null)}
+                                                                className="text-[10px] font-black uppercase tracking-widest text-gray-500 border border-gray-200 px-2 py-1"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setDeleteConfirmId(auction.id)}
+                                                            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-200 px-2 py-1"
+                                                            title={auction.status === 'sold' ? 'Take down listing' : 'Delete listing'}
+                                                            aria-label={auction.status === 'sold' ? 'Take down listing' : 'Delete listing'}
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                            {auction.status === 'sold' ? 'Take down' : 'Delete'}
+                                                        </button>
+                                                    )
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             </td>
                             <td className="py-4 px-5 hidden sm:table-cell">
                                 {(() => {
