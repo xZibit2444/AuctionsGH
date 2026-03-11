@@ -157,16 +157,16 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[var(--surface)] border-r border-[var(--border-color)] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
+        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-16' : 'w-64'} border-r border-white/60 bg-white/78 backdrop-blur-2xl shadow-[0_22px_60px_-38px_rgba(68,44,13,0.42)] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
 
             {/* Brand + collapse toggle */}
-            <div className="h-15 flex items-center border-b border-[var(--border-color)] shrink-0 relative">
+            <div className="h-16 flex items-center border-b border-[var(--border-color)] shrink-0 relative bg-white/55">
                 {collapsed ? (
                     <div className="flex-1 flex items-center justify-center">
                         <button
                             onClick={toggleCollapsed}
                             title="Expand sidebar"
-                            className="p-1.5 text-gray-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-[3px] transition-colors"
+                            className="p-2 text-stone-500 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-xl transition-colors"
                         >
                             <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
@@ -191,7 +191,7 @@ export default function Sidebar() {
                         <button
                             onClick={toggleCollapsed}
                             title="Collapse sidebar"
-                            className="absolute right-2 p-1.5 text-gray-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-[3px] transition-colors"
+                            className="absolute right-3 p-2 text-stone-500 hover:text-[var(--foreground)] hover:bg-[var(--surface-muted)] rounded-xl transition-colors"
                         >
                             <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
@@ -200,7 +200,7 @@ export default function Sidebar() {
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
                 {/* main links */}
                 {NAV_ITEMS.filter(item => !item.authRequired || loading || user).map(item => {
                     const Icon = item.icon;
@@ -211,16 +211,16 @@ export default function Sidebar() {
                             href={item.href}
                             onClick={(e) => handleNavClick(e, item.href, item.exact)}
                             title={collapsed ? item.label : undefined}
-                            className={`group flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${active
-                                ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black'
-                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900'}`}
+                            className={`group flex items-center ${collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3.5 py-3'} text-sm font-semibold transition-all duration-150 rounded-2xl ${active
+                                ? 'bg-gradient-to-r from-amber-100 via-amber-50 to-white text-black shadow-[0_10px_30px_-22px_rgba(217,119,6,0.7)]'
+                                : 'text-stone-500 hover:text-stone-950 hover:bg-white/80'}`}
                         >
                             <Icon
-                                className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100 text-amber-500' : 'opacity-60 group-hover:opacity-100'}`}
+                                className={`h-4 w-4 shrink-0 transition-opacity ${active ? 'opacity-100 text-amber-600' : 'opacity-70 group-hover:opacity-100'}`}
                                 strokeWidth={active ? 2.5 : 1.5}
                             />
                             {!collapsed && item.label}
-                            {!collapsed && active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                            {!collapsed && active && <div className="ml-auto w-2 h-2 rounded-full bg-amber-500 shrink-0" />}
                         </Link>
                     );
                 })}
@@ -234,19 +234,19 @@ export default function Sidebar() {
                         <button
                             onClick={() => setNotifOpen(o => !o)}
                             title={collapsed ? 'Notifications' : undefined}
-                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'} text-sm font-medium transition-all duration-150 rounded-[3px] ${notifOpen ? 'bg-amber-50 text-black dark:bg-amber-400 dark:text-black' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900'}`}
+                            className={`group w-full flex items-center ${collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-3.5 py-3'} text-sm font-semibold transition-all duration-150 rounded-2xl ${notifOpen ? 'bg-gradient-to-r from-amber-100 via-amber-50 to-white text-black shadow-[0_10px_30px_-22px_rgba(217,119,6,0.7)]' : 'text-stone-500 hover:text-stone-950 hover:bg-white/80'}`}
                         >
                             <div className="relative shrink-0">
                                 <Bell className={`h-4 w-4 opacity-60 group-hover:opacity-100 ${notifOpen ? 'opacity-100' : ''}`} strokeWidth={1.5} />
                                 {collapsed && unread > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-amber-400 text-black text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full leading-none">
+                                    <span className="absolute -top-1 -right-1 bg-amber-400 text-black text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full leading-none shadow-sm">
                                         {unread > 9 ? '9+' : unread}
                                     </span>
                                 )}
                             </div>
                             {!collapsed && 'Notifications'}
                             {!collapsed && unread > 0 && (
-                                <span className="ml-auto bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                                <span className="ml-auto bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-sm">
                                     {unread > 9 ? '9+' : unread}
                                 </span>
                             )}
@@ -254,8 +254,8 @@ export default function Sidebar() {
 
                         {/* Notification panel — slides out to the right of sidebar */}
                         {notifOpen && (
-                            <div className={`fixed ${collapsed ? 'left-14' : 'left-55'} top-0 h-screen w-80 bg-[var(--surface)] border-l border-[var(--border-color)] flex flex-col z-50 shadow-xl`}>
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)] shrink-0">
+                            <div className={`fixed ${collapsed ? 'left-16' : 'left-64'} top-0 h-screen w-[22rem] bg-white/92 backdrop-blur-2xl border-l border-white/60 flex flex-col z-50 shadow-[0_26px_80px_-32px_rgba(68,44,13,0.45)]`}>
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-color)] shrink-0">
                                     <span className="text-sm font-black text-[var(--foreground)]">Notifications</span>
                                     <div className="flex items-center gap-2">
                                         {unread > 0 && (
@@ -304,7 +304,7 @@ export default function Sidebar() {
                             href="/auctions/create"
                             onClick={(e) => handleNavClick(e, '/auctions/create')}
                             title="Create Listing"
-                            className="flex items-center justify-center w-full py-2.5 bg-amber-400 text-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                            className="flex items-center justify-center w-full py-3 bg-amber-400 text-black hover:bg-amber-300 transition-colors rounded-2xl shadow-[0_18px_30px_-20px_rgba(217,119,6,0.85)]"
                         >
                             <Plus className="h-4 w-4" />
                         </Link>
@@ -312,7 +312,7 @@ export default function Sidebar() {
                         <Link
                             href="/auctions/create"
                             onClick={(e) => handleNavClick(e, '/auctions/create')}
-                            className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-2xl shadow-[0_18px_30px_-20px_rgba(217,119,6,0.85)]"
                         >
                             <Plus className="h-4 w-4" />
                             Create Listing
@@ -322,12 +322,12 @@ export default function Sidebar() {
             )}
 
             {/* User section */}
-            <div className="border-t border-[var(--border-color)] p-2 shrink-0">
+            <div className="border-t border-[var(--border-color)] p-3 shrink-0 bg-white/45">
                 {!loading && user ? (
                     collapsed ? (
                         /* Collapsed: just avatar + sign out icon */
                         <div className="flex flex-col items-center gap-1">
-                            <Link href="/settings" onClick={(e) => handleNavClick(e, '/settings')} title="Settings" className="h-8 w-8 bg-amber-400 text-black flex items-center justify-center font-black text-xs rounded-[3px] hover:bg-amber-300 transition-colors">
+                            <Link href="/settings" onClick={(e) => handleNavClick(e, '/settings')} title="Settings" className="h-9 w-9 bg-amber-400 text-black flex items-center justify-center font-black text-xs rounded-xl hover:bg-amber-300 transition-colors shadow-sm">
                                 {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ||
                                     profile?.username?.[0]?.toUpperCase() ||
                                     user.email?.[0]?.toUpperCase() || 'U'}
@@ -335,7 +335,7 @@ export default function Sidebar() {
                             <button
                                 onClick={() => signOut()}
                                 title="Sign out"
-                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-[3px] transition-colors dark:hover:text-white dark:hover:bg-zinc-900"
+                                className="p-2 text-stone-400 hover:text-stone-700 hover:bg-white rounded-xl transition-colors"
                             >
                                 <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
                             </button>
@@ -343,17 +343,17 @@ export default function Sidebar() {
                     ) : (
                         <div className="space-y-0.5">
                             {/* Avatar row */}
-                            <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
-                                <div className="h-7 w-7 bg-amber-400 text-black flex items-center justify-center font-black text-xs shrink-0 rounded-xs">
+                            <div className="flex items-center gap-3 rounded-2xl border border-white/60 bg-white/72 px-3 py-3 mb-2 shadow-sm">
+                                <div className="h-9 w-9 bg-amber-400 text-black flex items-center justify-center font-black text-xs shrink-0 rounded-xl">
                                     {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ||
                                         profile?.username?.[0]?.toUpperCase() ||
                                         user.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-gray-900 text-xs font-semibold truncate leading-tight dark:text-white">
+                                    <p className="text-stone-900 text-xs font-semibold truncate leading-tight">
                                         {profile?.full_name || profile?.username || user.email?.split('@')[0]}
                                     </p>
-                                    <p className="text-gray-400 text-[10px] truncate dark:text-gray-500">
+                                    <p className="text-stone-400 text-[10px] truncate">
                                         {profile?.username ? `@${profile.username}` : user.email?.split('@')[0]}
                                     </p>
                                 </div>
@@ -361,14 +361,14 @@ export default function Sidebar() {
                             <Link
                                 href="/settings"
                                 onClick={(e) => handleNavClick(e, '/settings')}
-                                className="group flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
+                                className="group flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-stone-500 hover:text-stone-950 hover:bg-white transition-all rounded-xl"
                             >
                                 <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Settings
                             </Link>
                             <button
                                 onClick={() => signOut()}
-                                className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
+                                className="group w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-stone-500 hover:text-stone-950 hover:bg-white transition-all rounded-xl"
                             >
                                 <LogOut className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Sign out
@@ -378,7 +378,7 @@ export default function Sidebar() {
                 ) : !loading ? (
                     collapsed ? (
                         <div className="flex flex-col items-center gap-1.5 px-1">
-                            <Link href="/login" onClick={(e) => handleNavClick(e, '/login', true)} title="Log in" className="flex items-center justify-center w-full py-2 border border-gray-200 hover:border-gray-400 text-gray-500 hover:text-gray-900 transition-all rounded-[3px]">
+                            <Link href="/login" onClick={(e) => handleNavClick(e, '/login', true)} title="Log in" className="flex items-center justify-center w-full py-2.5 border border-[var(--border-color)] hover:border-amber-300 bg-white text-stone-500 hover:text-stone-900 transition-all rounded-xl">
                                 <LogOut className="h-4 w-4 rotate-180" strokeWidth={1.5} />
                             </Link>
                         </div>
@@ -387,14 +387,14 @@ export default function Sidebar() {
                             <Link
                                 href="/login"
                                 onClick={(e) => handleNavClick(e, '/login', true)}
-                                className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 transition-all rounded-[3px] dark:text-gray-300 dark:hover:text-white dark:border-zinc-800 dark:hover:border-zinc-600"
+                                className="flex items-center justify-between w-full px-3 py-3 text-sm font-semibold text-stone-700 hover:text-stone-900 border border-[var(--border-color)] bg-white hover:border-amber-300 transition-all rounded-xl"
                             >
                                 Log in <ChevronRight className="h-3.5 w-3.5 opacity-50" />
                             </Link>
                             <Link
                                 href="/signup"
                                 onClick={(e) => handleNavClick(e, '/signup', true)}
-                                className="flex items-center justify-center w-full px-3 py-2.5 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-[3px]"
+                                className="flex items-center justify-center w-full px-3 py-3 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 transition-colors rounded-xl shadow-[0_18px_30px_-20px_rgba(217,119,6,0.85)]"
                             >
                                 Sign up
                             </Link>

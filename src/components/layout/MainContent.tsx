@@ -8,7 +8,7 @@ export default function MainContent({ children }: { children: React.ReactNode })
     const pathname = usePathname();
     const isAuth = AUTH_ROUTES.includes(pathname);
     return (
-        <div className={isAuth ? '' : 'sidebar-offset'}>
+        <div className={isAuth ? 'relative' : 'sidebar-offset relative'}>
             {children}
         </div>
     );

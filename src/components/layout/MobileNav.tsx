@@ -82,11 +82,11 @@ export default function MobileNav() {
     return (
         <>
             {/* Mobile top header with logo */}
-            <header className="sm:hidden fixed top-0 left-0 right-0 z-40 bg-[var(--surface)] border-b border-[var(--border-color)] h-14 flex items-center justify-between px-4">
+            <header className="sm:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4 border-b border-white/60 bg-white/82 backdrop-blur-2xl shadow-[0_16px_40px_-32px_rgba(68,44,13,0.45)]">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setMenuOpen(true)}
-                        className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)]"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-muted)] text-stone-500 transition-colors hover:text-[var(--foreground)]"
                         aria-label="Open navigation menu"
                     >
                         <Menu className="h-4 w-4" />
@@ -125,11 +125,11 @@ export default function MobileNav() {
 
                 <aside
                     className={cn(
-                        'absolute inset-y-0 left-0 flex w-[84vw] max-w-[320px] flex-col border-r border-[var(--border-color)] bg-[var(--surface)] shadow-2xl transition-transform duration-200',
+                        'absolute inset-y-0 left-0 flex w-[84vw] max-w-[320px] flex-col border-r border-white/60 bg-white/92 backdrop-blur-2xl shadow-[0_24px_70px_-28px_rgba(68,44,13,0.42)] transition-transform duration-200',
                         menuOpen ? 'translate-x-0' : '-translate-x-full'
                     )}
                 >
-                    <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-4">
+                    <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-4 bg-white/55">
                         <Link href="/" onClick={(e) => {
                             handleLogoClick(e);
                             handleNavClick(e, '/', true);
@@ -144,7 +144,7 @@ export default function MobileNav() {
                         </Link>
                         <button
                             onClick={() => setMenuOpen(false)}
-                            className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-color)] bg-[var(--surface-muted)] text-gray-500 transition-colors hover:text-[var(--foreground)]"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-muted)] text-stone-500 transition-colors hover:text-[var(--foreground)]"
                             aria-label="Close navigation menu"
                         >
                             <X className="h-4 w-4" />
@@ -167,10 +167,10 @@ export default function MobileNav() {
                                             href={item.href}
                                             onClick={(e) => handleNavClick(e, item.href, item.exact)}
                                             className={cn(
-                                                'flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium transition-colors',
+                                                'flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-semibold transition-colors',
                                                 isActive
-                                                    ? 'bg-amber-50 text-black'
-                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-black'
+                                                    ? 'bg-gradient-to-r from-amber-100 via-amber-50 to-white text-black shadow-[0_12px_28px_-22px_rgba(217,119,6,0.85)]'
+                                                    : 'text-stone-700 hover:bg-white hover:text-black'
                                             )}
                                         >
                                             <Icon
@@ -192,7 +192,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/auctions/create"
                                     onClick={(e) => handleNavClick(e, '/auctions/create')}
-                                    className="flex items-center justify-center gap-2 rounded-[3px] bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300"
+                                    className="flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300 shadow-[0_18px_28px_-20px_rgba(217,119,6,0.85)]"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Create Listing
@@ -205,8 +205,8 @@ export default function MobileNav() {
                     <div className="border-t border-[var(--border-color)] p-3">
                         {!loading && user ? (
                             <div className="space-y-1">
-                                <div className="mb-2 flex items-center gap-3 rounded-[3px] bg-[var(--surface-muted)] px-3 py-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-[3px] bg-amber-400 text-sm font-black text-black">
+                                <div className="mb-2 flex items-center gap-3 rounded-2xl border border-white/60 bg-[var(--surface-muted)] px-3 py-3 shadow-sm">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-sm font-black text-black">
                                         {profile?.full_name?.split(' ').map((part) => part[0]).join('').toUpperCase().slice(0, 2) ||
                                             profile?.username?.[0]?.toUpperCase() ||
                                             user.email?.[0]?.toUpperCase() ||
@@ -223,7 +223,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/profile"
                                     onClick={(e) => handleNavClick(e, '/profile')}
-                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
+                                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-stone-700 transition-colors hover:bg-white hover:text-black"
                                 >
                                     <User className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Profile
@@ -231,7 +231,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/settings"
                                     onClick={(e) => handleNavClick(e, '/settings')}
-                                    className="flex items-center gap-3 rounded-[3px] px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
+                                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-stone-700 transition-colors hover:bg-white hover:text-black"
                                 >
                                     <Settings className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Settings
@@ -241,7 +241,7 @@ export default function MobileNav() {
                                         setMenuOpen(false);
                                         void signOut();
                                     }}
-                                    className="flex w-full items-center gap-3 rounded-[3px] px-3 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-stone-700 transition-colors hover:bg-white hover:text-black"
                                 >
                                     <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Sign out
@@ -252,7 +252,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/login"
                                     onClick={(e) => handleNavClick(e, '/login', true)}
-                                    className="flex items-center justify-between rounded-[3px] border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-black"
+                                    className="flex items-center justify-between rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm font-semibold text-stone-700 transition-colors hover:border-amber-300 hover:text-black"
                                 >
                                     Log in
                                     <ChevronRight className="h-4 w-4 opacity-60" />
@@ -260,7 +260,7 @@ export default function MobileNav() {
                                 <Link
                                     href="/signup"
                                     onClick={(e) => handleNavClick(e, '/signup', true)}
-                                    className="flex items-center justify-center rounded-[3px] bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300"
+                                    className="flex items-center justify-center rounded-xl bg-amber-400 px-3 py-3 text-sm font-black text-black transition-colors hover:bg-amber-300 shadow-[0_18px_28px_-20px_rgba(217,119,6,0.85)]"
                                 >
                                     Sign up
                                 </Link>
@@ -271,8 +271,8 @@ export default function MobileNav() {
             </div>
 
             {/* Mobile bottom tab bar */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface)] border-t border-[var(--border-color)] sm:hidden">
-                <div className="flex items-center justify-around h-16 px-2">
+            <nav className="fixed bottom-3 left-3 right-3 z-40 sm:hidden">
+                <div className="flex items-center justify-around h-16 px-2 rounded-[1.75rem] border border-white/60 bg-white/88 backdrop-blur-2xl shadow-[0_24px_50px_-28px_rgba(68,44,13,0.45)]">
                     {tabs.map((tab) => {
                         if (tab.href === '/auctions/create' && !profile?.is_admin) return null;
 
@@ -288,7 +288,7 @@ export default function MobileNav() {
                                 className={cn(
                                     'flex flex-col items-center gap-1 px-3 py-1 transition-colors',
                                     tab.highlighted
-                                        ? 'bg-black p-3 -mt-5 text-white shadow-lg'
+                                        ? 'bg-black p-3 -mt-5 text-white shadow-[0_20px_30px_-18px_rgba(0,0,0,0.75)] rounded-2xl'
                                         : isActive
                                             ? 'text-black'
                                             : 'text-gray-400 hover:text-gray-700'
