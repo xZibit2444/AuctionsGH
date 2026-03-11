@@ -178,7 +178,6 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                             <div className="flex flex-wrap items-center gap-3">
                                 <ShareButton
                                     title={`${profileName} Profile`}
-                                    text={`View ${profileName}'s public profile on AuctionsGH.`}
                                     url={`/users/${profile.id}`}
                                 />
                                 {isSeller && (

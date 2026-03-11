@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 
 interface ShareButtonProps {
     title: string;
-    text?: string;
     url: string;
     className?: string;
     label?: string;
@@ -15,7 +14,6 @@ interface ShareButtonProps {
 
 export default function ShareButton({
     title,
-    text,
     url,
     className,
     label = 'Share',
@@ -43,7 +41,7 @@ export default function ShareButton({
 
         try {
             if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-                await navigator.share({ title, text, url: shareUrl });
+                await navigator.share({ title, url: shareUrl });
                 flashLabel('Shared');
                 return;
             }

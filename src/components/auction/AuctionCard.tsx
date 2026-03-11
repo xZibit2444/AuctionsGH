@@ -57,7 +57,6 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                     <div className="absolute top-3 right-3 flex items-center gap-2">
                         <ShareButton
                             title={auction.title}
-                            text={`View this listing on AuctionsGH: ${auction.title}`}
                             url={`/auctions/${auction.id}`}
                             compact
                             className="bg-white"

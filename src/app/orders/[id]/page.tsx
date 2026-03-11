@@ -298,7 +298,6 @@ export default function OrderPage({ params }: OrderPageProps) {
                 <div className="flex flex-wrap items-center gap-3">
                     <ShareButton
                         title={`Order ${order.id.split('-')[0].toUpperCase()}`}
-                        text={`View this AuctionsGH order for ${order.auction?.title ?? 'your item'}.`}
                         url={`/orders/${order.id}`}
                     />
                     {isClosed && (

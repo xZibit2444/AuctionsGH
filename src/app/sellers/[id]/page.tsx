@@ -171,7 +171,6 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                             <div className="flex flex-wrap items-center gap-3">
                                 <ShareButton
                                     title={`${sellerName} Seller Profile`}
-                                    text={`View ${sellerName}'s seller profile on AuctionsGH.`}
                                     url={`/sellers/${seller.id}`}
                                 />
                                 <FavoriteSellerButton sellerId={seller.id} sellerName={sellerLabel} />

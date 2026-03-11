@@ -237,7 +237,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <div className="flex items-center gap-2">
                                 <ShareButton
                                     title={auction.title}
-                                    text={`View this listing on AuctionsGH: ${auction.title}`}
                                     url={`/auctions/${auction.id}`}
                                 />
                                 <button
@@ -360,7 +359,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <div className="flex justify-end">
                                 <ShareButton
                                     title={`${auction.title} live offers`}
-                                    text={`View the live offers for ${auction.title} on AuctionsGH.`}
                                     url={`/auctions/${auction.id}#offer-panel`}
                                 />
                             </div>
@@ -385,7 +383,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <div className="flex justify-end">
                                 <ShareButton
                                     title={`${auction.title} live offers`}
-                                    text={`View the live offers for ${auction.title} on AuctionsGH.`}
                                     url={`/auctions/${auction.id}#offer-panel`}
                                 />
                             </div>
