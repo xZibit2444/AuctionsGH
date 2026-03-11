@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveServerSiteUrl } from '@/lib/authRedirect';
 import { sendSignupVerificationEmail } from '@/lib/email/sender';
+import type { ProfileInsert } from '@/types/profile';
 import { signupSchema } from '@/lib/validators';
+
+type ProfilesUpsertQuery = {
+    upsert: (values: ProfileInsert) => Promise<{ error: { message: string } | null }>;
+};
 
 export async function POST(req: NextRequest) {
     try {
@@ -83,15 +88,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Signup failed. Please try again.' }, { status: 500 });
         }
 
-        const { error: profileUpsertError } = await supabase
-            .from('profiles')
+        const profilesQuery = supabase.from('profiles') as unknown as ProfilesUpsertQuery;
+
+        const { error: profileUpsertError } = await profilesQuery
             .upsert({
                 id: data.user.id,
                 username: normalizedUsername,
                 full_name,
                 phone_number,
                 location,
-            });
+            } satisfies ProfileInsert);
 
         if (profileUpsertError) {
             await supabase.auth.admin.deleteUser(data.user.id);
