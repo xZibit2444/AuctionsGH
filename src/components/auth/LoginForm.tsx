@@ -6,6 +6,7 @@ import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import type { Profile } from '@/types/profile';
 
 interface LoginFormProps {
     urlError?: string;
@@ -52,7 +53,10 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
         const { data: profile } = await supabase
             .from('profiles')
             .select('is_banned')
-            .single();
+            .single() as {
+                data: Pick<Profile, 'is_banned'> | null;
+                error: unknown;
+            };
 
         if (profile?.is_banned) {
             await supabase.auth.signOut();

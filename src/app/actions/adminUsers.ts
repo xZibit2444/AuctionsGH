@@ -2,6 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Profile } from '@/types/profile';
 
 const admin = createAdminClient();
 
@@ -18,7 +19,10 @@ export async function banUserAction(
         .from('profiles')
         .select('is_super_admin')
         .eq('id', user.id)
-        .maybeSingle();
+        .maybeSingle() as {
+            data: Pick<Profile, 'is_super_admin'> | null;
+            error: unknown;
+        };
 
     if (!callerProfile?.is_super_admin) {
         return { success: false, error: 'Forbidden' };
@@ -32,7 +36,10 @@ export async function banUserAction(
         .from('profiles')
         .select('id, is_super_admin, is_banned')
         .eq('id', userId)
-        .maybeSingle();
+        .maybeSingle() as {
+            data: Pick<Profile, 'id' | 'is_super_admin' | 'is_banned'> | null;
+            error: unknown;
+        };
 
     if (targetError || !targetProfile) {
         return { success: false, error: 'User not found' };
@@ -46,15 +53,21 @@ export async function banUserAction(
         return { success: false, error: 'This user is already banned' };
     }
 
-    const { error } = await admin
-        .from('profiles')
-        .update({
-            is_banned: true,
-            banned_at: new Date().toISOString(),
-            banned_reason: reason?.trim() || null,
-            banned_by: user.id,
-            updated_at: new Date().toISOString(),
+    const updates: Partial<Profile> = {
+        is_banned: true,
+        banned_at: new Date().toISOString(),
+        banned_reason: reason?.trim() || null,
+        banned_by: user.id,
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await ((admin
+        .from('profiles')) as unknown as {
+            update: (values: Partial<Profile>) => {
+                eq: (column: 'id', value: string) => Promise<{ error: { message: string } | null }>;
+            };
         })
+        .update(updates)
         .eq('id', userId);
 
     if (error) return { success: false, error: error.message };

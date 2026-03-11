@@ -2,8 +2,11 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Profile } from '@/types/profile';
+import type { Auction } from '@/types/auction';
 
 const supabaseAdmin = createAdminClient();
+type OrderStatusRow = { status: string };
 
 export async function deleteAuctionAction(
     auctionId: string
@@ -16,7 +19,10 @@ export async function deleteAuctionAction(
         .from('profiles')
         .select('is_super_admin')
         .eq('id', user.id)
-        .maybeSingle();
+        .maybeSingle() as {
+            data: Pick<Profile, 'is_super_admin'> | null;
+            error: unknown;
+        };
 
     const isSuperAdmin = callerProfile?.is_super_admin === true;
 
@@ -25,7 +31,10 @@ export async function deleteAuctionAction(
         .from('auctions')
         .select('id, seller_id, status, bid_count')
         .eq('id', auctionId)
-        .single();
+        .single() as {
+            data: Pick<Auction, 'id' | 'seller_id' | 'status' | 'bid_count'> | null;
+            error: unknown;
+        };
 
     if (fetchError || !auction) return { success: false, error: 'Auction not found' };
     const isOwner = auction.seller_id === user.id;
@@ -51,7 +60,10 @@ export async function deleteAuctionAction(
         .eq('auction_id', auctionId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as {
+            data: OrderStatusRow | null;
+            error: unknown;
+        };
 
     const dealCompleted = latestOrder
         && (latestOrder.status === 'delivered' || latestOrder.status === 'completed' || latestOrder.status === 'pin_verified');
