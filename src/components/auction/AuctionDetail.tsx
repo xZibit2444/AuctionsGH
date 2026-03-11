@@ -48,7 +48,7 @@ type AuctionDetailData = {
 export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const { auction, loading, setAuction } = useAuction(auctionId);
     const { bids, setBids, loading: bidsLoading } = useBids(auctionId);
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const { savedIds, toggleSave } = useSavedAuctions();
     const [selectedImage, setSelectedImage] = useState(0);
     const [savePending, setSavePending] = useState(false);
@@ -160,6 +160,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
     const canSellerDelete = !hasAcceptedOffer
         && (auction.status !== 'sold' || completedDeal);
+    const canDelete = isSeller ? canSellerDelete : profile?.is_super_admin === true;
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
     const sellerDisplayName = auctionData.profiles?.full_name?.trim()
@@ -398,7 +399,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     )}
 
                     {/* Delete / take down button */}
-                    {isSeller && canSellerDelete && (
+                    {canDelete && (
                         <div className="flex justify-end mt-2">
                             <button
                                 onClick={handleDelete}

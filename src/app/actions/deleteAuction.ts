@@ -38,13 +38,12 @@ export async function deleteAuctionAction(
 
     if (fetchError || !auction) return { success: false, error: 'Auction not found' };
     const isOwner = auction.seller_id === user.id;
-    const canSuperAdminDeleteLive = isSuperAdmin && auction.status === 'active';
 
-    if (!isOwner && !canSuperAdminDeleteLive) {
+    if (!isOwner && !isSuperAdmin) {
         return { success: false, error: 'Not allowed to delete this auction' };
     }
 
-    if (canSuperAdminDeleteLive) {
+    if (isSuperAdmin) {
         const { error } = await supabaseAdmin
             .from('auctions')
             .delete()

@@ -166,13 +166,13 @@ export default function ListingTable({
                         const canSellerDelete = (auction.status !== 'sold' || (auction.status === 'sold' && isCompletedDeal(order)))
                             && !activeAcceptedOffer;
                         const canDelete = adminMode
-                            ? isSuperAdmin && auction.status === 'active'
-                            : canSellerDelete;
+                            ? isSuperAdmin
+                            : (isSuperAdmin || canSellerDelete);
                         const deleteTitle = adminMode
-                            ? 'Remove live listing'
+                            ? 'Remove listing'
                             : (auction.status === 'sold' ? 'Take down listing' : 'Delete listing');
                         const deleteLabel = adminMode
-                            ? 'Remove live'
+                            ? 'Remove'
                             : (auction.status === 'sold' ? 'Take down' : 'Delete');
 
                         return (
