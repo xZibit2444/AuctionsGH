@@ -60,6 +60,7 @@ export default function ListingTable({
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const [renderTimestamp] = useState(() => Date.now());
 
     const effectiveStatus = adminMode ? (status === 'all' ? 'active' : status) : status;
@@ -77,10 +78,13 @@ export default function ListingTable({
     const isSuperAdmin = profile?.is_super_admin === true;
 
     const handleDelete = async (auctionId: string) => {
+        setDeleteError(null);
         setDeletingId(auctionId);
         const result = await deleteAuctionAction(auctionId);
         if (result.success) {
             setDeletedIds((prev) => new Set(prev).add(auctionId));
+        } else {
+            setDeleteError(result.error ?? 'Could not delete this listing.');
         }
         setDeletingId(null);
         setDeleteConfirmId(null);
@@ -130,6 +134,11 @@ export default function ListingTable({
 
     return (
         <div className="overflow-x-auto">
+            {deleteError && (
+                <div className="border-b border-red-200 bg-red-50 px-5 py-3 text-sm text-red-700">
+                    {deleteError}
+                </div>
+            )}
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-gray-200">

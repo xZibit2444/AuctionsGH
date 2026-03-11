@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -65,11 +66,15 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_banned')
         .eq('id', user.id)
         .maybeSingle();
+
+    if (profileError && !isMissingBanColumnError(profileError)) {
+        throw profileError;
+    }
 
     if (profile?.is_banned) {
         const url = request.nextUrl.clone();

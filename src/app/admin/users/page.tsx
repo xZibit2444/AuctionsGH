@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 import { createClient } from '@/lib/supabase/client';
 import { banUserAction } from '@/app/actions/adminUsers';
+import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 import { Ban, Search, ShieldCheck, User as UserIcon } from 'lucide-react';
 
 interface AdminUser {
@@ -40,7 +41,11 @@ function UsersContent() {
             .order('created_at', { ascending: false });
 
         if (fetchError) {
-            setError(fetchError.message);
+            setError(
+                isMissingBanColumnError(fetchError)
+                    ? 'Ban columns are not in your database yet. Run migration 041_user_bans.sql first.'
+                    : fetchError.message
+            );
             setUsers([]);
         } else {
             setUsers((data as AdminUser[]) ?? []);

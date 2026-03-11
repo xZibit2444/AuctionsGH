@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Profile } from '@/types/profile';
+import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 
 const admin = createAdminClient();
 
@@ -42,6 +43,9 @@ export async function banUserAction(
         };
 
     if (targetError || !targetProfile) {
+        if (isMissingBanColumnError(targetError)) {
+            return { success: false, error: 'Ban columns are missing in the database. Run migration 041_user_bans.sql first.' };
+        }
         return { success: false, error: 'User not found' };
     }
 
@@ -70,7 +74,12 @@ export async function banUserAction(
         .update(updates)
         .eq('id', userId);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+        if (isMissingBanColumnError(error)) {
+            return { success: false, error: 'Ban columns are missing in the database. Run migration 041_user_bans.sql first.' };
+        }
+        return { success: false, error: error.message };
+    }
 
     return { success: true };
 }

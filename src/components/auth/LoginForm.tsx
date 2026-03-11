@@ -7,6 +7,7 @@ import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import type { Profile } from '@/types/profile';
+import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 
 interface LoginFormProps {
     urlError?: string;
@@ -50,13 +51,19 @@ export default function LoginForm({ urlError, redirectTo = '/', verified }: Logi
             return;
         }
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('is_banned')
             .single() as {
                 data: Pick<Profile, 'is_banned'> | null;
                 error: unknown;
             };
+
+        if (profileError && !isMissingBanColumnError(profileError)) {
+            setError('Could not verify account status. Please try again.');
+            setLoading(null);
+            return;
+        }
 
         if (profile?.is_banned) {
             await supabase.auth.signOut();
