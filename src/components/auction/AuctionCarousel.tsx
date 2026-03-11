@@ -55,22 +55,21 @@ export default function AuctionCarousel({
 
     return (
         <section>
-            {/* Section header */}
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-gray-100 pb-3 dark:border-zinc-800">
                 <h2 className="flex items-center gap-2.5 text-base font-black uppercase tracking-wide text-gray-900 dark:text-white">
                     {icon && (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-gray-100 ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-900">
                             {icon}
                         </span>
                     )}
                     {title}
                 </h2>
-                <div className="flex items-center gap-2">
-                    <div className="hidden items-center rounded-full border border-gray-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:flex">
+                <div className="flex items-center gap-1">
+                    <div className="hidden items-center sm:flex">
                         <button
                             onClick={() => scroll('left')}
                             disabled={!canScrollLeft}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-all hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-35 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                            className="flex h-8 w-8 items-center justify-center text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-25 dark:text-gray-500 dark:hover:text-white"
                             aria-label="Scroll left"
                         >
                             <ChevronLeft className="h-4 w-4" />
@@ -78,33 +77,23 @@ export default function AuctionCarousel({
                         <button
                             onClick={() => scroll('right')}
                             disabled={!canScrollRight}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-all hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-35 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white"
+                            className="flex h-8 w-8 items-center justify-center text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-25 dark:text-gray-500 dark:hover:text-white"
                             aria-label="Scroll right"
                         >
                             <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>
-
-                    <Link
-                        href={viewAllHref}
-                        className="flex items-center gap-1 text-xs font-bold text-gray-400 transition-colors hover:text-gray-900 dark:text-gray-500 dark:hover:text-white"
-                    >
-                        View all <ChevronRight className="h-3.5 w-3.5" />
-                    </Link>
                 </div>
             </div>
 
             <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-12 bg-gradient-to-r from-white via-white/85 to-transparent dark:from-black dark:via-black/80 sm:block" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-12 bg-gradient-to-l from-white via-white/85 to-transparent dark:from-black dark:via-black/80 sm:block" />
-
                 <button
                     onClick={() => scroll('left')}
                     disabled={!canScrollLeft}
-                    className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-lg shadow-black/10 backdrop-blur transition-all hover:scale-[1.02] hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-0 sm:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-gray-200 dark:hover:border-zinc-700 dark:hover:text-white"
+                    className="absolute left-0 top-1/2 z-20 flex h-10 w-8 -translate-y-1/2 items-center justify-center text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-0 sm:hidden dark:text-gray-500 dark:hover:text-white"
                     aria-label="Scroll left"
                 >
-                    <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-4 w-4" />
                 </button>
 
                 <div
@@ -128,11 +117,21 @@ export default function AuctionCarousel({
                 <button
                     onClick={() => scroll('right')}
                     disabled={!canScrollRight}
-                    className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-lg shadow-black/10 backdrop-blur transition-all hover:scale-[1.02] hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-0 sm:hidden dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-gray-200 dark:hover:border-zinc-700 dark:hover:text-white"
+                    className="absolute right-0 top-1/2 z-20 flex h-10 w-8 -translate-y-1/2 items-center justify-center text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-0 sm:hidden dark:text-gray-500 dark:hover:text-white"
                     aria-label="Scroll right"
                 >
                     <ChevronRight className="h-4 w-4" />
                 </button>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+                <Link
+                    href={viewAllHref}
+                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:text-gray-900 dark:border-zinc-800 dark:text-gray-200 dark:hover:border-zinc-700 dark:hover:text-white"
+                >
+                    Browse more
+                    <ChevronRight className="h-4 w-4" />
+                </Link>
             </div>
         </section>
     );
