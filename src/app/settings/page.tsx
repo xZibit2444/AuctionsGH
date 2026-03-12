@@ -313,6 +313,7 @@ export default function SettingsPage() {
     const handleProfileSave = async () => {
         if (!user) return;
         setProfileError('');
+        const normalizedUsername = profileForm.username.trim().toLowerCase();
 
         // Validate required fields
         if (!profileForm.phone_number || profileForm.phone_number.trim() === '') {
@@ -330,7 +331,7 @@ export default function SettingsPage() {
             const { error } = await (supabase.from('profiles') as any)
                 .update({
                     full_name: profileForm.full_name,
-                    username: profileForm.username,
+                    username: normalizedUsername,
                     phone_number: profileForm.phone_number,
                     location: profileForm.location,
                     avatar_url: avatarUrl || null,
@@ -347,6 +348,7 @@ export default function SettingsPage() {
                 }
                 return;
             }
+            setProfileForm((current) => ({ ...current, username: normalizedUsername }));
             setProfileSaved(true);
             router.refresh();
             setEditing(false);
