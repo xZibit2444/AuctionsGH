@@ -77,7 +77,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
                 {/* Content */}
                 <div className="p-4 space-y-3">
-                    <h3 className="font-bold text-black text-sm leading-snug line-clamp-1">
+                    <h3 className="font-bold text-black text-sm leading-snug line-clamp-2 min-h-[2.75rem]">
                         {auction.title}
                     </h3>
 
