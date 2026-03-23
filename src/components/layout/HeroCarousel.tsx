@@ -40,15 +40,15 @@ export default function HeroCarousel({
                     </div>
 
                     <h1 className="text-[1.55rem] font-extrabold leading-tight tracking-tight text-white sm:text-[2.15rem] lg:text-[2.8rem]">
-                        Buy &amp; sell phones, laptops
+                        Buy &amp; sell anything from tech to home goods
                         <br className="hidden sm:block" />
-                        and resale finds
+                        and everyday resale finds
                         <span className="text-amber-400"> in Accra.</span>
                     </h1>
 
                     <p className="mt-2.5 max-w-md text-[13px] leading-6 text-white/60 sm:text-sm sm:leading-6">
-                        Sellers are vetted before listing. Buyers bid live.
-                        Meet up, inspect, then pay — no surprises.
+                        Sellers are vetted before listing. Buyers bid live on electronics, fashion,
+                        furniture, collectibles, and more. Meet up, inspect, then pay safely in person.
                     </p>
 
                     {/* CTAs */}
