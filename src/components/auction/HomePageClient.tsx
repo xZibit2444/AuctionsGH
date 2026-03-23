@@ -7,8 +7,6 @@ import AuctionGrid from '@/components/auction/AuctionGrid';
 import AuctionCarousel from '@/components/auction/AuctionCarousel';
 import AuctionFilters from '@/components/auction/AuctionFilters';
 import CategoryBar from '@/components/layout/CategoryBar';
-import HeroCarousel from '@/components/layout/HeroCarousel';
-import { formatCurrency } from '@/lib/utils';
 
 export default function HomePageClient() {
     const [search, setSearch] = useState('');
@@ -36,7 +34,6 @@ export default function HomePageClient() {
     const topBids = useMemo(() =>
         [...auctions].sort((a, b) => b.current_price - a.current_price).slice(0, 20),
     [auctions]);
-    const topBidLabel = topBids[0] ? formatCurrency(topBids[0].current_price) : 'GH₵0.00';
 
     const isFiltering = search !== '' || brand !== 'All' || condition !== 'All';
 
@@ -47,12 +44,6 @@ export default function HomePageClient() {
                     {error}
                 </div>
             )}
-
-            <HeroCarousel
-                activeCount={auctions.length}
-                endingSoonCount={endingSoon.length}
-                topBidLabel={topBidLabel}
-            />
 
             <CategoryBar selected={brand} onSelect={setBrand} />
 
