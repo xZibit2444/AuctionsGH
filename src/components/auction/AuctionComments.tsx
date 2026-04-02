@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { sendAuctionCommentAction } from '@/app/actions/comments';
+import { deleteAuctionCommentAction } from '@/app/actions/moderation';
 import Avatar from '@/components/ui/Avatar';
+import { useAuth } from '@/hooks/useAuth';
 import { formatFirstNameLastInitial } from '@/lib/utils';
-import { Loader2, MessageSquare, Send } from 'lucide-react';
+import { Loader2, MessageSquare, Send, Trash2 } from 'lucide-react';
 
 interface AuctionComment {
     id: string;
@@ -30,12 +32,15 @@ interface AuctionCommentsProps {
 
 export default function AuctionComments({ auctionId, currentUserId }: AuctionCommentsProps) {
     const router = useRouter();
+    const { profile } = useAuth();
     const bottomRef = useRef<HTMLDivElement>(null);
     const [comments, setComments] = useState<AuctionComment[]>([]);
     const [body, setBody] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const canModerate = profile?.is_super_admin === true;
 
     useEffect(() => {
         const supabase = createClient();
@@ -147,6 +152,21 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
         setSending(false);
     };
 
+    const handleDelete = async (commentId: string) => {
+        if (deletingId) return;
+
+        setDeletingId(commentId);
+        const result = await deleteAuctionCommentAction(commentId);
+        setDeletingId(null);
+
+        if (!result.success) {
+            setError(result.error ?? 'Failed to delete comment.');
+            return;
+        }
+
+        setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+    };
+
     return (
         <div id="comments" className="border border-gray-200 bg-white mt-4">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
@@ -170,6 +190,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                         {comments.map((comment) => {
                             const name = formatFirstNameLastInitial(comment.profile?.full_name ?? comment.profile?.username);
                             const isMine = comment.user_id === currentUserId;
+                            const isDeleting = deletingId === comment.id;
 
                             return (
                                 <div key={comment.id} className="flex items-start gap-3">
@@ -212,6 +233,17 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                                                         minute: '2-digit',
                                                     })}
                                             </p>
+                                            {canModerate && !comment.id.startsWith('opt-') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(comment.id)}
+                                                    disabled={isDeleting}
+                                                    className="inline-flex items-center gap-1 border border-red-200 bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                                >
+                                                    {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                                                    Delete
+                                                </button>
+                                            )}
                                         </div>
                                         <div className="mt-1 border border-gray-200 bg-white px-3 py-2.5">
                                             <p className="text-sm text-black whitespace-pre-wrap break-words">{comment.body}</p>

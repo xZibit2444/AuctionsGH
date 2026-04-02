@@ -6,6 +6,7 @@ import Avatar from '@/components/ui/Avatar';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
+import ReviewsList from '@/components/profile/ReviewsList';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
@@ -297,37 +298,10 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
 
                     <section className="border border-gray-200 bg-white p-5">
                         <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Buyer Reviews</h2>
-                        {reviews.length === 0 ? (
-                            <p className="text-sm text-gray-500">Reviews will appear here after completed orders.</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {reviews.map((review) => {
-                                    const reviewerName = review.reviewer?.full_name || review.reviewer?.username || 'Buyer';
-                                    return (
-                                        <div key={review.id} className="border border-gray-100 bg-gray-50 p-4">
-                                            <div className="flex items-center justify-between gap-3 mb-2">
-                                                <div>
-                                                    {review.reviewer?.id ? (
-                                                        <Link href={`/users/${review.reviewer.id}`} className="text-sm font-bold text-black hover:underline underline-offset-2">
-                                                            {reviewerName}
-                                                        </Link>
-                                                    ) : (
-                                                        <p className="text-sm font-bold text-black">{reviewerName}</p>
-                                                    )}
-                                                    <p className="text-xs text-gray-400">{timeAgo(review.created_at)}</p>
-                                                </div>
-                                                <div className="flex items-center gap-1 text-amber-500 shrink-0">
-                                                    {Array.from({ length: 5 }).map((_, index) => (
-                                                        <Star key={index} className={`h-3.5 w-3.5 ${index < review.rating ? 'fill-current' : ''}`} />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-gray-600 leading-relaxed">{review.comment?.trim() || 'No written comment provided.'}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <ReviewsList
+                            reviews={reviews}
+                            emptyMessage="Reviews will appear here after completed orders."
+                        />
                     </section>
                 </aside>
             </div>
