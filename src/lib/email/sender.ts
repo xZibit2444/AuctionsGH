@@ -1,9 +1,13 @@
 import { Resend } from 'resend';
-import OutbidEmail from '@/emails/OutbidEmail';
-import AuctionWonEmail from '@/emails/AuctionWonEmail';
+import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
-import SignupVerificationEmail from '@/emails/SignupVerificationEmail';
+import AuctionWonEmail from '@/emails/AuctionWonEmail';
+import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
+import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
+import OrderConfirmedSellerEmail from '@/emails/OrderConfirmedSellerEmail';
+import OutbidEmail from '@/emails/OutbidEmail';
 import SellerApprovedEmail from '@/emails/SellerApprovedEmail';
+import SignupVerificationEmail from '@/emails/SignupVerificationEmail';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -118,6 +122,147 @@ export async function sendAuctionSoldEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending auction sold email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendAuctionEndedNoBidsEmail(
+    to: string,
+    sellerName: string,
+    auctionTitle: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Your auction ended without bids: ${auctionTitle}`,
+            react: AuctionEndedNoBidsEmail({
+                sellerName,
+                auctionTitle,
+                dashboardUrl: `${SITE_URL}/dashboard`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send no-bids email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending no-bids email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendOfferDeclinedEmail(
+    to: string,
+    buyerName: string,
+    auctionTitle: string,
+    amount: number,
+    auctionId: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Your offer was declined for ${auctionTitle}`,
+            react: OfferDeclinedEmail({
+                buyerName,
+                auctionTitle,
+                amount,
+                auctionUrl: `${SITE_URL}/auctions/${auctionId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send offer declined email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending offer declined email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendOrderConfirmedBuyerEmail(
+    to: string,
+    buyerName: string,
+    auctionTitle: string,
+    orderId: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle, orderId });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Order confirmed: ${auctionTitle}`,
+            react: OrderConfirmedBuyerEmail({
+                buyerName,
+                auctionTitle,
+                orderUrl: `${SITE_URL}/orders/${orderId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send buyer order confirmation email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending buyer order confirmation email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendOrderConfirmedSellerEmail(
+    to: string,
+    sellerName: string,
+    auctionTitle: string,
+    orderId: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle, orderId });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Buyer confirmed order: ${auctionTitle}`,
+            react: OrderConfirmedSellerEmail({
+                sellerName,
+                auctionTitle,
+                orderUrl: `${SITE_URL}/orders/${orderId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send seller order confirmation email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending seller order confirmation email:', error);
         return { success: false, error };
     }
 }

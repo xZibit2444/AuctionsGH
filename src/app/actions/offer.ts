@@ -3,7 +3,11 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
-import { sendAuctionSoldEmail, sendAuctionWonEmail } from '@/lib/email/sender';
+import {
+    sendAuctionSoldEmail,
+    sendAuctionWonEmail,
+    sendOfferDeclinedEmail,
+} from '@/lib/email/sender';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,9 +64,10 @@ export async function makeOfferAction(
         .eq('id', user.id)
         .single();
 
-    const buyerLabel = (buyerProfile as { full_name?: string | null; username?: string | null } | null)?.full_name
-        || (buyerProfile as { full_name?: string | null; username?: string | null } | null)?.username
-        || 'A buyer';
+    const buyerLabel = getDisplayName(
+        buyerProfile as { full_name?: string | null; username?: string | null } | null,
+        'A buyer'
+    );
 
     await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: auction.seller_id,
@@ -147,17 +152,9 @@ export async function respondToOfferAction(
             auction_id: offer.auction_id,
         });
 
-        const [{ data: sellerProfile }, { data: buyerProfile }, { data: sellerAuth }, { data: buyerAuth }] = await Promise.all([
-            supabaseAdmin
-                .from('profiles')
-                .select('full_name, username')
-                .eq('id', offer.seller_id)
-                .maybeSingle(),
-            supabaseAdmin
-                .from('profiles')
-                .select('full_name, username')
-                .eq('id', offer.buyer_id)
-                .maybeSingle(),
+        const [{ data: sellerProfile }, { data: buyerProfile }, sellerAuthResult, buyerAuthResult] = await Promise.all([
+            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.seller_id).maybeSingle(),
+            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
             supabaseAdmin.auth.admin.getUserById(offer.seller_id),
             supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
         ]);
@@ -171,9 +168,9 @@ export async function respondToOfferAction(
             'Buyer'
         );
 
-        if (buyerAuth.user?.email) {
+        if (buyerAuthResult.data.user?.email) {
             const buyerEmailResult = await sendAuctionWonEmail(
-                buyerAuth.user.email,
+                buyerAuthResult.data.user.email,
                 buyerName,
                 auction.title,
                 Number(offer.amount),
@@ -185,9 +182,9 @@ export async function respondToOfferAction(
             }
         }
 
-        if (sellerAuth.user?.email) {
+        if (sellerAuthResult.data.user?.email) {
             const sellerEmailResult = await sendAuctionSoldEmail(
-                sellerAuth.user.email,
+                sellerAuthResult.data.user.email,
                 sellerName,
                 auction.title,
                 Number(offer.amount),
@@ -199,11 +196,11 @@ export async function respondToOfferAction(
             }
         }
     } else {
-        const { data: auction } = await supabaseAdmin
-            .from('auctions')
-            .select('title')
-            .eq('id', offer.auction_id)
-            .single();
+        const [{ data: auction }, { data: buyerProfile }, buyerAuthResult] = await Promise.all([
+            supabaseAdmin.from('auctions').select('title').eq('id', offer.auction_id).single(),
+            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
+            supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
+        ]);
 
         await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
@@ -212,6 +209,24 @@ export async function respondToOfferAction(
             body: `The seller declined your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction?.title ?? 'this item'}".`,
             auction_id: offer.auction_id,
         });
+
+        if (buyerAuthResult.data.user?.email) {
+            const buyerName = getDisplayName(
+                buyerProfile as { full_name?: string | null; username?: string | null } | null,
+                'Buyer'
+            );
+            const declinedEmailResult = await sendOfferDeclinedEmail(
+                buyerAuthResult.data.user.email,
+                buyerName,
+                auction?.title ?? 'this item',
+                Number(offer.amount),
+                offer.auction_id
+            );
+
+            if (!declinedEmailResult.success) {
+                console.error('Failed to send offer declined email:', declinedEmailResult.error);
+            }
+        }
     }
 
     return { success: true };

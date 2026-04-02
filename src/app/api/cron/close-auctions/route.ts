@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
+import { finalizeAuction } from '@/lib/auctionFinalization';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthorizedCronRequest } from '@/lib/cronAuth';
 
-/**
- * Cron endpoint to close expired auctions.
- * Secured by CRON_SECRET header check (timing-safe).
- * Meant to be called every 1 minute by Vercel Cron or similar.
- */
 export async function GET(request: Request) {
     const auth = isAuthorizedCronRequest(request);
     if (!auth.ok) {
@@ -17,13 +13,34 @@ export async function GET(request: Request) {
     }
 
     const supabase = createAdminClient();
-
-    const { error } = await supabase.rpc('close_expired_auctions');
+    const nowIso = new Date().toISOString();
+    const { data: auctions, error } = await supabase
+        .from('auctions')
+        .select('id')
+        .eq('status', 'active')
+        .lte('ends_at', nowIso);
 
     if (error) {
         console.error('[cron]', error.message);
         return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, timestamp: new Date().toISOString() });
+    const results = await Promise.all(
+        (auctions ?? []).map(async (auction) => ({
+            id: auction.id,
+            result: await finalizeAuction(auction.id),
+        }))
+    );
+
+    const failed = results.filter((item) => !item.result.success);
+    if (failed.length > 0) {
+        console.error('[cron] finalize failures', failed);
+    }
+
+    return NextResponse.json({
+        ok: failed.length === 0,
+        processed: results.length,
+        failed: failed.length,
+        timestamp: new Date().toISOString(),
+    });
 }
