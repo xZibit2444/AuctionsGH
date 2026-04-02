@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { sendAuctionSoldEmail, sendAuctionWonEmail } from '@/lib/email/sender';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,7 +11,10 @@ const supabaseAdmin = createAdminClient(
     { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-/** Buyer sends an offer to the seller of an active auction. */
+function getDisplayName(profile: { full_name?: string | null; username?: string | null } | null, fallback: string) {
+    return profile?.full_name?.trim() || profile?.username?.trim() || fallback;
+}
+
 export async function makeOfferAction(
     auctionId: string,
     amount: number
@@ -20,7 +24,6 @@ export async function makeOfferAction(
     if (!user) return { success: false, error: 'Not authenticated' };
     if (!amount || amount <= 0) return { success: false, error: 'Invalid amount' };
 
-    // Verify auction is active and get seller info
     const { data: auction, error: auctionErr } = await supabaseAdmin
         .from('auctions')
         .select('id, title, seller_id, status')
@@ -31,7 +34,6 @@ export async function makeOfferAction(
     if (auction.status !== 'active') return { success: false, error: 'Auction is no longer active' };
     if (auction.seller_id === user.id) return { success: false, error: 'You cannot make an offer on your own auction' };
 
-    // Cancel any existing pending offer from this buyer (so the unique index doesn't block the new one)
     await supabaseAdmin
         .from('auction_offers')
         .update({ status: 'declined', updated_at: new Date().toISOString() })
@@ -39,7 +41,6 @@ export async function makeOfferAction(
         .eq('buyer_id', user.id)
         .eq('status', 'pending');
 
-    // Insert the new offer
     const { data: offer, error: insertErr } = await supabaseAdmin
         .from('auction_offers')
         .insert({
@@ -53,14 +54,15 @@ export async function makeOfferAction(
 
     if (insertErr || !offer) return { success: false, error: 'Failed to send offer. Please try again.' };
 
-    // Notify the seller
     const { data: buyerProfile } = await supabaseAdmin
         .from('profiles')
         .select('full_name, username')
         .eq('id', user.id)
         .single();
 
-    const buyerLabel = (buyerProfile as any)?.full_name || (buyerProfile as any)?.username || 'A buyer';
+    const buyerLabel = (buyerProfile as { full_name?: string | null; username?: string | null } | null)?.full_name
+        || (buyerProfile as { full_name?: string | null; username?: string | null } | null)?.username
+        || 'A buyer';
 
     await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: auction.seller_id,
@@ -73,7 +75,6 @@ export async function makeOfferAction(
     return { success: true, offerId: offer.id };
 }
 
-/** Seller responds to a pending offer with 'accepted' or 'declined'. */
 export async function respondToOfferAction(
     offerId: string,
     response: 'accepted' | 'declined'
@@ -82,7 +83,6 @@ export async function respondToOfferAction(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
 
-    // Fetch the offer
     const { data: offer, error: fetchErr } = await supabaseAdmin
         .from('auction_offers')
         .select('id, auction_id, buyer_id, seller_id, amount, status')
@@ -93,14 +93,12 @@ export async function respondToOfferAction(
     if (offer.seller_id !== user.id) return { success: false, error: 'Unauthorized' };
     if (offer.status !== 'pending') return { success: false, error: 'This offer is no longer pending' };
 
-    // Mark this offer with the response
     await supabaseAdmin
         .from('auction_offers')
         .update({ status: response, updated_at: new Date().toISOString() })
         .eq('id', offerId);
 
     if (response === 'accepted') {
-        // Fetch auction for title
         const { data: auction } = await supabaseAdmin
             .from('auctions')
             .select('title, status')
@@ -108,11 +106,9 @@ export async function respondToOfferAction(
             .single();
 
         if (!auction || auction.status !== 'active') {
-            return { success: false, error: 'Auction is no longer active — cannot accept offer' };
+            return { success: false, error: 'Auction is no longer active - cannot accept offer' };
         }
 
-        // Mark auction as sold with the offer price;
-        // ends_at=NOW() starts the buyer's 30-minute checkout window
         const now = new Date().toISOString();
         const { error: updateErr } = await supabaseAdmin
             .from('auctions')
@@ -124,11 +120,10 @@ export async function respondToOfferAction(
                 updated_at: now,
             })
             .eq('id', offer.auction_id)
-            .eq('status', 'active'); // guard: only update if still active
+            .eq('status', 'active');
 
         if (updateErr) return { success: false, error: 'Failed to finalise auction' };
 
-        // Decline all other pending offers for this auction
         await supabaseAdmin
             .from('auction_offers')
             .update({ status: 'declined', updated_at: now })
@@ -136,7 +131,6 @@ export async function respondToOfferAction(
             .eq('status', 'pending')
             .neq('id', offerId);
 
-        // Notify buyer — they can proceed to checkout
         await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
             type: 'auction_won',
@@ -145,16 +139,66 @@ export async function respondToOfferAction(
             auction_id: offer.auction_id,
         });
 
-        // Notify seller of confirmation
         await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: user.id,
             type: 'new_offer',
-            title: 'Offer Accepted — Awaiting Buyer',
+            title: 'Offer Accepted - Awaiting Buyer',
             body: `You accepted GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". The listing stays active until the order is completed.`,
             auction_id: offer.auction_id,
         });
+
+        const [{ data: sellerProfile }, { data: buyerProfile }, { data: sellerAuth }, { data: buyerAuth }] = await Promise.all([
+            supabaseAdmin
+                .from('profiles')
+                .select('full_name, username')
+                .eq('id', offer.seller_id)
+                .maybeSingle(),
+            supabaseAdmin
+                .from('profiles')
+                .select('full_name, username')
+                .eq('id', offer.buyer_id)
+                .maybeSingle(),
+            supabaseAdmin.auth.admin.getUserById(offer.seller_id),
+            supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
+        ]);
+
+        const sellerName = getDisplayName(
+            sellerProfile as { full_name?: string | null; username?: string | null } | null,
+            'Seller'
+        );
+        const buyerName = getDisplayName(
+            buyerProfile as { full_name?: string | null; username?: string | null } | null,
+            'Buyer'
+        );
+
+        if (buyerAuth.user?.email) {
+            const buyerEmailResult = await sendAuctionWonEmail(
+                buyerAuth.user.email,
+                buyerName,
+                auction.title,
+                Number(offer.amount),
+                offer.auction_id
+            );
+
+            if (!buyerEmailResult.success) {
+                console.error('Failed to send accepted-offer winner email:', buyerEmailResult.error);
+            }
+        }
+
+        if (sellerAuth.user?.email) {
+            const sellerEmailResult = await sendAuctionSoldEmail(
+                sellerAuth.user.email,
+                sellerName,
+                auction.title,
+                Number(offer.amount),
+                buyerName
+            );
+
+            if (!sellerEmailResult.success) {
+                console.error('Failed to send accepted-offer sold email:', sellerEmailResult.error);
+            }
+        }
     } else {
-        // Declined — notify buyer
         const { data: auction } = await supabaseAdmin
             .from('auctions')
             .select('title')

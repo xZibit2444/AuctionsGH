@@ -2,6 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { sendSellerApprovedEmail } from '@/lib/email/sender';
 
 function getAdminClient() {
     return createAdminClient(
@@ -24,15 +25,14 @@ export async function submitSellerApplication(data: SellerApplicationData) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
 
-    // Validate required fields
     const required: (keyof SellerApplicationData)[] = [
         'full_name', 'phone_number', 'location', 'items_to_sell', 'experience',
     ];
+
     for (const field of required) {
         if (!data[field]?.trim()) return { success: false, error: 'All fields are required.' };
     }
 
-    // Check for existing non-rejected application
     const { data: existing } = await supabase
         .from('seller_applications')
         .select('id, status')
@@ -44,6 +44,7 @@ export async function submitSellerApplication(data: SellerApplicationData) {
         if (existing.status === 'approved') {
             return { success: false, error: 'Your account is already approved as a seller.' };
         }
+
         return { success: false, error: 'You already have a pending application under review.' };
     }
 
@@ -78,9 +79,9 @@ export async function reviewSellerApplication(
 
     const { data: application, error: fetchErr } = await admin
         .from('seller_applications')
-        .select('user_id')
+        .select('user_id, full_name')
         .eq('id', applicationId)
-        .single();
+        .single() as { data: { user_id: string; full_name: string } | null; error: { message?: string } | null };
 
     if (fetchErr || !application) return { success: false, error: 'Application not found' };
 
@@ -102,7 +103,23 @@ export async function reviewSellerApplication(
             .from('profiles')
             .update({ is_admin: true, is_verified: true, updated_at: new Date().toISOString() })
             .eq('id', application.user_id);
+
         if (profileErr) return { success: false, error: profileErr.message };
+
+        const { data: authUser, error: authErr } = await admin.auth.admin.getUserById(application.user_id);
+
+        if (authErr) {
+            console.error('Failed to fetch approved seller email:', authErr);
+        } else if (authUser.user?.email) {
+            const emailResult = await sendSellerApprovedEmail(
+                authUser.user.email,
+                application.full_name
+            );
+
+            if (!emailResult.success) {
+                console.error('Failed to send seller approval email:', emailResult.error);
+            }
+        }
     }
 
     return { success: true };
