@@ -599,9 +599,9 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                         <input type="date" name="end" defaultValue={endDate} className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black" />
                     </label>
                     <label className="block">
-                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">City</span>
+                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Region</span>
                         <select name="city" defaultValue={city} className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
-                            <option value="">All cities</option>
+                            <option value="">All regions</option>
                             {cityOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                         </select>
                     </label>
@@ -685,7 +685,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                             <tr className="text-left text-[10px] font-black uppercase tracking-widest text-gray-400">
                                 <th className="pb-3 pr-4">Listing</th>
                                 <th className="pb-3 pr-4">Seller</th>
-                                <th className="pb-3 pr-4">City</th>
+                                <th className="pb-3 pr-4">Region</th>
                                 <th className="pb-3 pr-4">Engagement</th>
                                 <th className="pb-3 pr-4">Statuses</th>
                                 <th className="pb-3">Actions</th>

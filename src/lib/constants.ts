@@ -54,29 +54,6 @@ export const AUCTION_DURATIONS = [
     { label: '7 Days', hours: 168 },
 ] as const;
 
-/** Marketplace city scope for listings */
-export const LISTING_CITIES = ['Accra'] as const;
-
-/** Common meetup areas in Accra for handover/pickup */
-export const ACCRA_MEETUP_AREAS = [
-    'Accra Central',
-    'Airport Residential',
-    'East Legon',
-    'Adenta',
-    'Madina',
-    'Tema',
-    'Spintex',
-    'Dansoman',
-    'Achimota',
-    'Kasoa',
-    'Osu',
-    'Cantonments',
-    'Dzorwulu',
-    'Lapaz',
-    'Ablekuma',
-    'Other (Specify in Description)',
-] as const;
-
 /** Ghana regions for location selection */
 export const GHANA_REGIONS = [
     'Greater Accra',
@@ -88,7 +65,7 @@ export const GHANA_REGIONS = [
     'Volta',
     'Upper East',
     'Upper West',
-    'Brong Ahafo',
+    'Bono',
     'Bono East',
     'Ahafo',
     'Savannah',
@@ -96,6 +73,193 @@ export const GHANA_REGIONS = [
     'Oti',
     'Western North',
 ] as const;
+
+/** Marketplace city scope for listings. Kept for backwards compatibility. */
+export const LISTING_CITIES = ['Accra', ...GHANA_REGIONS] as const;
+
+/** Region-specific meetup areas for handover/pickup */
+export const GHANA_LOCATIONS_BY_REGION = {
+    'Accra': [
+        'Accra Central',
+        'Airport Residential',
+        'East Legon',
+        'Adenta',
+        'Madina',
+        'Tema',
+        'Spintex',
+        'Dansoman',
+        'Achimota',
+        'Kasoa',
+        'Osu',
+        'Cantonments',
+        'Dzorwulu',
+        'Lapaz',
+        'Ablekuma',
+        'Other (Specify in Description)',
+    ],
+    'Greater Accra': [
+        'Accra Central',
+        'Airport Residential',
+        'East Legon',
+        'Adenta',
+        'Madina',
+        'Tema',
+        'Spintex',
+        'Dansoman',
+        'Achimota',
+        'Kasoa',
+        'Osu',
+        'Cantonments',
+        'Dzorwulu',
+        'Lapaz',
+        'Ablekuma',
+        'Other (Specify in Description)',
+    ],
+    Ashanti: [
+        'Kumasi Central',
+        'Adum',
+        'Asokwa',
+        'Bantama',
+        'Suame',
+        'Tafo',
+        'Oforikrom',
+        'Ejisu',
+        'Bekwai',
+        'Obuasi',
+        'Konongo',
+        'Other (Specify in Description)',
+    ],
+    Western: [
+        'Takoradi',
+        'Sekondi',
+        'Tarkwa',
+        'Axim',
+        'Shama',
+        'Bogoso',
+        'Sefwi Wiawso',
+        'Agona Nkwanta',
+        'Nzema',
+        'Other (Specify in Description)',
+    ],
+    Eastern: [
+        'Koforidua',
+        'Nsawam',
+        'Akim Oda',
+        'Nkawkaw',
+        'Suhum',
+        'Somanya',
+        'Kibi',
+        'Akropong',
+        'New Abirem',
+        'Other (Specify in Description)',
+    ],
+    Central: [
+        'Cape Coast',
+        'Elmina',
+        'Mankessim',
+        'Winneba',
+        'Swedru',
+        'Apam',
+        'Dunkwa-on-Offin',
+        'Other (Specify in Description)',
+    ],
+    Northern: [
+        'Tamale',
+        'Savelugu',
+        'Yendi',
+        'Walewale',
+        'Damongo',
+        'Bole',
+        'Other (Specify in Description)',
+    ],
+    Volta: [
+        'Ho',
+        'Hohoe',
+        'Keta',
+        'Aflao',
+        'Kpando',
+        'Sogakope',
+        'Anloga',
+        'Other (Specify in Description)',
+    ],
+    'Upper East': [
+        'Bolgatanga',
+        'Navrongo',
+        'Bawku',
+        'Zebilla',
+        'Other (Specify in Description)',
+    ],
+    'Upper West': [
+        'Wa',
+        'Jirapa',
+        'Nadowli',
+        'Lawra',
+        'Tumu',
+        'Other (Specify in Description)',
+    ],
+    Bono: [
+        'Sunyani',
+        'Berekum',
+        'Goaso',
+        'Duayaw Nkwanta',
+        'Other (Specify in Description)',
+    ],
+    'Bono East': [
+        'Techiman',
+        'Nkoranza',
+        'Atebubu',
+        'Yeji',
+        'Kintampo',
+        'Other (Specify in Description)',
+    ],
+    Ahafo: [
+        'Goaso',
+        'Kenyasi',
+        'Mim',
+        'Hwidiem',
+        'Other (Specify in Description)',
+    ],
+    Savannah: [
+        'Damongo',
+        'Sawla',
+        'Buipe',
+        'Salaga',
+        'Daboya',
+        'Other (Specify in Description)',
+    ],
+    'North East': [
+        'Nalerigu',
+        'Gambaga',
+        'Walewale',
+        'Bunkpurugu',
+        'Other (Specify in Description)',
+    ],
+    Oti: [
+        'Dambai',
+        'Jasikan',
+        'Nkwanta',
+        'Krachi',
+        'Other (Specify in Description)',
+    ],
+    'Western North': [
+        'Sefwi Wiawso',
+        'Bibiani',
+        'Juaboso',
+        'Akontombra',
+        'Enchi',
+        'Other (Specify in Description)',
+    ],
+} as const;
+
+/** Backwards-compatible Accra meetup areas list. */
+export const ACCRA_MEETUP_AREAS = GHANA_LOCATIONS_BY_REGION.Accra;
+
+export function getLocationsForRegion(region: string) {
+    return (
+        GHANA_LOCATIONS_BY_REGION[region as keyof typeof GHANA_LOCATIONS_BY_REGION] ??
+        GHANA_LOCATIONS_BY_REGION['Greater Accra']
+    );
+}
 
 /** Ghana phone number regex: +233 followed by 9 digits */
 export const GHANA_PHONE_REGEX = /^\+233\d{9}$/;

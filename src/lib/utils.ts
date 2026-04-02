@@ -81,6 +81,25 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
 }
 
 /**
+ * Format a region and location for listing surfaces.
+ */
+export function formatAuctionLocation(region?: string | null, location?: string | null): string {
+    const cleanRegion = region?.trim();
+    const cleanLocation = location?.trim();
+
+    if (cleanRegion && cleanLocation) return `${cleanRegion}, ${cleanLocation}`;
+    return cleanLocation || cleanRegion || 'Location not set';
+}
+
+/**
+ * Truncate a string to a maximum length, appending an ellipsis when needed.
+ */
+export function truncate(value: string, maxLength: number): string {
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength)}…`;
+}
+
+/**
  * Format a user's name for privacy by returning their initials (e.g., "John Doe" -> "JD", "tiekujason_4dbab4" -> "TJ", "tiekuJason" -> "TJ")
  */
 export function formatDisplayName(name?: string | null): string {

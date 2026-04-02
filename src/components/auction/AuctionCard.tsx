@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatAuctionLocation } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionStatusBadge from './AuctionStatusBadge';
 import { Package, Heart } from 'lucide-react';
@@ -85,6 +85,10 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                         <span className="border border-gray-200 px-2 py-0.5">{auction.brand}</span>
                         <span className="border border-gray-200 px-2 py-0.5">{CONDITION_LABELS[auction.condition] ?? auction.condition}</span>
                     </div>
+
+                    <p className="text-xs text-gray-500">
+                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
+                    </p>
 
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
                         <div>

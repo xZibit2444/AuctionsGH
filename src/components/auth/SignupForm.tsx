@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Mail } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { buildAuthRedirectUrl } from '@/lib/authRedirect';
-import { LISTING_CITIES } from '@/lib/constants';
+import { GHANA_REGIONS } from '@/lib/constants';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
@@ -26,7 +26,7 @@ const initialValues: SignupValues = {
     username: '',
     full_name: '',
     phone_number: '+233',
-    location: LISTING_CITIES[0] ?? '',
+    location: GHANA_REGIONS[0] ?? '',
 };
 
 export default function SignupForm() {
@@ -242,7 +242,7 @@ export default function SignupForm() {
                         htmlFor="location"
                         className="block text-xs font-bold uppercase tracking-widest text-black"
                     >
-                        City
+                        Region
                     </label>
                     <select
                         id="location"
@@ -250,9 +250,9 @@ export default function SignupForm() {
                         onChange={(event) => updateValue('location', event.target.value)}
                         className="w-full border border-gray-200 bg-white px-4 py-3 text-base text-black transition-colors duration-150 focus:border-black focus:outline-none focus:ring-2 focus:ring-black sm:text-sm"
                     >
-                        {LISTING_CITIES.map((city) => (
-                            <option key={city} value={city}>
-                                {city}
+                        {GHANA_REGIONS.map((region) => (
+                            <option key={region} value={region}>
+                                {region}
                             </option>
                         ))}
                     </select>

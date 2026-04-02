@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
+import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -304,8 +304,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
                             { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },
-                            { label: 'City', value: auction.listing_city ?? 'Accra' },
-                            { label: 'Meetup Area', value: auction.meetup_area ?? 'Accra Central' },
+                            { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
+                            { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
                             { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
                             { label: 'Inspect First', value: auction.inspection_available ? 'Yes' : 'No' },
                         ].map(({ label, value }, index, items) => {
@@ -322,6 +322,10 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             );
                         })}
                     </div>
+
+                    <p className="text-sm text-gray-500">
+                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
+                    </p>
 
                     {/* Price + Countdown */}
                     <div className="border border-gray-200 p-6 space-y-4">

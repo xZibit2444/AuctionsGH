@@ -6,7 +6,7 @@ import AuthGuard from '@/components/auth/AuthGuard';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Avatar from '@/components/ui/Avatar';
-import { PROFILE_IMAGES_BUCKET } from '@/lib/constants';
+import { PROFILE_IMAGES_BUCKET, GHANA_REGIONS } from '@/lib/constants';
 import { validateImageFile } from '@/lib/validators';
 import {
     User, Bell, LogOut, Check, Eye, EyeOff,
@@ -69,7 +69,7 @@ function EditField({
 }
 
 /* ─── Select field — custom dropdown ─── */
-const CITIES = ['Accra', 'Kumasi'];
+const REGIONS = GHANA_REGIONS;
 
 function SelectField({
     label, value, onChange, hint
@@ -101,7 +101,7 @@ function SelectField({
                         {value ? (
                             <><MapPin className="h-4 w-4 text-gray-400" /><span className="font-semibold text-black">{value}</span></>
                         ) : (
-                            <span className="text-gray-400">Select city</span>
+                            <span className="text-gray-400">Select region</span>
                         )}
                     </div>
                     <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
@@ -109,22 +109,22 @@ function SelectField({
 
                 {open && (
                     <div className="absolute left-0 right-0 top-full z-50 bg-white border border-black shadow-sm -mt-px">
-                        {CITIES.map((city) => (
+                        {REGIONS.map((region) => (
                             <button
-                                key={city}
+                                key={region}
                                 type="button"
-                                onClick={() => { onChange(city); setOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-gray-50 ${value === city ? 'font-black text-black bg-gray-50' : 'font-medium text-gray-700'
+                                onClick={() => { onChange(region); setOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-gray-50 ${value === region ? 'font-black text-black bg-gray-50' : 'font-medium text-gray-700'
                                     }`}
                             >
-                                <MapPin className={`h-4 w-4 shrink-0 ${value === city ? 'text-black' : 'text-gray-300'}`} />
+                                <MapPin className={`h-4 w-4 shrink-0 ${value === region ? 'text-black' : 'text-gray-300'}`} />
                                 <div>
-                                    <p className="leading-none">{city}</p>
+                                    <p className="leading-none">{region}</p>
                                     <p className="text-[10px] text-gray-400 mt-0.5">
-                                        {city === 'Accra' ? 'Greater Accra Region' : 'Ashanti Region'}
+                                        {region}
                                     </p>
                                 </div>
-                                {value === city && <Check className="h-3.5 w-3.5 ml-auto shrink-0" />}
+                                {value === region && <Check className="h-3.5 w-3.5 ml-auto shrink-0" />}
                             </button>
                         ))}
                     </div>
@@ -321,7 +321,7 @@ export default function SettingsPage() {
             return;
         }
         if (!profileForm.location || profileForm.location.trim() === '') {
-            setProfileError('Location (city) is required.');
+            setProfileError('Location (region) is required.');
             return;
         }
 
@@ -576,7 +576,7 @@ export default function SettingsPage() {
                                                 hint="Used for buyer/seller contact"
                                             />
                                             <SelectField
-                                                label="City / Region"
+                                                label="Region"
                                                 value={profileForm.location}
                                                 onChange={(v) => setProfileForm({ ...profileForm, location: v })}
 

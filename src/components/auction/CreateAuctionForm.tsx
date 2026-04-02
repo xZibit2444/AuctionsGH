@@ -10,9 +10,10 @@ import {
     ITEM_CATEGORIES,
     CONDITION_LABELS,
     MAX_IMAGES_PER_AUCTION,
-    LISTING_CITIES,
-    ACCRA_MEETUP_AREAS,
+    GHANA_REGIONS,
+    getLocationsForRegion,
 } from '@/lib/constants';
+import { formatAuctionLocation } from '@/lib/utils';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity
 } from 'lucide-react';
@@ -68,8 +69,8 @@ export default function CreateAuctionForm() {
         min_increment: 50,
         duration_hours: 72,
         duration_minutes: 0,
-        listing_city: 'Accra',
-        meetup_area: 'Accra Central',
+        listing_city: 'Greater Accra',
+        meetup_area: getLocationsForRegion('Greater Accra')[0] ?? '',
         delivery_available: true,
         inspection_available: true,
         winner_note: '',
@@ -83,9 +84,10 @@ export default function CreateAuctionForm() {
     const [isPermanent, setIsPermanent] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const locationOptions = getLocationsForRegion(formData.listing_city);
 
-    const update = (field: keyof CreateAuctionInput, value: unknown) =>
-        setFormData({ ...formData, [field]: value });
+    const update = <K extends keyof CreateAuctionInput>(field: K, value: CreateAuctionInput[K]) =>
+        setFormData((prev) => ({ ...prev, [field]: value }));
 
     const handleImageAdd = (files: FileList | File[]) => {
         const arr = Array.from(files);
@@ -368,16 +370,26 @@ export default function CreateAuctionForm() {
                     {/* Location */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <FieldLabel>City</FieldLabel>
-                            <SelectInput value={formData.listing_city} onChange={(e) => update('listing_city', e.target.value)}>
-                                {LISTING_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}
+                            <FieldLabel>Region</FieldLabel>
+                            <SelectInput
+                                value={formData.listing_city}
+                                onChange={(e) => {
+                                    const nextRegion = e.target.value;
+                                    update('listing_city', nextRegion as CreateAuctionInput['listing_city']);
+                                    update('meetup_area', (getLocationsForRegion(nextRegion)[0] ?? '') as CreateAuctionInput['meetup_area']);
+                                }}
+                            >
+                                {GHANA_REGIONS.map((region) => <option key={region} value={region}>{region}</option>)}
                             </SelectInput>
                             {errors.listing_city && <p className="text-[11px] text-red-500 mt-1">{errors.listing_city}</p>}
                         </div>
                         <div>
-                            <FieldLabel>Meetup Area</FieldLabel>
-                            <SelectInput value={formData.meetup_area} onChange={(e) => update('meetup_area', e.target.value)}>
-                                {ACCRA_MEETUP_AREAS.map((area) => <option key={area} value={area}>{area}</option>)}
+                            <FieldLabel>Location</FieldLabel>
+                            <SelectInput
+                                value={formData.meetup_area}
+                                onChange={(e) => update('meetup_area', e.target.value as CreateAuctionInput['meetup_area'])}
+                            >
+                                {locationOptions.map((area) => <option key={area} value={area}>{area}</option>)}
                             </SelectInput>
                             {errors.meetup_area && <p className="text-[11px] text-red-500 mt-1">{errors.meetup_area}</p>}
                         </div>
@@ -678,7 +690,7 @@ export default function CreateAuctionForm() {
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Location</span>
-                            <span className="font-semibold text-black">{formData.listing_city}, {formData.meetup_area}</span>
+                            <span className="font-semibold text-black">{formatAuctionLocation(formData.listing_city, formData.meetup_area)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Delivery</span>
