@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserAvailability } from '@/hooks/useUserAvailability';
 import { respondToOfferAction } from '@/app/actions/offer';
 import { formatCurrency } from '@/lib/utils';
 import { Tag, CheckCircle2, XCircle, X, Loader2 } from 'lucide-react';
 
-const OFFER_LINGER_MS = 3 * 60 * 1000; // 3 minutes
+const OFFER_LINGER_MS = 3 * 60 * 1000;
+const MAX_VISIBLE_TOASTS = 3;
 
 interface OfferToast {
-    id: string;         // offer id
+    id: string;
     auctionId: string;
     amount: number;
     buyerName: string;
@@ -22,20 +24,110 @@ interface OfferToast {
 export default function FloatingOfferToast() {
     const { user } = useAuth();
     const router = useRouter();
+    const isUserAvailable = useUserAvailability();
     const [toasts, setToasts] = useState<OfferToast[]>([]);
     const [responding, setResponding] = useState<string | null>(null);
     const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+    const pendingToastsRef = useRef<OfferToast[]>([]);
+    const flushPendingToastsRef = useRef<() => void>(() => {});
+    const dismissRef = useRef<(id: string) => void>(() => {});
 
-    const dismiss = (id: string) => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
+    const flushPendingToasts = useCallback(() => {
+        if (!isUserAvailable || pendingToastsRef.current.length === 0) return;
+
+        const toDisplay: OfferToast[] = [];
+
+        setToasts((prev) => {
+            const next = [...prev];
+            const queue = [...pendingToastsRef.current];
+
+            while (next.length < MAX_VISIBLE_TOASTS && queue.length > 0) {
+                const nextToast = queue.shift();
+                if (!nextToast || next.some((toast) => toast.id === nextToast.id)) continue;
+
+                next.push(nextToast);
+                toDisplay.push(nextToast);
+            }
+
+            pendingToastsRef.current = queue;
+            return next;
+        });
+
+        toDisplay.forEach((toast) => {
+            const existingTimer = timersRef.current.get(toast.id);
+            if (existingTimer) {
+                clearTimeout(existingTimer);
+            }
+
+            const timer = setTimeout(() => dismissRef.current(toast.id), OFFER_LINGER_MS);
+            timersRef.current.set(toast.id, timer);
+        });
+    }, [isUserAvailable]);
+
+    const dismiss = useCallback((id: string) => {
+        pendingToastsRef.current = pendingToastsRef.current.filter((toast) => toast.id !== id);
+
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+
         const timer = timersRef.current.get(id);
-        if (timer) { clearTimeout(timer); timersRef.current.delete(id); }
-    };
+        if (timer) {
+            clearTimeout(timer);
+            timersRef.current.delete(id);
+        }
+
+        if (isUserAvailable) {
+            setTimeout(() => flushPendingToastsRef.current(), 0);
+        }
+    }, [isUserAvailable]);
+
+    const scheduleDismiss = useCallback((id: string) => {
+        const existingTimer = timersRef.current.get(id);
+        if (existingTimer) {
+            clearTimeout(existingTimer);
+        }
+
+        const timer = setTimeout(() => dismissRef.current(id), OFFER_LINGER_MS);
+        timersRef.current.set(id, timer);
+    }, []);
+
+    const enqueueToast = useCallback((toast: OfferToast) => {
+        pendingToastsRef.current = pendingToastsRef.current.filter((item) => item.id !== toast.id);
+
+        let displayedImmediately = false;
+
+        setToasts((prev) => {
+            const deduped = prev.filter((item) => item.id !== toast.id);
+            if (isUserAvailable && deduped.length < MAX_VISIBLE_TOASTS) {
+                displayedImmediately = true;
+                return [...deduped, toast];
+            }
+
+            return deduped;
+        });
+
+        if (displayedImmediately) {
+            scheduleDismiss(toast.id);
+            return;
+        }
+
+        pendingToastsRef.current = [...pendingToastsRef.current, toast];
+    }, [isUserAvailable, scheduleDismiss]);
+
+    useEffect(() => {
+        flushPendingToastsRef.current = flushPendingToasts;
+        dismissRef.current = dismiss;
+    }, [dismiss, flushPendingToasts]);
+
+    useEffect(() => {
+        flushPendingToasts();
+    }, [flushPendingToasts]);
 
     useEffect(() => {
         if (!user) return;
+
         const supabase = createClient();
         let isMounted = true;
+        const timers = timersRef.current;
 
         const channel = supabase
             .channel(`floating-offer-toast:${user.id}`)
@@ -49,6 +141,7 @@ export default function FloatingOfferToast() {
                 },
                 async (payload) => {
                     if (!isMounted) return;
+
                     const offer = payload.new as {
                         id: string;
                         auction_id: string;
@@ -59,7 +152,6 @@ export default function FloatingOfferToast() {
 
                     if (offer.status !== 'pending') return;
 
-                    // Fetch auction title + buyer name
                     const [auctionRes, buyerRes] = await Promise.all([
                         supabase
                             .from('auctions')
@@ -75,60 +167,53 @@ export default function FloatingOfferToast() {
 
                     if (!isMounted) return;
 
-                    const auctionTitle = (auctionRes.data as any)?.title ?? 'your listing';
-                    const bp = buyerRes.data as any;
-                    const buyerName = bp
-                        ? (bp.full_name || bp.username || 'A buyer')
-                        : 'A buyer';
+                    const auctionTitle = (auctionRes.data as { title?: string } | null)?.title ?? 'your listing';
+                    const buyerProfile = buyerRes.data as { full_name?: string | null; username?: string | null } | null;
+                    const buyerName = buyerProfile?.full_name || buyerProfile?.username || 'A buyer';
 
-                    const toast: OfferToast = {
+                    enqueueToast({
                         id: offer.id,
                         auctionId: offer.auction_id,
                         amount: offer.amount,
                         buyerName,
                         auctionTitle,
                         receivedAt: Date.now(),
-                    };
-
-                    setToasts((prev) => [...prev.slice(-2), toast]);
-
-                    // Auto-dismiss after 3 minutes
-                    const timer = setTimeout(() => dismiss(toast.id), OFFER_LINGER_MS);
-                    timersRef.current.set(toast.id, timer);
+                    });
                 }
             )
             .subscribe();
 
         return () => {
             isMounted = false;
-            supabase.removeChannel(channel);
+            void supabase.removeChannel(channel);
+            timers.forEach((timer) => clearTimeout(timer));
+            timers.clear();
+            pendingToastsRef.current = [];
         };
-        // dismiss is stable (defined outside useEffect) — no need in deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
+    }, [enqueueToast, user]);
 
     const handleRespond = async (toast: OfferToast, response: 'accepted' | 'declined') => {
         setResponding(toast.id);
         const result = await respondToOfferAction(toast.id, response);
         setResponding(null);
+
         if (result.success) {
             dismiss(toast.id);
             if (response === 'accepted') {
                 router.push(`/auctions/${toast.auctionId}`);
             }
-        } else {
-            alert(result.error ?? 'Something went wrong');
+            return;
         }
+
+        alert(result.error ?? 'Something went wrong');
     };
 
-    if (toasts.length === 0) return null;
+    if (!user || toasts.length === 0) return null;
 
     return (
         <div className="fixed bottom-6 left-4 sm:left-6 z-50 flex flex-col gap-3 items-start pointer-events-none">
             {toasts.map((toast) => {
                 const isLoading = responding === toast.id;
-                const elapsed = Date.now() - toast.receivedAt;
-                const progress = Math.max(0, 1 - elapsed / OFFER_LINGER_MS);
 
                 return (
                     <div
@@ -136,13 +221,11 @@ export default function FloatingOfferToast() {
                         className="pointer-events-auto w-72 sm:w-80 bg-white border border-amber-200 shadow-2xl"
                         style={{ animation: 'slideInLeft 0.25s ease-out' }}
                     >
-                        {/* 3-minute countdown bar */}
                         <div className="h-1 bg-amber-100">
                             <OfferProgressBar durationMs={OFFER_LINGER_MS} />
                         </div>
 
                         <div className="px-4 pt-3 pb-2">
-                            {/* Header */}
                             <div className="flex items-start justify-between gap-3 mb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="h-7 w-7 bg-amber-100 flex items-center justify-center shrink-0">
@@ -166,7 +249,6 @@ export default function FloatingOfferToast() {
                                 </button>
                             </div>
 
-                            {/* Offer message */}
                             <p className="text-sm text-black font-medium leading-snug mb-3">
                                 <span className="text-gray-500">{toast.buyerName}: </span>
                                 &ldquo;Will you accept{' '}
@@ -174,7 +256,6 @@ export default function FloatingOfferToast() {
                                 for this item?&rdquo;
                             </p>
 
-                            {/* Yes / No — no other options */}
                             <div className="flex gap-2 pb-1">
                                 <button
                                     onClick={() => handleRespond(toast, 'accepted')}
@@ -212,7 +293,6 @@ export default function FloatingOfferToast() {
     );
 }
 
-/** Animates a progress bar that depletes over durationMs. */
 function OfferProgressBar({ durationMs }: { durationMs: number }) {
     return (
         <div
