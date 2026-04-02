@@ -83,7 +83,7 @@ export const createAuctionSchema = z.object({
     inspection_available: z.boolean().default(true),
     winner_note: z.string().max(500, 'Winner note cannot exceed 500 characters').optional(),
 }).superRefine((data, ctx) => {
-    const validLocations = getLocationsForRegion(data.listing_city);
+    const validLocations = getLocationsForRegion(data.listing_city) as readonly string[];
     if (!validLocations.includes(data.meetup_area)) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,

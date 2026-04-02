@@ -327,7 +327,7 @@ export default function CreateAuctionForm() {
                     <div>
                         <FieldLabel>Condition</FieldLabel>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {Object.entries(CONDITION_LABELS).map(([key, label]) => (
+                            {(Object.entries(CONDITION_LABELS) as Array<[CreateAuctionInput['condition'], string]>).map(([key, label]) => (
                                 <button
                                     key={key}
                                     type="button"
