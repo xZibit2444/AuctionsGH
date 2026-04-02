@@ -14,11 +14,15 @@ export async function GET(request: Request) {
 
     const supabase = createAdminClient();
     const nowIso = new Date().toISOString();
+    type AuctionToClose = { id: string };
+
     const { data: auctions, error } = await supabase
         .from('auctions')
         .select('id')
         .eq('status', 'active')
         .lte('ends_at', nowIso);
+
+    const auctionsToClose = (auctions ?? []) as AuctionToClose[];
 
     if (error) {
         console.error('[cron]', error.message);
@@ -26,7 +30,7 @@ export async function GET(request: Request) {
     }
 
     const results = await Promise.all(
-        (auctions ?? []).map(async (auction) => ({
+        auctionsToClose.map(async (auction) => ({
             id: auction.id,
             result: await finalizeAuction(auction.id),
         }))
