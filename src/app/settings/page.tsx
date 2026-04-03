@@ -40,7 +40,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 /* ─── Read-only field row ─── */
 function InfoRow({ label, value, placeholder }: { label: string; value: string; placeholder?: string }) {
     return (
-        <div className="flex items-start justify-between py-3.5 border-b border-gray-100 last:border-0 gap-4">
+        <div className="flex items-start justify-between py-4 border-b border-gray-100 last:border-0 gap-5">
             <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest shrink-0 pt-0.5 w-28">{label}</span>
             <span className={`text-sm font-semibold text-right flex-1 truncate ${value ? 'text-black' : 'text-gray-300'}`}>
                 {value || placeholder || '—'}
@@ -175,19 +175,19 @@ function PhoneField({
 
 function SectionIntro({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
     return (
-        <div className="px-5 sm:px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="px-6 sm:px-7 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">{eyebrow}</p>
             <h2 className="mt-2 text-lg font-black tracking-tight text-black">{title}</h2>
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+            <p className="text-sm text-gray-500 mt-1.5 max-w-2xl leading-6">{subtitle}</p>
         </div>
     );
 }
 
 function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'strong' }) {
     return (
-        <div className={`border px-4 py-4 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
+        <div className={`min-w-0 border px-4 py-4 sm:px-5 sm:py-5 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
             <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
-            <p className="mt-2 text-lg font-black tracking-tight">{value}</p>
+            <p className="mt-2 text-base sm:text-lg font-black tracking-tight break-words leading-snug">{value}</p>
         </div>
     );
 }
@@ -470,8 +470,8 @@ export default function SettingsPage() {
         <AuthGuard>
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
                 {/* Header */}
-                <div className="mb-6 sm:mb-8 border border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#f3f4f6_100%)] p-6 sm:p-8">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="mb-6 sm:mb-8 border border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#f3f4f6_100%)] p-6 sm:p-8 lg:p-10">
+                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-2xl">
                             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-400">Account Center</p>
                             <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-black">Settings</h1>
@@ -479,7 +479,7 @@ export default function SettingsPage() {
                                 Update your public profile, control notifications, and manage device access from one place.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[34rem]">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full lg:max-w-[36rem]">
                             <SummaryStat label="Profile" value={profileDisplayName} tone="strong" />
                             <SummaryStat label="Privacy" value={publicProfileSummary} />
                             <SummaryStat label="Signed In" value={user?.email ?? 'No email'} />
@@ -487,15 +487,15 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] gap-6 lg:gap-8">
                     {/* Tab Nav */}
-                    <nav className="border border-gray-200 bg-white p-3 h-fit">
-                        <div className="flex lg:flex-col gap-2 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
+                    <nav className="border border-gray-200 bg-white p-3 sm:p-4 h-fit">
+                        <div className="flex lg:flex-col gap-2.5 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
                         {tabs.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
                                 onClick={() => { setActiveTab(id); setEditing(false); }}
-                                className={`group flex items-center gap-3 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-all shrink-0 text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
+                                className={`group flex items-center gap-3 px-4 py-3.5 text-sm font-semibold whitespace-nowrap transition-all shrink-0 text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
                             >
                                 <span className={`flex h-9 w-9 items-center justify-center border ${activeTab === id ? 'border-white/20 bg-white/10' : 'border-gray-200 bg-white text-gray-400 group-hover:text-black'}`}>
                                     <Icon className="h-4 w-4" strokeWidth={1.8} />
@@ -509,7 +509,7 @@ export default function SettingsPage() {
                             </button>
                         ))}
                         </div>
-                        <div className="hidden lg:block pt-4 border-t border-gray-100 mt-4">
+                        <div className="hidden lg:block pt-5 border-t border-gray-100 mt-5">
                             <button
                                 onClick={handleSignOut}
                                 className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-left text-gray-500 hover:text-black hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
@@ -529,7 +529,7 @@ export default function SettingsPage() {
                                 {/* Section header */}
                                 <div className="flex items-start justify-between gap-4 border-b border-gray-200">
                                     <SectionIntro eyebrow="Profile" title="Public profile" subtitle="The identity and contact details buyers see across the marketplace." />
-                                    <div className="px-5 sm:px-6 py-5">
+                                    <div className="px-6 sm:px-7 py-6">
                                         <div>
                                             {!editing ? (
                                                 <button
@@ -553,7 +553,7 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Avatar identity */}
-                                <div className="px-5 sm:px-6 py-6 border-b border-gray-200 flex flex-col gap-5 md:flex-row md:items-center bg-gray-50/70">
+                                <div className="px-6 sm:px-7 py-7 border-b border-gray-200 flex flex-col gap-6 md:flex-row md:items-center bg-gray-50/70">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -567,7 +567,7 @@ export default function SettingsPage() {
                                         size="lg"
                                         className="shrink-0 ring-0"
                                     />
-                                    <div className="min-w-0 flex-1">
+                                    <div className="min-w-0 flex-1 space-y-1">
                                         <div className="flex items-center gap-1.5">
                                             <p className="text-sm font-black text-black truncate">
                                                 {profile?.full_name || profile?.username || 'No name set'}
@@ -580,7 +580,7 @@ export default function SettingsPage() {
                                         </p>
                                     </div>
                                     {editing && (
-                                        <div className="space-y-2 shrink-0">
+                                        <div className="space-y-2.5 shrink-0">
                                             <button
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
@@ -597,7 +597,7 @@ export default function SettingsPage() {
 
                                 {/* READ-ONLY view */}
                                 {!editing && (
-                                    <div className="px-5 sm:px-6 py-2">
+                                    <div className="px-6 sm:px-7 py-4">
                                         <InfoRow label="First Name" value={profile?.full_name?.split(' ')[0] ?? ''} placeholder="Not set" />
                                         <InfoRow label="Last Name" value={profile?.full_name?.split(' ').slice(1).join(' ') ?? ''} placeholder="Not set" />
                                         <InfoRow label="Username" value={profile?.username ?? ''} placeholder="Not set" />
@@ -628,8 +628,8 @@ export default function SettingsPage() {
 
                                 {/* EDIT view */}
                                 {editing && (
-                                    <div className="px-5 sm:px-6 py-6 space-y-5">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div className="px-6 sm:px-7 py-7 space-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <EditField
                                                 label="First Name"
                                                 value={firstName}
@@ -666,7 +666,7 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <PhoneField
                                                 value={profileForm.phone_number}
                                                 onChange={(v) => setProfileForm({ ...profileForm, phone_number: v })}
@@ -682,8 +682,8 @@ export default function SettingsPage() {
                                         </div>
 
                                         {visibilitySettingsAvailable ? (
-                                            <div className="space-y-3">
-                                                <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
+                                            <div className="space-y-4">
+                                                <div className="border border-gray-200 bg-gray-50 px-5 py-4 flex items-start justify-between gap-4">
                                                     <div>
                                                         <p className="text-sm font-semibold text-black">Show past sales on public profile</p>
                                                         <p className="text-xs text-gray-400 mt-0.5">
@@ -697,7 +697,7 @@ export default function SettingsPage() {
                                                 </div>
 
                                                 {!profile?.is_admin && (
-                                                    <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
+                                                    <div className="border border-gray-200 bg-gray-50 px-5 py-4 flex items-start justify-between gap-4">
                                                         <div>
                                                             <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
                                                             <p className="text-xs text-gray-400 mt-0.5">
@@ -727,7 +727,7 @@ export default function SettingsPage() {
                                             </div>
                                         )}
 
-                                        <div className="pt-1 flex flex-col sm:flex-row gap-3">
+                                        <div className="pt-2 flex flex-col sm:flex-row gap-3">
                                             <button
                                                 onClick={handleProfileSave}
                                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto"
@@ -758,7 +758,7 @@ export default function SettingsPage() {
                                         { key: 'new_message', label: 'New messages', sub: 'When a buyer or seller sends you a message' },
                                         { key: 'promotions', label: 'Promotions & tips', sub: 'Platform updates, featured listings, and seller tips' },
                                     ] as { key: keyof typeof notifSettings; label: string; sub: string }[]).map(({ key, label, sub }) => (
-                                        <div key={key} className="flex items-center justify-between px-5 sm:px-6 py-4 gap-4">
+                                        <div key={key} className="flex items-center justify-between px-6 sm:px-7 py-5 gap-5">
                                             <div className="min-w-0">
                                                 <p className="text-sm font-semibold text-black">{label}</p>
                                                 <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
@@ -767,7 +767,7 @@ export default function SettingsPage() {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="px-5 sm:px-6 py-4 border-t border-gray-200 space-y-3">
+                                <div className="px-6 sm:px-7 py-5 border-t border-gray-200 space-y-4">
                                     <p className="text-xs text-gray-400">
                                         Sent to <span className="font-semibold text-black">{user?.email}</span>
                                     </p>
@@ -791,10 +791,10 @@ export default function SettingsPage() {
                         {activeTab === 'security' && (
                             <div>
                                 <SectionIntro eyebrow="Security" title="Account access" subtitle="Review signed-in devices and keep control of where your account stays open." />
-                                <div className="px-5 sm:px-6 py-6 space-y-5">
+                                <div className="px-6 sm:px-7 py-7 space-y-6">
                                     <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
 
-                                    <div className="border-t border-gray-200 pt-5">
+                                    <div className="border-t border-gray-200 pt-6">
                                         <h3 className="text-xs font-black text-black uppercase tracking-widest mb-4">Change Password</h3>
                                         <div>
                                             <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Current Password</label>
@@ -809,7 +809,7 @@ export default function SettingsPage() {
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">New Password</label>
                                                 <div className="relative">
@@ -858,7 +858,7 @@ export default function SettingsPage() {
                                         </button>
                                     </div>
 
-                                    <div className="border-t border-gray-200 pt-5 space-y-3">
+                                    <div className="border-t border-gray-200 pt-6 space-y-4">
                                         <h3 className="text-xs font-black text-black uppercase tracking-widest">Account</h3>
                                         <div className="flex items-center justify-between py-1">
                                             <div>

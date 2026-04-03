@@ -152,13 +152,13 @@ export default function ActiveSessionsPanel({
     };
 
     return (
-        <div className="border-t border-gray-200 pt-4 space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="border-t border-gray-200 pt-6 space-y-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <p className="text-sm font-semibold text-black">Active sessions</p>
                     <p className="text-xs text-gray-400 mt-0.5">See where your account is currently signed in and remove other devices if needed.</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                     <button
                         onClick={() => void loadSessions(true)}
                         disabled={refreshing || loading || signingOutOthers || signingOutAll}
@@ -205,19 +205,19 @@ export default function ActiveSessionsPanel({
                     Loading active sessions...
                 </div>
             ) : sessions.length === 0 ? (
-                <div className="border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-500">
+                <div className="border border-gray-200 bg-gray-50 px-5 py-5 text-sm text-gray-500">
                     No active sessions were returned for this account.
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {sessions.map((session) => {
                         const parsed = parseUserAgent(session.user_agent);
                         const isCurrent = session.session_id === currentSessionId;
                         const lastSeen = session.updated_at ?? session.created_at;
 
                         return (
-                            <div key={session.session_id} className="border border-gray-200 bg-white px-4 py-4">
-                                <div className="flex items-start justify-between gap-4">
+                            <div key={session.session_id} className="border border-gray-200 bg-white px-5 py-5">
+                                <div className="flex items-start justify-between gap-5">
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="inline-flex items-center gap-2 text-sm font-semibold text-black">
@@ -241,7 +241,7 @@ export default function ActiveSessionsPanel({
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5 text-xs">
                                     <div>
                                         <p className="font-semibold text-gray-500">Signed in</p>
                                         <p className="text-black mt-1">{formatTimestamp(session.created_at)}</p>
