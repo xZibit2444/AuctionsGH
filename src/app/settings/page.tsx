@@ -11,15 +11,16 @@ import { PROFILE_IMAGES_BUCKET, GHANA_REGIONS } from '@/lib/constants';
 import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { validateImageFile } from '@/lib/validators';
 import {
-    User, Bell, LogOut, Check, Eye, EyeOff,
+    User, Bell, LogOut, Check, Eye, EyeOff, Shield,
     AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin, ImagePlus, Loader2
 } from 'lucide-react';
 
-type Tab = 'profile' | 'notifications';
+type Tab = 'profile' | 'notifications' | 'security';
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'security', label: 'Security', icon: Shield },
 ];
 
 /* ─── Toggle ─── */
@@ -739,96 +740,100 @@ export default function SettingsPage() {
                                     >
                                         {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Preferences'}
                                     </button>
-                                    <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
                                 </div>
                             </div>
                         )}
 
                         {/* ══ SECURITY TAB ══ */}
-                        {false && activeTab === ('security' as unknown as Tab) && (
+                        {activeTab === 'security' && (
                             <div>
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
-                                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Change Password</h2>
-                                    <p className="text-xs text-gray-400 mt-0.5">Update your login password</p>
+                                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Security</h2>
+                                    <p className="text-xs text-gray-400 mt-0.5">Review signed-in devices and account access</p>
                                 </div>
                                 <div className="px-5 sm:px-6 py-6 space-y-5">
-                                    <div>
-                                        <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Current Password</label>
-                                        <div className="relative">
-                                            <input type={showCurrent ? 'text' : 'password'} value={pwForm.current}
-                                                onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
-                                                placeholder="Enter current password"
-                                                className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
-                                            <button type="button" onClick={() => setShowCurrent(v => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
-                                                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
+
+                                    <div className="border-t border-gray-200 pt-5">
+                                        <h3 className="text-xs font-black text-black uppercase tracking-widest mb-4">Change Password</h3>
                                         <div>
-                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">New Password</label>
+                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Current Password</label>
                                             <div className="relative">
-                                                <input type={showNew ? 'text' : 'password'} value={pwForm.newPw}
-                                                    onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
-                                                    placeholder="Min. 8 characters"
+                                                <input type={showCurrent ? 'text' : 'password'} value={pwForm.current}
+                                                    onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                                                    placeholder="Enter current password"
                                                     className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
-                                                <button type="button" onClick={() => setShowNew(v => !v)}
+                                                <button type="button" onClick={() => setShowCurrent(v => !v)}
                                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
-                                                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Confirm Password</label>
-                                            <input type="password" value={pwForm.confirm}
-                                                onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
-                                                placeholder="Repeat new password"
-                                                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
-                                        </div>
-                                    </div>
-
-                                    {pwForm.newPw.length > 0 && (
-                                        <div>
-                                            <div className="flex gap-1 mb-1">
-                                                {[...Array(4)].map((_, i) => {
-                                                    const strength = Math.min(Math.floor(pwForm.newPw.length / 3), 4);
-                                                    return <div key={i} className={`h-1 flex-1 transition-colors ${i < strength ? 'bg-black' : 'bg-gray-200'}`} />;
-                                                })}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <div>
+                                                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">New Password</label>
+                                                <div className="relative">
+                                                    <input type={showNew ? 'text' : 'password'} value={pwForm.newPw}
+                                                        onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
+                                                        placeholder="Min. 8 characters"
+                                                        className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                                    <button type="button" onClick={() => setShowNew(v => !v)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+                                                        {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <p className="text-[11px] text-gray-400">
-                                                {pwForm.newPw.length < 8 ? 'Too short' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
-                                            </p>
+                                            <div>
+                                                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Confirm Password</label>
+                                                <input type="password" value={pwForm.confirm}
+                                                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                                                    placeholder="Repeat new password"
+                                                    className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                            </div>
                                         </div>
-                                    )}
 
-                                    {pwError && (
-                                        <div className="flex items-center gap-2 text-red-500 text-xs">
-                                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                                            {pwError}
-                                        </div>
-                                    )}
-                                    <button onClick={handlePasswordChange}
-                                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto">
-                                        {pwSaved ? <><Check className="h-4 w-4" /> Updated</> : 'Update Password'}
-                                    </button>
-                                </div>
+                                        {pwForm.newPw.length > 0 && (
+                                            <div>
+                                                <div className="flex gap-1 mb-1">
+                                                    {[...Array(4)].map((_, i) => {
+                                                        const strength = Math.min(Math.floor(pwForm.newPw.length / 3), 4);
+                                                        return <div key={i} className={`h-1 flex-1 transition-colors ${i < strength ? 'bg-black' : 'bg-gray-200'}`} />;
+                                                    })}
+                                                </div>
+                                                <p className="text-[11px] text-gray-400">
+                                                    {pwForm.newPw.length < 8 ? 'Too short' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
+                                                </p>
+                                            </div>
+                                        )}
 
-                                <div className="px-5 sm:px-6 py-5 border-t border-gray-200 space-y-3">
-                                    <h3 className="text-xs font-black text-black uppercase tracking-widest">Account</h3>
-                                    <div className="flex items-center justify-between py-1">
-                                        <div>
-                                            <p className="text-sm font-semibold text-black">Two-Factor Authentication</p>
-                                            <p className="text-xs text-gray-400">Extra layer of security</p>
-                                        </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-gray-100 text-gray-500">Coming soon</span>
+                                        {pwError && (
+                                            <div className="flex items-center gap-2 text-red-500 text-xs">
+                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                {pwError}
+                                            </div>
+                                        )}
+                                        <button onClick={handlePasswordChange}
+                                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto">
+                                            {pwSaved ? <><Check className="h-4 w-4" /> Updated</> : 'Update Password'}
+                                        </button>
                                     </div>
-                                    <div className="flex items-center justify-between py-1">
-                                        <div>
-                                            <p className="text-sm font-semibold text-black">Active sessions</p>
-                                            <p className="text-xs text-gray-400">Signed in on this device</p>
+
+                                    <div className="border-t border-gray-200 pt-5 space-y-3">
+                                        <h3 className="text-xs font-black text-black uppercase tracking-widest">Account</h3>
+                                        <div className="flex items-center justify-between py-1">
+                                            <div>
+                                                <p className="text-sm font-semibold text-black">Two-Factor Authentication</p>
+                                                <p className="text-xs text-gray-400">Extra layer of security</p>
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-gray-100 text-gray-500">Coming soon</span>
                                         </div>
-                                        <button onClick={handleSignOut} className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline">Sign out all</button>
+                                        <div className="flex items-center justify-between py-1">
+                                            <div>
+                                                <p className="text-sm font-semibold text-black">Current device</p>
+                                                <p className="text-xs text-gray-400">Sign out of this device only</p>
+                                            </div>
+                                            <button onClick={handleSignOut} className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline">Sign out</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
