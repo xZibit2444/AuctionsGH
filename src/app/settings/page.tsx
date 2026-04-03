@@ -185,11 +185,11 @@ function SectionIntro({ eyebrow, title, subtitle }: { eyebrow: string; title: st
 
 function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'strong' }) {
     return (
-        <div className={`min-w-0 border px-4 py-4 sm:px-5 sm:py-5 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
+        <div className={`min-w-0 min-h-[132px] border px-5 py-5 flex flex-col justify-between ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
             <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
             <p
                 title={value}
-                className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-sm sm:text-base font-black tracking-tight"
+                className="overflow-hidden text-ellipsis whitespace-nowrap text-[15px] sm:text-base font-black tracking-tight leading-tight"
             >
                 {value}
             </p>
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                                 Update your public profile, control notifications, and manage device access from one place.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full lg:max-w-[36rem]">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full lg:max-w-[36rem] items-stretch">
                             <SummaryStat label="Profile" value={profileDisplayName} tone="strong" />
                             <SummaryStat label="Privacy" value={publicProfileSummary} />
                             <SummaryStat label="Signed In" value={user?.email ?? 'No email'} />
