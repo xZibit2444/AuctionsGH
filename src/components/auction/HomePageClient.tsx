@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Flame, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useAuctions } from '@/hooks/useAuctions';
+import { getListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 import AuctionCarousel from '@/components/auction/AuctionCarousel';
 import AuctionFilters from '@/components/auction/AuctionFilters';
@@ -25,15 +26,23 @@ export default function HomePageClient() {
         limit: 30,
     });
 
+    const liveAuctions = useMemo(
+        () => auctions.filter((auction) => getListingType(auction) === 'auction'),
+        [auctions]
+    );
+    const permanentListings = useMemo(
+        () => auctions.filter((auction) => getListingType(auction) === 'permanent'),
+        [auctions]
+    );
     const endingSoon = useMemo(() =>
-        [...auctions].sort((a, b) => new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime()).slice(0, 20),
-    [auctions]);
+        [...liveAuctions].sort((a, b) => new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime()).slice(0, 20),
+    [liveAuctions]);
     const newest = useMemo(() =>
-        [...auctions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 20),
-    [auctions]);
+        [...liveAuctions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 20),
+    [liveAuctions]);
     const topBids = useMemo(() =>
-        [...auctions].sort((a, b) => b.current_price - a.current_price).slice(0, 20),
-    [auctions]);
+        [...liveAuctions].sort((a, b) => b.current_price - a.current_price).slice(0, 20),
+    [liveAuctions]);
 
     const isFiltering = search !== '' || brand !== 'All' || condition !== 'All';
 
@@ -105,15 +114,30 @@ export default function HomePageClient() {
                         <div className="flex items-center justify-between mb-5">
                             <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
                                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-100">
-                                    <Flame className="h-3.5 w-3.5 text-orange-500" />
+                                <Flame className="h-3.5 w-3.5 text-orange-500" />
+                            </span>
+                            All Live Auctions
+                        </h2>
+                        <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                            {loading ? '...' : `${liveAuctions.length} active`}
+                        </span>
+                    </div>
+                        <AuctionGrid auctions={liveAuctions} loading={loading} />
+                    </section>
+
+                    <section>
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100">
+                                    <Zap className="h-3.5 w-3.5 text-amber-600" />
                                 </span>
-                                All Live Auctions
+                                Permanent Listings
                             </h2>
                             <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                                {loading ? '...' : `${auctions.length} active`}
+                                {loading ? '...' : `${permanentListings.length} active`}
                             </span>
                         </div>
-                        <AuctionGrid auctions={auctions} loading={loading} />
+                        <AuctionGrid auctions={permanentListings} loading={loading} />
                     </section>
                 </>
             )}

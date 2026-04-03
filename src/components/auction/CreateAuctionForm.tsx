@@ -236,8 +236,14 @@ export default function CreateAuctionForm() {
                 <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="h-8 w-8" />
                 </div>
-                <h2 className="text-3xl font-black text-black tracking-tight mb-2">Auction Published!</h2>
-                <p className="text-gray-500 mb-8">Your listing is now live and accepting bids.</p>
+                <h2 className="text-3xl font-black text-black tracking-tight mb-2">
+                    {isPermanent ? 'Permanent Listing Published!' : 'Auction Published!'}
+                </h2>
+                <p className="text-gray-500 mb-8">
+                    {isPermanent
+                        ? 'Your listing is now live and ready to receive offers.'
+                        : 'Your listing is now live and accepting bids.'}
+                </p>
 
                 <div className="space-y-3">
                     <Link
@@ -651,27 +657,32 @@ export default function CreateAuctionForm() {
                         {errors.starting_price && <p className="text-[11px] text-red-500 mt-1">{errors.starting_price}</p>}
                     </div>
 
-                    {/* Min increment */}
-                    <div>
-                        <FieldLabel>Minimum Bid Increment</FieldLabel>
-                        <div className={`flex border focus-within:border-black transition-colors ${errors.min_increment ? 'border-red-400' : 'border-gray-200'}`}>
-                            <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 shrink-0">
-                                <span className="text-sm font-semibold text-gray-500">GHS</span>
+                    {!isPermanent && (
+                        <div>
+                            <FieldLabel>Minimum Bid Increment</FieldLabel>
+                            <div className={`flex border focus-within:border-black transition-colors ${errors.min_increment ? 'border-red-400' : 'border-gray-200'}`}>
+                                <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 shrink-0">
+                                    <span className="text-sm font-semibold text-gray-500">GHS</span>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={formData.min_increment || ''}
+                                    onChange={(e) => update('min_increment', Number(e.target.value))}
+                                    placeholder="50.00"
+                                    className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                                />
                             </div>
-                            <input
-                                type="number"
-                                value={formData.min_increment || ''}
-                                onChange={(e) => update('min_increment', Number(e.target.value))}
-                                placeholder="50.00"
-                                className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
-                            />
+                            {errors.min_increment && <p className="text-[11px] text-red-500 mt-1">{errors.min_increment}</p>}
                         </div>
-                        {errors.min_increment && <p className="text-[11px] text-red-500 mt-1">{errors.min_increment}</p>}
-                    </div>
+                    )}
 
                     {/* Summary box */}
                     <div className="border border-gray-200 p-4 space-y-2 bg-gray-50">
                         <p className="text-[11px] font-black text-black uppercase tracking-widest mb-3">Listing Summary</p>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Type</span>
+                            <span className="font-semibold text-black">{isPermanent ? 'Permanent Listing' : 'Auction'}</span>
+                        </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Phone</span>
                             <span className="font-semibold text-black">{formData.brand} {formData.model || '—'}</span>
@@ -723,7 +734,7 @@ export default function CreateAuctionForm() {
                         >
                             {submitting
                                 ? 'Publishing…'
-                                : <><span>Publish Auction</span><ArrowRight className="h-4 w-4" /></>
+                                : <><span>{isPermanent ? 'Publish Listing' : 'Publish Auction'}</span><ArrowRight className="h-4 w-4" /></>
                             }
                         </button>
                     </div>

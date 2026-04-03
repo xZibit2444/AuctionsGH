@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { formatCurrency, formatAuctionLocation } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
+import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import AuctionStatusBadge from './AuctionStatusBadge';
 import { Package, Heart } from 'lucide-react';
 import { useSavedAuctionsContext } from '@/contexts/SavedAuctionsContext';
@@ -15,6 +16,7 @@ interface AuctionCardProps {
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
+    const listingType = getListingType(auction);
     const thumbnail = auction.auction_images?.sort(
         (a, b) => a.position - b.position
     )[0];
@@ -51,7 +53,12 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
                     {/* Status Badge */}
                     <div className="absolute top-3 left-3">
-                        <AuctionStatusBadge status={auction.status} />
+                        <div className="flex flex-col items-start gap-2">
+                            <AuctionStatusBadge status={auction.status} />
+                            <span className="bg-white/95 border border-gray-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">
+                                {getListingTypeLabel(listingType)}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -92,14 +99,18 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
                         <div>
-                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Current Bid</p>
+                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">
+                                {listingType === 'permanent' ? 'Listing Price' : 'Current Bid'}
+                            </p>
                             <p className="text-lg font-black text-black tracking-tight">
                                 {formatCurrency(auction.current_price)}
                             </p>
                         </div>
 
                         {auction.status === 'active' && (
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">Open</span>
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                                {listingType === 'permanent' ? 'Open Listing' : 'Open Auction'}
+                            </span>
                         )}
                     </div>
                 </div>

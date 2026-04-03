@@ -5,9 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ITEM_CATEGORIES } from '@/lib/constants';
 import { useAuctions } from '@/hooks/useAuctions';
+import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 
 const CATEGORIES = ['All', ...ITEM_CATEGORIES];
+const LISTING_TYPES: Array<{ label: string; value: 'all' | ListingType }> = [
+    { label: 'All Listings', value: 'all' },
+    { label: 'Auctions', value: 'auction' },
+    { label: 'Permanent', value: 'permanent' },
+];
 const SORT_OPTIONS = [
     { label: 'Ending Soon', value: 'ends_at:asc' },
     { label: 'Newest', value: 'created_at:desc' },
@@ -22,6 +28,7 @@ function AuctionsContent() {
     const [query, setQuery] = useState(searchParams.get('q') ?? '');
     const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
     const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
+    const [listingType, setListingType] = useState<'all' | ListingType>((searchParams.get('type') as 'all' | ListingType | null) ?? 'all');
     const [sort, setSort] = useState(searchParams.get('sort') ?? 'ends_at:asc');
 
     const [orderBy, ascending] = sort.split(':') as [
@@ -31,16 +38,18 @@ function AuctionsContent() {
 
     const { auctions, loading, error } = useAuctions({
         status: 'visible',
+        listingType,
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
         orderBy,
         ascending: ascending === 'asc',
     });
 
-    const syncUrl = useCallback((q: string, b: string, s: string) => {
+    const syncUrl = useCallback((q: string, b: string, t: 'all' | ListingType, s: string) => {
         const params = new URLSearchParams();
         if (q) params.set('q', q);
         if (b && b !== 'All') params.set('brand', b);
+        if (t !== 'all') params.set('type', t);
         if (s && s !== 'ends_at:asc') params.set('sort', s);
         const qs = params.toString();
         router.replace(qs ? `/auctions?${qs}` : '/auctions', { scroll: false });
@@ -49,41 +58,48 @@ function AuctionsContent() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setQuery(inputVal);
-        syncUrl(inputVal, category, sort);
+        syncUrl(inputVal, category, listingType, sort);
     };
 
     const handleCategory = (nextCategory: string) => {
         setCategory(nextCategory);
-        syncUrl(query, nextCategory, sort);
+        syncUrl(query, nextCategory, listingType, sort);
+    };
+
+    const handleListingType = (nextType: 'all' | ListingType) => {
+        setListingType(nextType);
+        syncUrl(query, category, nextType, sort);
     };
 
     const handleSort = (nextSort: string) => {
         setSort(nextSort);
-        syncUrl(query, category, nextSort);
+        syncUrl(query, category, listingType, nextSort);
     };
 
     const clearSearch = () => {
         setInputVal('');
         setQuery('');
-        syncUrl('', category, sort);
+        syncUrl('', category, listingType, sort);
     };
 
     useEffect(() => {
         const urlQ = searchParams.get('q') ?? '';
+        const urlType = (searchParams.get('type') as 'all' | ListingType | null) ?? 'all';
         startTransition(() => {
             setInputVal(urlQ);
             setQuery(urlQ);
+            setListingType(urlType);
         });
     }, [searchParams]);
 
-    const hasFilters = query || category !== 'All';
+    const hasFilters = query || category !== 'All' || listingType !== 'all';
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
-                    <p className="text-xs text-gray-400 mt-1">Sold listings stay here for 48 hours, then remain only on the seller&apos;s page.</p>
+                    <p className="text-xs text-gray-400 mt-1">Browse auctions and permanent listings separately. Sold items stay here for 48 hours, then remain only on the seller&apos;s page.</p>
                 </div>
                 {hasFilters && (
                     <button
@@ -91,7 +107,8 @@ function AuctionsContent() {
                             setInputVal('');
                             setQuery('');
                             setCategory('All');
-                            syncUrl('', 'All', sort);
+                            setListingType('all');
+                            syncUrl('', 'All', 'all', sort);
                         }}
                         className="text-xs font-semibold text-gray-400 hover:text-black transition-colors flex items-center gap-1"
                     >
@@ -133,6 +150,22 @@ function AuctionsContent() {
                     {error}
                 </div>
             )}
+
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
+                {LISTING_TYPES.map((type) => (
+                    <button
+                        key={type.value}
+                        onClick={() => handleListingType(type.value)}
+                        className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${
+                            listingType === type.value
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                        }`}
+                    >
+                        {type.label}
+                    </button>
+                ))}
+            </div>
 
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
                 {CATEGORIES.map((c) => (

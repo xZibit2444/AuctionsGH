@@ -22,6 +22,7 @@ type PublicProfile = {
     full_name: string | null;
     avatar_url: string | null;
     location: string | null;
+    show_past_buys: boolean;
     is_verified: boolean;
     created_at: string;
 };
@@ -50,13 +51,31 @@ type PublicReview = {
     } | null;
 };
 
+type PublicPastBuy = {
+    id: string;
+    amount: number;
+    status: string;
+    created_at: string;
+    auction: {
+        id: string;
+        title: string;
+        brand: string;
+        condition: string;
+        auction_images: { url: string; position: number }[] | null;
+    } | null;
+};
+
+function hasWrittenReview(review: PublicReview) {
+    return Boolean(review.comment?.trim());
+}
+
 async function getPublicProfileData(id: string) {
     const admin = createAdminClient();
 
-    const [{ data: profile }, { data: auctions }, { data: reviews }] = await Promise.all([
+    const [{ data: profile }, { data: auctions }, { data: reviews }, { data: pastBuys }] = await Promise.all([
         admin
             .from('profiles')
-            .select('id, username, full_name, avatar_url, location, is_verified, created_at')
+            .select('id, username, full_name, avatar_url, location, show_past_buys, is_verified, created_at')
             .eq('id', id)
             .single(),
         admin
@@ -69,12 +88,19 @@ async function getPublicProfileData(id: string) {
             .select('id, rating, comment, created_at, reviewer:profiles!reviewer_id(id, full_name, username)')
             .eq('reviewee_id', id)
             .order('created_at', { ascending: false }),
+        admin
+            .from('orders')
+            .select('id, amount, status, created_at, auction:auctions(id, title, brand, condition, auction_images(url, position))')
+            .eq('buyer_id', id)
+            .in('status', ['completed', 'pin_verified'])
+            .order('created_at', { ascending: false }),
     ]);
 
     return {
         profile: profile as PublicProfile | null,
         auctions: (auctions ?? []) as PublicAuction[],
         reviews: (reviews ?? []) as PublicReview[],
+        pastBuys: (pastBuys ?? []) as PublicPastBuy[],
     };
 }
 
@@ -119,12 +145,13 @@ export async function generateMetadata({ params }: UserPageProps): Promise<Metad
 
 export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const { id } = await params;
-    const { profile, auctions, reviews } = await getPublicProfileData(id);
+    const { profile, auctions, reviews: allReviews, pastBuys } = await getPublicProfileData(id);
 
     if (!profile) {
         notFound();
     }
 
+    const reviews = allReviews.filter(hasWrittenReview);
     const activeListings = auctions.filter((auction) => auction.status === 'active');
     const listingHistory = auctions.filter((auction) => auction.status !== 'active');
     const ratingCount = reviews.length;
@@ -134,6 +161,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const profileName = profile.full_name || profile.username;
     const profileLabel = formatFirstNameLastInitial(profile.full_name || profile.username);
     const isSeller = auctions.length > 0;
+    const visiblePastBuys = !isSeller && profile.show_past_buys ? pastBuys : [];
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -271,6 +299,54 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                             </div>
                         )}
                     </section>
+
+                    {!isSeller && profile.show_past_buys && (
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-black tracking-tight text-black">Past Buys</h2>
+                                <span className="text-xs font-semibold text-gray-400">{visiblePastBuys.length} completed</span>
+                            </div>
+
+                            {visiblePastBuys.length === 0 ? (
+                                <EmptyState message="No public past buys yet." />
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {visiblePastBuys.map((order) => {
+                                        const preview = order.auction
+                                            ? [...(order.auction.auction_images ?? [])].sort((a, b) => a.position - b.position)[0]?.url ?? null
+                                            : null;
+
+                                        return (
+                                            <Link key={order.id} href={`/orders/${order.id}`} className="border border-gray-200 bg-white overflow-hidden hover:border-black transition-colors">
+                                                <div className="aspect-[4/3] bg-gray-100">
+                                                    {preview ? (
+                                                        <img src={preview} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                            <Package className="h-10 w-10" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-4">
+                                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                                        <span className="inline-flex px-2 py-1 border text-[10px] font-black uppercase tracking-widest bg-black text-white border-black">
+                                                            Bought
+                                                        </span>
+                                                        <span className="text-xs text-gray-400">{timeAgo(order.created_at)}</span>
+                                                    </div>
+                                                    <h3 className="font-bold text-black line-clamp-2">{order.auction?.title ?? 'Order'}</h3>
+                                                    {order.auction && (
+                                                        <p className="text-xs text-gray-500 mt-2">{order.auction.brand} · {order.auction.condition.replace(/_/g, ' ')}</p>
+                                                    )}
+                                                    <p className="text-lg font-black text-black mt-3">{formatCurrency(order.amount)}</p>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </section>
+                    )}
                 </div>
 
                 <aside className="space-y-6">

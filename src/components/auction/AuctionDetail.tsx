@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
+import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
 import BidForm from '@/components/bidding/BidForm';
@@ -26,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import type { AuctionStatus } from '@/types/database';
 import { finalizeAuctionAction } from '@/app/actions/finalizeAuction';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
+import { relistAuctionAction } from '@/app/actions/relistAuction';
 
 interface AuctionDetailProps {
     auctionId: string;
@@ -55,6 +57,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const [showCongrats, setShowCongrats] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [relistLoading, setRelistLoading] = useState(false);
     const finalizeStartedRef = useRef(false);
     const router = useRouter();
 
@@ -69,6 +72,19 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             alert(result.error ?? 'Failed to delete auction');
             setDeleteConfirm(false);
         }
+    };
+
+    const handleRelist = async () => {
+        setRelistLoading(true);
+        const result = await relistAuctionAction(auctionId);
+        setRelistLoading(false);
+
+        if (result.success && result.auctionId) {
+            router.push(`/auctions/${result.auctionId}`);
+            return;
+        }
+
+        alert(result.error ?? 'Failed to relist item');
     };
 
     const isSaved = savedIds.has(auctionId);
@@ -151,6 +167,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     }
 
     const auctionData = auction as typeof auction & AuctionDetailData;
+    const listingType = getListingType(auction);
+    const isPermanent = listingType === 'permanent';
     const images = auction.auction_images?.sort((a, b) => a.position - b.position) ?? [];
     const isWinner = auction.winner_id === user?.id;
     const isSeller = auction.seller_id === user?.id;
@@ -160,6 +178,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
     const canSellerDelete = !hasAcceptedOffer
         && (auction.status !== 'sold' || completedDeal);
+    const canRelist = isSeller
+        && !hasAcceptedOffer
+        && (auction.status === 'ended' || (auction.status === 'sold' && completedDeal));
     const canDelete = isSeller ? canSellerDelete : profile?.is_super_admin === true;
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
@@ -232,7 +253,12 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                 <div className="space-y-5">
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <AuctionStatusBadge status={auction.status} />
+                            <div className="flex items-center gap-2">
+                                <AuctionStatusBadge status={auction.status} />
+                                <span className="border border-gray-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-black">
+                                    {getListingTypeLabel(listingType)}
+                                </span>
+                            </div>
 
                             <div className="flex items-center gap-2">
                                 <ShareButton
@@ -331,25 +357,35 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <div className="border border-gray-200 p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current Bid</p>
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                    {isPermanent ? 'Listing Price' : 'Current Bid'}
+                                </p>
                                 <p className="text-4xl font-extrabold text-black tracking-tight">
                                     {formatCurrency(auction.current_price)}
                                 </p>
                             </div>
-                            <div className="text-right">
-                                <p className="text-xs font-medium text-black bg-gray-100 px-2 py-1 inline-block mb-1 border border-gray-200">
-                                    {auction.bid_count} bid{auction.bid_count !== 1 ? 's' : ''}
-                                </p>
-                            </div>
+                            {!isPermanent && (
+                                <div className="text-right">
+                                    <p className="text-xs font-medium text-black bg-gray-100 px-2 py-1 inline-block mb-1 border border-gray-200">
+                                        {auction.bid_count} bid{auction.bid_count !== 1 ? 's' : ''}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
-                        {auction.status === 'active' && (
+                        {auction.status === 'active' && !isPermanent && (
                             <AuctionCountdown endTime={auction.ends_at} onEnd={handleCountdownEnd} />
+                        )}
+
+                        {auction.status === 'active' && isPermanent && (
+                            <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                This is a permanent listing. It stays live until the seller accepts an offer or removes it.
+                            </div>
                         )}
                     </div>
 
                     {/* Bid Form */}
-                    {auction.status === 'active' && !isSeller && (
+                    {auction.status === 'active' && !isSeller && !isPermanent && (
                         <BidForm
                             auctionId={auction.id}
                             currentPrice={auction.current_price}
@@ -375,7 +411,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         </>
                     )}
 
-                    {isSeller && auction.status === 'active' && (
+                    {isSeller && auction.status === 'active' && !isPermanent && (
                         <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm">
                             You cannot bid on your own auction.
                         </div>
@@ -400,12 +436,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     )}
 
                     {/* Delete / take down button */}
-                    {canDelete && (
+                    {(canDelete || canRelist) && (
                         <div className="flex justify-end mt-2">
+                            {canRelist && (
+                                <button
+                                    onClick={handleRelist}
+                                    disabled={relistLoading}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold border border-gray-200 bg-white text-black hover:border-black transition-colors disabled:opacity-50"
+                                >
+                                    {relistLoading ? 'Relisting...' : 'Relist item'}
+                                </button>
+                            )}
                             <button
                                 onClick={handleDelete}
                                 disabled={deleteLoading}
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border transition-colors disabled:opacity-50 ${deleteConfirm ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'}`}
+                                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border transition-colors disabled:opacity-50 ${canRelist ? 'ml-2' : ''} ${deleteConfirm ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'}`}
                             >
                                 <Trash2 className="h-4 w-4" />
                                 {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : auction.status === 'sold' ? 'Take down listing' : 'Delete auction'}
@@ -450,7 +495,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     )}
 
                     {/* Bid History */}
-                    <BidHistory bids={bids} loading={bidsLoading} />
+                    {!isPermanent && <BidHistory bids={bids} loading={bidsLoading} />}
                 </div>
             </div>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getListingType } from '@/lib/listings';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
@@ -52,6 +53,32 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `amount cannot exceed ${MAX_BID_AMOUNT}` }, { status: 400 });
     }
 
+    const admin = createAdminClient();
+    const { data: auctionRecord } = await admin
+        .from('auctions')
+        .select('seller_id, title, ends_at, bid_count, status')
+        .eq('id', auction_id)
+        .maybeSingle();
+
+    const auction = auctionRecord as {
+        seller_id: string;
+        title: string;
+        ends_at: string;
+        bid_count: number;
+        status: 'active' | 'sold' | 'ended';
+    } | null;
+
+    if (!auction) {
+        return NextResponse.json({ error: 'Auction not found' }, { status: 404 });
+    }
+
+    if (getListingType(auction) === 'permanent') {
+        return NextResponse.json(
+            { error: 'Permanent listings do not accept bids. Send an offer instead.' },
+            { status: 422 }
+        );
+    }
+
     // Call the atomic place_bid function
     const { data, error } = await supabase.rpc('place_bid', {
         p_auction_id: auction_id,
@@ -76,15 +103,6 @@ export async function POST(request: Request) {
         // Business-rule rejection (e.g. bid too low, auction ended)
         return NextResponse.json({ error: result.error }, { status: 422 });
     }
-
-    const admin = createAdminClient();
-    const { data: auctionRecord } = await admin
-        .from('auctions')
-        .select('seller_id, title')
-        .eq('id', auction_id)
-        .maybeSingle();
-
-    const auction = auctionRecord as { seller_id: string; title: string } | null;
 
     if (auction?.seller_id && auction.seller_id !== user.id) {
         await insertNotificationIfEnabled(admin, {

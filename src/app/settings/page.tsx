@@ -205,6 +205,7 @@ export default function SettingsPage() {
         username: '',
         phone_number: '',
         location: '',
+        show_past_buys: false,
     });
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -227,6 +228,7 @@ export default function SettingsPage() {
                 username: profile.username ?? '',
                 phone_number: profile.phone_number ?? '',
                 location: profile.location ?? '',
+                show_past_buys: profile.show_past_buys ?? false,
             });
             setAvatarUrl(profile.avatar_url ?? '');
         }
@@ -244,6 +246,7 @@ export default function SettingsPage() {
             username: profile?.username ?? '',
             phone_number: profile?.phone_number ?? '',
             location: profile?.location ?? '',
+            show_past_buys: profile?.show_past_buys ?? false,
         });
         setAvatarUrl(profile?.avatar_url ?? '');
         setProfileError('');
@@ -334,6 +337,7 @@ export default function SettingsPage() {
                     username: normalizedUsername,
                     phone_number: profileForm.phone_number,
                     location: profileForm.location,
+                    show_past_buys: profileForm.show_past_buys,
                     avatar_url: avatarUrl || null,
                 })
                 .eq('id', user.id);
@@ -526,6 +530,12 @@ export default function SettingsPage() {
                                         <InfoRow label="Email" value={user?.email ?? ''} />
                                         <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
                                         <InfoRow label="Location" value={profile?.location ?? ''} placeholder="Not set" />
+                                        {!profile?.is_admin && (
+                                            <InfoRow
+                                                label="Past Buys"
+                                                value={profile?.show_past_buys ? 'Shown publicly' : 'Hidden publicly'}
+                                            />
+                                        )}
                                     </div>
                                 )}
 
@@ -583,6 +593,21 @@ export default function SettingsPage() {
                                                 hint="Helps buyers know your location"
                                             />
                                         </div>
+
+                                        {!profile?.is_admin && (
+                                            <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                                    <p className="text-xs text-gray-400 mt-0.5">
+                                                        When enabled, completed purchases can appear on your public member profile.
+                                                    </p>
+                                                </div>
+                                                <Toggle
+                                                    on={profileForm.show_past_buys}
+                                                    onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                />
+                                            </div>
+                                        )}
 
                                         {profileError && (
                                             <div className="flex items-center gap-2 text-red-500 text-xs">

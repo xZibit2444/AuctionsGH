@@ -5,14 +5,17 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuctions } from '@/hooks/useAuctions';
 import { getPrimaryDelivery } from '@/lib/delivery';
+import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import { formatCurrency } from '@/lib/utils';
 import AuctionStatusBadge from '@/components/auction/AuctionStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
 import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
+import { relistAuctionAction } from '@/app/actions/relistAuction';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
+import { useRouter } from 'next/navigation';
 
 type ListingDelivery = {
     status: string;
@@ -61,9 +64,11 @@ export default function ListingTable({
     status = 'all',
 }: ListingTableProps) {
     const { user, profile } = useAuth();
+    const router = useRouter();
     const [markingId, setMarkingId] = useState<string | null>(null);
     const [sentOrderIds, setSentOrderIds] = useState<Set<string>>(new Set());
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [relistingId, setRelistingId] = useState<string | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -103,6 +108,21 @@ export default function ListingTable({
             setSentOrderIds((prev) => new Set(prev).add(orderId));
         }
         setMarkingId(null);
+    };
+
+    const handleRelist = async (auctionId: string) => {
+        setDeleteError(null);
+        setRelistingId(auctionId);
+        const result = await relistAuctionAction(auctionId);
+        setRelistingId(null);
+
+        if (!result.success || !result.auctionId) {
+            setDeleteError(result.error ?? 'Could not relist this item.');
+            return;
+        }
+
+        router.push(`/auctions/${result.auctionId}`);
+        router.refresh();
     };
 
     const visibleAuctions = (auctions as ListingAuction[]).filter((auction) => !deletedIds.has(auction.id));
@@ -157,6 +177,7 @@ export default function ListingTable({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {visibleAuctions.map((auction) => {
+                        const listingType = getListingType(auction);
                         const order = getAuctionOrder(auction);
                         const delivery = order ? getPrimaryDelivery(order.deliveries) : null;
                         const isSentInDb = delivery?.status === 'sent' || delivery?.status === 'delivered' || delivery?.status === 'completed';
@@ -164,6 +185,9 @@ export default function ListingTable({
                         const isExpired = endsAt > 0 && (renderTimestamp - endsAt > 30 * 60 * 1000);
                         const activeAcceptedOffer = hasActiveAcceptedOffer(auction, order);
                         const canSellerDelete = (auction.status !== 'sold' || (auction.status === 'sold' && isCompletedDeal(order)))
+                            && !activeAcceptedOffer;
+                        const canRelist = !adminMode
+                            && (auction.status === 'ended' || (auction.status === 'sold' && isCompletedDeal(order)))
                             && !activeAcceptedOffer;
                         const canDelete = adminMode
                             ? isSuperAdmin
@@ -187,6 +211,11 @@ export default function ListingTable({
                                     >
                                         {auction.title}
                                     </Link>
+                                    <div className="mt-1 flex items-center gap-2">
+                                        <span className="inline-flex border border-gray-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">
+                                            {getListingTypeLabel(listingType)}
+                                        </span>
+                                    </div>
                                     {adminMode && (
                                         <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-gray-400">
                                             Seller {auction.seller_id.slice(0, 8)}
@@ -262,6 +291,15 @@ export default function ListingTable({
                                                 </button>
                                             )
                                         )}
+                                        {canRelist && (
+                                            <button
+                                                onClick={() => void handleRelist(auction.id)}
+                                                disabled={relistingId === auction.id}
+                                                className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                            >
+                                                {relistingId === auction.id ? 'Relisting...' : 'Relist'}
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="py-4 px-5 hidden sm:table-cell">
@@ -333,6 +371,15 @@ export default function ListingTable({
                                         <Link href={`/auctions/${auction.id}`}>
                                             <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
                                         </Link>
+                                        {canRelist && (
+                                            <button
+                                                onClick={() => void handleRelist(auction.id)}
+                                                disabled={relistingId === auction.id}
+                                                className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                            >
+                                                {relistingId === auction.id ? 'Relisting...' : 'Relist'}
+                                            </button>
+                                        )}
                                         {canDelete && (
                                             deleteConfirmId === auction.id ? (
                                                 <div className="flex items-center gap-1">

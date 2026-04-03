@@ -50,6 +50,10 @@ type SellerReview = {
     } | null;
 };
 
+function hasWrittenReview(review: SellerReview) {
+    return Boolean(review.comment?.trim());
+}
+
 async function getSellerPageData(id: string) {
     const admin = createAdminClient();
 
@@ -118,12 +122,13 @@ export async function generateMetadata({ params }: SellerPageProps): Promise<Met
 
 export default async function SellerProfilePage({ params }: SellerPageProps) {
     const { id } = await params;
-    const { seller, auctions, reviews } = await getSellerPageData(id);
+    const { seller, auctions, reviews: allReviews } = await getSellerPageData(id);
 
     if (!seller) {
         notFound();
     }
 
+    const reviews = allReviews.filter(hasWrittenReview);
     const currentListings = auctions.filter((auction) => auction.status === 'active');
     const listingHistory = auctions.filter((auction) => auction.status !== 'active');
     const ratingCount = reviews.length;

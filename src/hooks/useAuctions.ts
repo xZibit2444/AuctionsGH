@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { getListingType } from '@/lib/listings';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 
@@ -9,6 +10,7 @@ const SOLD_BROWSE_RETENTION_MS = 48 * 60 * 60 * 1000;
 
 interface UseAuctionsOptions {
     status?: AuctionStatus | 'all' | 'visible';
+    listingType?: 'auction' | 'permanent' | 'all';
     brand?: string;
     sellerId?: string;
     search?: string;
@@ -24,6 +26,7 @@ interface UseAuctionsOptions {
 export function useAuctions(options: UseAuctionsOptions = {}) {
     const {
         status = 'active',
+        listingType = 'all',
         brand,
         sellerId,
         search,
@@ -130,13 +133,17 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     setError(fetchError.message);
                 } else {
                     const nextAuctions = (data as Auction[]).filter((auction) => {
+                        if (listingType !== 'all' && getListingType(auction) !== listingType) {
+                            return false;
+                        }
+
                         if (status !== 'visible' || auction.status !== 'sold') return true;
 
                         const soldAt = new Date(auction.updated_at).getTime();
                         return Date.now() - soldAt <= SOLD_BROWSE_RETENTION_MS;
                     });
 
-                    setAuctions(nextAuctions);
+                    setAuctions(nextAuctions.slice(0, limit));
                 }
             } catch (err) {
                 if (!isMounted) return;
@@ -184,7 +191,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, brand, sellerId, debouncedSearch, condition, minStorage, limit, orderBy, ascending]);
+    }, [status, listingType, brand, sellerId, debouncedSearch, condition, minStorage, limit, orderBy, ascending]);
 
     return { auctions, loading, error };
 }

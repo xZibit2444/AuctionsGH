@@ -27,6 +27,7 @@ export interface Database {
                     avatar_url: string | null;
                     phone_number: string | null;
                     location: string | null;
+                    show_past_buys: boolean;
                     is_verified: boolean;
                     is_admin: boolean;
                     is_super_admin: boolean;
@@ -51,6 +52,7 @@ export interface Database {
                     avatar_url?: string | null;
                     phone_number?: string | null;
                     location?: string | null;
+                    show_past_buys?: boolean;
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;
@@ -70,6 +72,7 @@ export interface Database {
                     avatar_url?: string | null;
                     phone_number?: string | null;
                     location?: string | null;
+                    show_past_buys?: boolean;
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;
