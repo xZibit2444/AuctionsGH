@@ -173,6 +173,25 @@ function PhoneField({
     );
 }
 
+function SectionIntro({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+    return (
+        <div className="px-5 sm:px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">{eyebrow}</p>
+            <h2 className="mt-2 text-lg font-black tracking-tight text-black">{title}</h2>
+            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+        </div>
+    );
+}
+
+function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'strong' }) {
+    return (
+        <div className={`border px-4 py-4 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
+            <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
+            <p className="mt-2 text-lg font-black tracking-tight">{value}</p>
+        </div>
+    );
+}
+
 /* ═══════════════════════════════════════════════════════ */
 export default function SettingsPage() {
     const { user, profile, signOut, signOutAll } = useAuth();
@@ -424,6 +443,11 @@ export default function SettingsPage() {
     const toggleNotif = (key: keyof typeof notifSettings) =>
         setNotifSettings((s) => ({ ...s, [key]: !s[key] }));
 
+    const profileDisplayName = profile?.full_name || profile?.username || user?.email || 'Your account';
+    const publicProfileSummary = visibilitySettingsAvailable
+        ? `${profile?.show_past_sales ? 'Sales shown' : 'Sales hidden'}${!profile?.is_admin ? ` • ${profile?.show_past_buys ? 'Buys shown' : 'Buys hidden'}` : ''}`
+        : 'Privacy migration pending';
+
     const handleSaveNotifications = async () => {
         if (!user) return;
         setNotifError('');
@@ -444,30 +468,51 @@ export default function SettingsPage() {
     /* ── Security ── */
     return (
         <AuthGuard>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
                 {/* Header */}
-                <div className="mb-6 sm:mb-8">
-                    <h1 className="text-2xl font-black text-black tracking-tight">Settings</h1>
-                    <p className="text-sm text-gray-400 mt-0.5">Manage your account</p>
+                <div className="mb-6 sm:mb-8 border border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#f3f4f6_100%)] p-6 sm:p-8">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-2xl">
+                            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-400">Account Center</p>
+                            <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-black">Settings</h1>
+                            <p className="mt-3 text-sm sm:text-base text-gray-500">
+                                Update your public profile, control notifications, and manage device access from one place.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[34rem]">
+                            <SummaryStat label="Profile" value={profileDisplayName} tone="strong" />
+                            <SummaryStat label="Privacy" value={publicProfileSummary} />
+                            <SummaryStat label="Signed In" value={user?.email ?? 'No email'} />
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-6 lg:gap-8">
                     {/* Tab Nav */}
-                    <nav className="flex sm:flex-col gap-1 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 sm:w-44 sm:shrink-0">
+                    <nav className="border border-gray-200 bg-white p-3 h-fit">
+                        <div className="flex lg:flex-col gap-2 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
                         {tabs.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
                                 onClick={() => { setActiveTab(id); setEditing(false); }}
-                                className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors shrink-0 text-left sm:w-full ${activeTab === id ? 'bg-black text-white' : 'text-gray-500 hover:text-black hover:bg-gray-50'}`}
+                                className={`group flex items-center gap-3 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-all shrink-0 text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
                             >
-                                <Icon className="h-4 w-4" strokeWidth={1.5} />
-                                {label}
+                                <span className={`flex h-9 w-9 items-center justify-center border ${activeTab === id ? 'border-white/20 bg-white/10' : 'border-gray-200 bg-white text-gray-400 group-hover:text-black'}`}>
+                                    <Icon className="h-4 w-4" strokeWidth={1.8} />
+                                </span>
+                                <span>
+                                    <span className="block">{label}</span>
+                                    <span className={`block text-[10px] font-bold uppercase tracking-[0.2em] ${activeTab === id ? 'text-white/60' : 'text-gray-300 group-hover:text-gray-400'}`}>
+                                        {id === 'profile' ? 'Identity' : id === 'notifications' ? 'Alerts' : 'Access'}
+                                    </span>
+                                </span>
                             </button>
                         ))}
-                        <div className="hidden sm:block pt-6 border-t border-gray-100 mt-4">
+                        </div>
+                        <div className="hidden lg:block pt-4 border-t border-gray-100 mt-4">
                             <button
                                 onClick={handleSignOut}
-                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-left text-gray-400 hover:text-black hover:bg-gray-50 transition-colors"
+                                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-left text-gray-500 hover:text-black hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
                             >
                                 <LogOut className="h-4 w-4" strokeWidth={1.5} />
                                 Sign out
@@ -476,38 +521,39 @@ export default function SettingsPage() {
                     </nav>
 
                     {/* Content Panel */}
-                    <div className="flex-1 border border-gray-200 mt-2 sm:mt-0 min-w-0">
+                    <div className="min-w-0 border border-gray-200 bg-white shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)]">
 
                         {/* ══ PROFILE TAB ══ */}
                         {activeTab === 'profile' && (
                             <div>
                                 {/* Section header */}
-                                <div className="px-5 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-xs font-black text-black uppercase tracking-widest">Profile</h2>
-                                        <p className="text-xs text-gray-400 mt-0.5">Your public seller information</p>
+                                <div className="flex items-start justify-between gap-4 border-b border-gray-200">
+                                    <SectionIntro eyebrow="Profile" title="Public profile" subtitle="The identity and contact details buyers see across the marketplace." />
+                                    <div className="px-5 sm:px-6 py-5">
+                                        <div>
+                                            {!editing ? (
+                                                <button
+                                                    onClick={() => setEditing(true)}
+                                                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-xs font-semibold text-black hover:border-black transition-colors"
+                                                >
+                                                    <Pencil className="h-3 w-3" />
+                                                    Edit
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={handleEditCancel}
+                                                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-xs font-semibold text-gray-500 hover:border-black hover:text-black transition-colors"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                    Cancel
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    {!editing ? (
-                                        <button
-                                            onClick={() => setEditing(true)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-xs font-semibold text-black hover:border-black transition-colors"
-                                        >
-                                            <Pencil className="h-3 w-3" />
-                                            Edit
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={handleEditCancel}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-xs font-semibold text-gray-500 hover:border-black hover:text-black transition-colors"
-                                        >
-                                            <X className="h-3 w-3" />
-                                            Cancel
-                                        </button>
-                                    )}
                                 </div>
 
                                 {/* Avatar identity */}
-                                <div className="px-5 sm:px-6 py-5 border-b border-gray-200 flex items-center gap-4">
+                                <div className="px-5 sm:px-6 py-6 border-b border-gray-200 flex flex-col gap-5 md:flex-row md:items-center bg-gray-50/70">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -703,10 +749,7 @@ export default function SettingsPage() {
                         {/* ══ NOTIFICATIONS TAB ══ */}
                         {activeTab === 'notifications' && (
                             <div>
-                                <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
-                                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Notifications</h2>
-                                    <p className="text-xs text-gray-400 mt-0.5">Choose when you get notified</p>
-                                </div>
+                                <SectionIntro eyebrow="Notifications" title="Alert preferences" subtitle="Control what reaches you by email and in-app updates." />
                                 <div className="divide-y divide-gray-100">
                                     {([
                                         { key: 'new_bid', label: 'New bid on your listing', sub: 'When someone places a bid on an item you listed' },
@@ -747,10 +790,7 @@ export default function SettingsPage() {
                         {/* ══ SECURITY TAB ══ */}
                         {activeTab === 'security' && (
                             <div>
-                                <div className="px-5 sm:px-6 py-4 border-b border-gray-200">
-                                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Security</h2>
-                                    <p className="text-xs text-gray-400 mt-0.5">Review signed-in devices and account access</p>
-                                </div>
+                                <SectionIntro eyebrow="Security" title="Account access" subtitle="Review signed-in devices and keep control of where your account stays open." />
                                 <div className="px-5 sm:px-6 py-6 space-y-5">
                                     <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
 
