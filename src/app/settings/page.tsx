@@ -6,6 +6,7 @@ import AuthGuard from '@/components/auth/AuthGuard';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Avatar from '@/components/ui/Avatar';
+import ActiveSessionsPanel from '@/components/settings/ActiveSessionsPanel';
 import { PROFILE_IMAGES_BUCKET, GHANA_REGIONS } from '@/lib/constants';
 import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { validateImageFile } from '@/lib/validators';
@@ -738,27 +739,7 @@ export default function SettingsPage() {
                                     >
                                         {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Preferences'}
                                     </button>
-                                    <div className="border-t border-gray-200 pt-4">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <p className="text-sm font-semibold text-black">Active sessions</p>
-                                                <p className="text-xs text-gray-400 mt-0.5">Sign out on this device and any other device where your account is open.</p>
-                                            </div>
-                                            <button
-                                                onClick={handleSignOutAll}
-                                                disabled={sessionsBusy}
-                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
-                                            >
-                                                {sessionsBusy ? 'Signing out...' : 'Sign out all'}
-                                            </button>
-                                        </div>
-                                        {sessionsError && (
-                                            <div className="flex items-center gap-2 text-red-500 text-xs mt-3">
-                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                                                {sessionsError}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
                                 </div>
                             </div>
                         )}

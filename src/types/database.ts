@@ -322,6 +322,17 @@ export interface Database {
             };
         };
         Functions: {
+            list_active_sessions: {
+                Args: Record<string, never>;
+                Returns: {
+                    session_id: string;
+                    created_at: string | null;
+                    updated_at: string | null;
+                    not_after: string | null;
+                    ip: string | null;
+                    user_agent: string | null;
+                }[];
+            };
             place_bid: {
                 Args: {
                     p_auction_id: string;
