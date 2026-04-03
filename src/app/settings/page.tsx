@@ -187,7 +187,12 @@ function SummaryStat({ label, value, tone = 'default' }: { label: string; value:
     return (
         <div className={`min-w-0 border px-4 py-4 sm:px-5 sm:py-5 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
             <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
-            <p className="mt-2 text-base sm:text-lg font-black tracking-tight break-words leading-snug">{value}</p>
+            <p
+                title={value}
+                className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-sm sm:text-base font-black tracking-tight"
+            >
+                {value}
+            </p>
         </div>
     );
 }
