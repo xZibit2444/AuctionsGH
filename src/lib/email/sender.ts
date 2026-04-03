@@ -3,6 +3,7 @@ import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
+import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
 import OrderConfirmedSellerEmail from '@/emails/OrderConfirmedSellerEmail';
 import OutbidEmail from '@/emails/OutbidEmail';
@@ -14,6 +15,26 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'AuctionsGH <onboarding@resend.dev>';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+interface OrderCompletedSummaryEmailPayload {
+    recipientName: string;
+    auctionTitle: string;
+    orderNumber: string;
+    amountLabel: string;
+    completionDateLabel: string;
+    placedDateLabel: string;
+    fulfillmentLabel: string;
+    meetupLocation: string;
+    otherPartyLabel: string;
+    orderUrl: string;
+    sellerNote?: string | null;
+    transcript: Array<{
+        id: string;
+        senderName: string;
+        sentAtLabel: string;
+        body: string;
+    }>;
+}
 
 export async function sendOutbidEmail(
     to: string,
@@ -263,6 +284,35 @@ export async function sendOrderConfirmedSellerEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending seller order confirmation email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendOrderCompletedSummaryEmail(
+    to: string,
+    payload: OrderCompletedSummaryEmailPayload
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, orderNumber: payload.orderNumber });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Order #${payload.orderNumber} complete: ${payload.auctionTitle}`,
+            react: OrderCompletedSummaryEmail(payload),
+        });
+
+        if (error) {
+            console.error('Failed to send order completion summary email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending order completion summary email:', error);
         return { success: false, error };
     }
 }

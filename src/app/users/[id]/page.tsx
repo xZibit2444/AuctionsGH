@@ -8,7 +8,7 @@ import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
 import ReviewsList from '@/components/profile/ReviewsList';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isMissingShowPastBuysColumnError } from '@/lib/supabase/profileGuards';
+import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
@@ -24,11 +24,12 @@ type PublicProfile = {
     avatar_url: string | null;
     location: string | null;
     show_past_buys: boolean;
+    show_past_sales: boolean;
     is_verified: boolean;
     created_at: string;
 };
 
-type LegacyPublicProfile = Omit<PublicProfile, 'show_past_buys'>;
+type LegacyPublicProfile = Omit<PublicProfile, 'show_past_buys' | 'show_past_sales'>;
 
 type PublicAuction = {
     id: string;
@@ -77,7 +78,7 @@ async function getPublicProfileData(id: string) {
 
     const profileQuery = admin
         .from('profiles')
-        .select('id, username, full_name, avatar_url, location, show_past_buys, is_verified, created_at')
+        .select('id, username, full_name, avatar_url, location, show_past_buys, show_past_sales, is_verified, created_at')
         .eq('id', id)
         .single();
 
@@ -103,7 +104,7 @@ async function getPublicProfileData(id: string) {
 
     let profile = profileWithFlag as PublicProfile | null;
 
-    if (profileError && isMissingShowPastBuysColumnError(profileError)) {
+    if (profileError && isMissingProfileVisibilityColumnError(profileError)) {
         const { data: fallbackProfile } = await admin
             .from('profiles')
             .select('id, username, full_name, avatar_url, location, is_verified, created_at')
@@ -118,6 +119,7 @@ async function getPublicProfileData(id: string) {
                 avatar_url: fallbackProfile.avatar_url,
                 location: fallbackProfile.location,
                 show_past_buys: false,
+                show_past_sales: false,
                 is_verified: fallbackProfile.is_verified,
                 created_at: fallbackProfile.created_at,
             }
@@ -190,6 +192,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const profileLabel = formatFirstNameLastInitial(profile.full_name || profile.username);
     const isSeller = auctions.length > 0;
     const visiblePastBuys = !isSeller && profile.show_past_buys ? pastBuys : [];
+    const visibleListingHistory = profile.show_past_sales ? listingHistory : [];
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -298,17 +301,18 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         )}
                     </section>
 
+                    {profile.show_past_sales && (
                     <section>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-black tracking-tight text-black">Listing History</h2>
-                            <span className="text-xs font-semibold text-gray-400">{listingHistory.length} past</span>
+                            <span className="text-xs font-semibold text-gray-400">{visibleListingHistory.length} past</span>
                         </div>
 
-                        {listingHistory.length === 0 ? (
-                            <EmptyState message="No completed or past listings yet." />
+                        {visibleListingHistory.length === 0 ? (
+                            <EmptyState message="No public past sales yet." />
                         ) : (
                             <div className="border border-gray-200 bg-white divide-y divide-gray-100">
-                                {listingHistory.map((auction) => (
+                                {visibleListingHistory.map((auction) => (
                                     <Link key={auction.id} href={`/auctions/${auction.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-gray-50 transition-colors">
                                         <div className="min-w-0">
                                             <p className="font-semibold text-black truncate">{auction.title}</p>
@@ -327,6 +331,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                             </div>
                         )}
                     </section>
+                    )}
 
                     {!isSeller && profile.show_past_buys && (
                         <section>

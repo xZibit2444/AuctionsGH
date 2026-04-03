@@ -28,6 +28,7 @@ export interface Database {
                     phone_number: string | null;
                     location: string | null;
                     show_past_buys: boolean;
+                    show_past_sales: boolean;
                     is_verified: boolean;
                     is_admin: boolean;
                     is_super_admin: boolean;
@@ -53,6 +54,7 @@ export interface Database {
                     phone_number?: string | null;
                     location?: string | null;
                     show_past_buys?: boolean;
+                    show_past_sales?: boolean;
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;
@@ -73,6 +75,7 @@ export interface Database {
                     phone_number?: string | null;
                     location?: string | null;
                     show_past_buys?: boolean;
+                    show_past_sales?: boolean;
                     is_verified?: boolean;
                     is_admin?: boolean;
                     is_super_admin?: boolean;

@@ -22,6 +22,7 @@ type SellerProfile = {
     full_name: string | null;
     avatar_url: string | null;
     location: string | null;
+    show_past_sales: boolean;
     is_verified: boolean;
     created_at: string;
 };
@@ -60,7 +61,7 @@ async function getSellerPageData(id: string) {
     const [{ data: seller }, { data: auctions }, { data: reviews }] = await Promise.all([
         admin
             .from('profiles')
-            .select('id, username, full_name, avatar_url, location, is_verified, created_at')
+            .select('id, username, full_name, avatar_url, location, show_past_sales, is_verified, created_at')
             .eq('id', id)
             .single(),
         admin
@@ -137,6 +138,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
         : null;
     const sellerName = seller.full_name || seller.username;
     const sellerLabel = formatFirstNameLastInitial(seller.full_name || seller.username);
+    const visibleListingHistory = seller.show_past_sales ? listingHistory : [];
 
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -236,17 +238,18 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                         )}
                     </section>
 
+                    {seller.show_past_sales && (
                     <section>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-black tracking-tight text-black">Listing History</h2>
-                            <span className="text-xs font-semibold text-gray-400">{listingHistory.length} past</span>
+                            <span className="text-xs font-semibold text-gray-400">{visibleListingHistory.length} past</span>
                         </div>
 
-                        {listingHistory.length === 0 ? (
-                            <EmptyState message="No completed or past listings yet." />
+                        {visibleListingHistory.length === 0 ? (
+                            <EmptyState message="No public past sales yet." />
                         ) : (
                             <div className="border border-gray-200 bg-white divide-y divide-gray-100">
-                                {listingHistory.map((auction) => (
+                                {visibleListingHistory.map((auction) => (
                                     <Link key={auction.id} href={`/auctions/${auction.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-gray-50 transition-colors">
                                         <div className="min-w-0">
                                             <p className="font-semibold text-black truncate">{auction.title}</p>
@@ -265,6 +268,7 @@ export default async function SellerProfilePage({ params }: SellerPageProps) {
                             </div>
                         )}
                     </section>
+                    )}
                 </div>
 
                 <aside className="space-y-6">

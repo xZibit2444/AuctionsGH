@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendOrderCompletionEmails } from '@/lib/orderCompletionEmails';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
@@ -93,6 +94,8 @@ export async function POST(req: NextRequest) {
             .from('orders')
             .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
             .eq('id', orderId);
+
+        await sendOrderCompletionEmails(orderId);
 
         return NextResponse.json({ success: true });
     } catch (err) {

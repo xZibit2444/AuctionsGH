@@ -206,6 +206,7 @@ export default function SettingsPage() {
         phone_number: '',
         location: '',
         show_past_buys: false,
+        show_past_sales: false,
     });
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -229,6 +230,7 @@ export default function SettingsPage() {
                 phone_number: profile.phone_number ?? '',
                 location: profile.location ?? '',
                 show_past_buys: profile.show_past_buys ?? false,
+                show_past_sales: profile.show_past_sales ?? false,
             });
             setAvatarUrl(profile.avatar_url ?? '');
         }
@@ -247,6 +249,7 @@ export default function SettingsPage() {
             phone_number: profile?.phone_number ?? '',
             location: profile?.location ?? '',
             show_past_buys: profile?.show_past_buys ?? false,
+            show_past_sales: profile?.show_past_sales ?? false,
         });
         setAvatarUrl(profile?.avatar_url ?? '');
         setProfileError('');
@@ -338,6 +341,7 @@ export default function SettingsPage() {
                     phone_number: profileForm.phone_number,
                     location: profileForm.location,
                     show_past_buys: profileForm.show_past_buys,
+                    show_past_sales: profileForm.show_past_sales,
                     avatar_url: avatarUrl || null,
                 })
                 .eq('id', user.id);
@@ -530,6 +534,10 @@ export default function SettingsPage() {
                                         <InfoRow label="Email" value={user?.email ?? ''} />
                                         <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
                                         <InfoRow label="Location" value={profile?.location ?? ''} placeholder="Not set" />
+                                        <InfoRow
+                                            label="Past Sales"
+                                            value={profile?.show_past_sales ? 'Shown publicly' : 'Hidden publicly'}
+                                        />
                                         {!profile?.is_admin && (
                                             <InfoRow
                                                 label="Past Buys"
@@ -594,20 +602,35 @@ export default function SettingsPage() {
                                             />
                                         </div>
 
-                                        {!profile?.is_admin && (
+                                        <div className="space-y-3">
                                             <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
                                                 <div>
-                                                    <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                                    <p className="text-sm font-semibold text-black">Show past sales on public profile</p>
                                                     <p className="text-xs text-gray-400 mt-0.5">
-                                                        When enabled, completed purchases can appear on your public member profile.
+                                                        When enabled, your public profile can show past listing history and completed sales.
                                                     </p>
                                                 </div>
                                                 <Toggle
-                                                    on={profileForm.show_past_buys}
-                                                    onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                    on={profileForm.show_past_sales}
+                                                    onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_sales: !prev.show_past_sales }))}
                                                 />
                                             </div>
-                                        )}
+
+                                            {!profile?.is_admin && (
+                                                <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">
+                                                            When enabled, completed purchases can appear on your public member profile.
+                                                        </p>
+                                                    </div>
+                                                    <Toggle
+                                                        on={profileForm.show_past_buys}
+                                                        onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {profileError && (
                                             <div className="flex items-center gap-2 text-red-500 text-xs">

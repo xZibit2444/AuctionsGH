@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { sendOrderCompletionEmails } from '@/lib/orderCompletionEmails';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -136,6 +137,8 @@ export async function confirmDeliveryAction(
         .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
         .eq('id', orderId);
 
+    await sendOrderCompletionEmails(orderId);
+
     return { success: true };
 }
 
@@ -180,6 +183,8 @@ export async function confirmDeliveredByBuyerAction(
         .from('orders')
         .update({ status: 'completed', updated_at: nowIso } as never)
         .eq('id', orderId);
+
+    await sendOrderCompletionEmails(orderId);
 
     return { success: true };
 }
