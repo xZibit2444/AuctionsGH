@@ -8,6 +8,7 @@ import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
 import ReviewsList from '@/components/profile/ReviewsList';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isMissingShowPastBuysColumnError } from '@/lib/supabase/profileGuards';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
@@ -26,6 +27,8 @@ type PublicProfile = {
     is_verified: boolean;
     created_at: string;
 };
+
+type LegacyPublicProfile = Omit<PublicProfile, 'show_past_buys'>;
 
 type PublicAuction = {
     id: string;
@@ -72,12 +75,14 @@ function hasWrittenReview(review: PublicReview) {
 async function getPublicProfileData(id: string) {
     const admin = createAdminClient();
 
-    const [{ data: profile }, { data: auctions }, { data: reviews }, { data: pastBuys }] = await Promise.all([
-        admin
-            .from('profiles')
-            .select('id, username, full_name, avatar_url, location, show_past_buys, is_verified, created_at')
-            .eq('id', id)
-            .single(),
+    const profileQuery = admin
+        .from('profiles')
+        .select('id, username, full_name, avatar_url, location, show_past_buys, is_verified, created_at')
+        .eq('id', id)
+        .single();
+
+    const [{ data: profileWithFlag, error: profileError }, { data: auctions }, { data: reviews }, { data: pastBuys }] = await Promise.all([
+        profileQuery,
         admin
             .from('auctions')
             .select('id, title, brand, condition, current_price, status, created_at, ends_at, auction_images(url, position)')
@@ -96,8 +101,31 @@ async function getPublicProfileData(id: string) {
             .order('created_at', { ascending: false }),
     ]);
 
+    let profile = profileWithFlag as PublicProfile | null;
+
+    if (profileError && isMissingShowPastBuysColumnError(profileError)) {
+        const { data: fallbackProfile } = await admin
+            .from('profiles')
+            .select('id, username, full_name, avatar_url, location, is_verified, created_at')
+            .eq('id', id)
+            .single() as { data: LegacyPublicProfile | null; error: unknown };
+
+        profile = fallbackProfile
+            ? {
+                id: fallbackProfile.id,
+                username: fallbackProfile.username,
+                full_name: fallbackProfile.full_name,
+                avatar_url: fallbackProfile.avatar_url,
+                location: fallbackProfile.location,
+                show_past_buys: false,
+                is_verified: fallbackProfile.is_verified,
+                created_at: fallbackProfile.created_at,
+            }
+            : null;
+    }
+
     return {
-        profile: profile as PublicProfile | null,
+        profile,
         auctions: (auctions ?? []) as PublicAuction[],
         reviews: (reviews ?? []) as PublicReview[],
         pastBuys: (pastBuys ?? []) as PublicPastBuy[],
