@@ -8,6 +8,7 @@ import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
 import ReviewsList from '@/components/profile/ReviewsList';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
@@ -26,6 +27,8 @@ type SellerProfile = {
     is_verified: boolean;
     created_at: string;
 };
+
+type LegacySellerProfile = Omit<SellerProfile, 'show_past_sales'>;
 
 type SellerAuction = {
     id: string;
@@ -58,12 +61,14 @@ function hasWrittenReview(review: SellerReview) {
 async function getSellerPageData(id: string) {
     const admin = createAdminClient();
 
-    const [{ data: seller }, { data: auctions }, { data: reviews }] = await Promise.all([
-        admin
-            .from('profiles')
-            .select('id, username, full_name, avatar_url, location, show_past_sales, is_verified, created_at')
-            .eq('id', id)
-            .single(),
+    const sellerQuery = admin
+        .from('profiles')
+        .select('id, username, full_name, avatar_url, location, show_past_sales, is_verified, created_at')
+        .eq('id', id)
+        .single();
+
+    const [{ data: sellerWithFlag, error: sellerError }, { data: auctions }, { data: reviews }] = await Promise.all([
+        sellerQuery,
         admin
             .from('auctions')
             .select('id, title, brand, condition, current_price, status, created_at, ends_at, auction_images(url, position)')
@@ -76,8 +81,25 @@ async function getSellerPageData(id: string) {
             .order('created_at', { ascending: false }),
     ]);
 
+    let seller = sellerWithFlag as SellerProfile | null;
+
+    if (sellerError && isMissingProfileVisibilityColumnError(sellerError)) {
+        const { data: fallbackSeller } = await admin
+            .from('profiles')
+            .select('id, username, full_name, avatar_url, location, is_verified, created_at')
+            .eq('id', id)
+            .single() as { data: LegacySellerProfile | null; error: unknown };
+
+        seller = fallbackSeller
+            ? {
+                ...fallbackSeller,
+                show_past_sales: false,
+            }
+            : null;
+    }
+
     return {
-        seller: seller as SellerProfile | null,
+        seller,
         auctions: (auctions ?? []) as SellerAuction[],
         reviews: (reviews ?? []) as SellerReview[],
     };

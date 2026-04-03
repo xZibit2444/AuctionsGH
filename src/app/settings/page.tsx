@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Avatar from '@/components/ui/Avatar';
 import { PROFILE_IMAGES_BUCKET, GHANA_REGIONS } from '@/lib/constants';
+import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { validateImageFile } from '@/lib/validators';
 import {
     User, Bell, LogOut, Check, Eye, EyeOff,
@@ -215,6 +216,8 @@ export default function SettingsPage() {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [avatarUploading, setAvatarUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const visibilitySettingsAvailable = typeof profile?.show_past_buys === 'boolean'
+        || typeof profile?.show_past_sales === 'boolean';
 
     // Sync form when profile loads
     useEffect(() => {
@@ -334,7 +337,7 @@ export default function SettingsPage() {
         try {
             const supabase = createClient();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await (supabase.from('profiles') as any)
+            let { error } = await (supabase.from('profiles') as any)
                 .update({
                     full_name: profileForm.full_name,
                     username: normalizedUsername,
@@ -345,6 +348,25 @@ export default function SettingsPage() {
                     avatar_url: avatarUrl || null,
                 })
                 .eq('id', user.id);
+
+            if (error && isMissingProfileVisibilityColumnError(error)) {
+                const fallbackResult = await (supabase.from('profiles') as any)
+                    .update({
+                        full_name: profileForm.full_name,
+                        username: normalizedUsername,
+                        phone_number: profileForm.phone_number,
+                        location: profileForm.location,
+                        avatar_url: avatarUrl || null,
+                    })
+                    .eq('id', user.id);
+
+                error = fallbackResult.error;
+
+                if (!error) {
+                    setProfileError('Profile saved, but the public buys/sales toggles need the latest database migration before they can be changed.');
+                }
+            }
+
             if (error) {
                 const msg = (error as { message?: string }).message ?? '';
                 if (msg.includes('phone_number') || (msg.includes('23505') && msg.includes('phone'))) {
@@ -534,14 +556,23 @@ export default function SettingsPage() {
                                         <InfoRow label="Email" value={user?.email ?? ''} />
                                         <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
                                         <InfoRow label="Location" value={profile?.location ?? ''} placeholder="Not set" />
-                                        <InfoRow
-                                            label="Past Sales"
-                                            value={profile?.show_past_sales ? 'Shown publicly' : 'Hidden publicly'}
-                                        />
-                                        {!profile?.is_admin && (
+                                        {visibilitySettingsAvailable ? (
+                                            <>
+                                                <InfoRow
+                                                    label="Past Sales"
+                                                    value={profile?.show_past_sales ? 'Shown publicly' : 'Hidden publicly'}
+                                                />
+                                                {!profile?.is_admin && (
+                                                    <InfoRow
+                                                        label="Past Buys"
+                                                        value={profile?.show_past_buys ? 'Shown publicly' : 'Hidden publicly'}
+                                                    />
+                                                )}
+                                            </>
+                                        ) : (
                                             <InfoRow
-                                                label="Past Buys"
-                                                value={profile?.show_past_buys ? 'Shown publicly' : 'Hidden publicly'}
+                                                label="Profile Privacy"
+                                                value="Needs latest migration"
                                             />
                                         )}
                                     </div>
@@ -602,35 +633,44 @@ export default function SettingsPage() {
                                             />
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
-                                                <div>
-                                                    <p className="text-sm font-semibold text-black">Show past sales on public profile</p>
-                                                    <p className="text-xs text-gray-400 mt-0.5">
-                                                        When enabled, your public profile can show past listing history and completed sales.
-                                                    </p>
-                                                </div>
-                                                <Toggle
-                                                    on={profileForm.show_past_sales}
-                                                    onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_sales: !prev.show_past_sales }))}
-                                                />
-                                            </div>
-
-                                            {!profile?.is_admin && (
+                                        {visibilitySettingsAvailable ? (
+                                            <div className="space-y-3">
                                                 <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
                                                     <div>
-                                                        <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                                        <p className="text-sm font-semibold text-black">Show past sales on public profile</p>
                                                         <p className="text-xs text-gray-400 mt-0.5">
-                                                            When enabled, completed purchases can appear on your public member profile.
+                                                            When enabled, your public profile can show past listing history and completed sales.
                                                         </p>
                                                     </div>
                                                     <Toggle
-                                                        on={profileForm.show_past_buys}
-                                                        onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                        on={profileForm.show_past_sales}
+                                                        onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_sales: !prev.show_past_sales }))}
                                                     />
                                                 </div>
-                                            )}
-                                        </div>
+
+                                                {!profile?.is_admin && (
+                                                    <div className="border border-gray-200 bg-gray-50 px-4 py-4 flex items-start justify-between gap-4">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                When enabled, completed purchases can appear on your public member profile.
+                                                            </p>
+                                                        </div>
+                                                        <Toggle
+                                                            on={profileForm.show_past_buys}
+                                                            onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="border border-amber-200 bg-amber-50 px-4 py-4">
+                                                <p className="text-sm font-semibold text-amber-900">Public visibility toggles are not available yet</p>
+                                                <p className="text-xs text-amber-700 mt-0.5">
+                                                    The latest profile-privacy database migration has not been applied yet, so these settings are temporarily hidden.
+                                                </p>
+                                            </div>
+                                        )}
 
                                         {profileError && (
                                             <div className="flex items-center gap-2 text-red-500 text-xs">
