@@ -25,15 +25,16 @@ import NotificationBell from './NotificationBell';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/auctions', label: 'Browse', icon: Search },
+    { href: '/auctions', label: 'Auctions', icon: Search },
+    { href: '/listings', label: 'Listings', icon: Package },
     { href: '/auctions/create', label: 'Sell', icon: Plus, highlighted: true },
-    { href: '/saved', label: 'Saved', icon: Heart },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 const drawerItems = [
     { href: '/', label: 'Home', icon: Home, exact: true },
-    { href: '/auctions', label: 'Browse', icon: Search },
+    { href: '/auctions', label: 'Auctions', icon: Search },
+    { href: '/listings', label: 'Permanent Listings', icon: Package },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authRequired: true },
     { href: '/profile', label: 'Profile', icon: User, authRequired: true },
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },

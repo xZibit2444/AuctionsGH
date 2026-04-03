@@ -67,7 +67,8 @@ export default function Navbar() {
 
                     {/* Desktop nav links */}
                     <div className="hidden sm:flex items-center gap-6 text-sm font-semibold text-gray-500">
-                        <Link href="/auctions" onClick={(e) => handleNavClick(e, '/auctions')} className="hover:text-black transition-colors">Browse</Link>
+                        <Link href="/auctions" onClick={(e) => handleNavClick(e, '/auctions')} className="hover:text-black transition-colors">Auctions</Link>
+                        <Link href="/listings" onClick={(e) => handleNavClick(e, '/listings')} className="hover:text-black transition-colors">Permanent Listings</Link>
                         <Link href="/saved" onClick={(e) => handleNavClick(e, '/saved')} className="hover:text-black transition-colors">Saved</Link>
                     </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Suspense, startTransition, useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
@@ -9,11 +10,6 @@ import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 
 const CATEGORIES = ['All', ...ITEM_CATEGORIES];
-const LISTING_TYPES: Array<{ label: string; value: 'all' | ListingType }> = [
-    { label: 'All Listings', value: 'all' },
-    { label: 'Auctions', value: 'auction' },
-    { label: 'Permanent', value: 'permanent' },
-];
 const SORT_OPTIONS = [
     { label: 'Ending Soon', value: 'ends_at:asc' },
     { label: 'Newest', value: 'created_at:desc' },
@@ -21,14 +17,13 @@ const SORT_OPTIONS = [
     { label: 'Price: High to Low', value: 'current_price:desc' },
 ];
 
-function AuctionsContent() {
+function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const [query, setQuery] = useState(searchParams.get('q') ?? '');
     const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
     const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
-    const [listingType, setListingType] = useState<'all' | ListingType>((searchParams.get('type') as 'all' | ListingType | null) ?? 'all');
     const [sort, setSort] = useState(searchParams.get('sort') ?? 'ends_at:asc');
 
     const [orderBy, ascending] = sort.split(':') as [
@@ -45,61 +40,59 @@ function AuctionsContent() {
         ascending: ascending === 'asc',
     });
 
-    const syncUrl = useCallback((q: string, b: string, t: 'all' | ListingType, s: string) => {
+    const basePath = listingType === 'permanent' ? '/listings' : '/auctions';
+    const pageTitle = listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
+    const pageDescription = listingType === 'permanent'
+        ? 'Browse fixed-price style permanent listings separately from timed auctions.'
+        : 'Browse timed auctions separately from permanent listings.';
+
+    const syncUrl = useCallback((q: string, b: string, s: string) => {
         const params = new URLSearchParams();
         if (q) params.set('q', q);
         if (b && b !== 'All') params.set('brand', b);
-        if (t !== 'all') params.set('type', t);
         if (s && s !== 'ends_at:asc') params.set('sort', s);
         const qs = params.toString();
-        router.replace(qs ? `/auctions?${qs}` : '/auctions', { scroll: false });
-    }, [router]);
+        router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
+    }, [basePath, router]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setQuery(inputVal);
-        syncUrl(inputVal, category, listingType, sort);
+        syncUrl(inputVal, category, sort);
     };
 
     const handleCategory = (nextCategory: string) => {
         setCategory(nextCategory);
-        syncUrl(query, nextCategory, listingType, sort);
-    };
-
-    const handleListingType = (nextType: 'all' | ListingType) => {
-        setListingType(nextType);
-        syncUrl(query, category, nextType, sort);
+        syncUrl(query, nextCategory, sort);
     };
 
     const handleSort = (nextSort: string) => {
         setSort(nextSort);
-        syncUrl(query, category, listingType, nextSort);
+        syncUrl(query, category, nextSort);
     };
 
     const clearSearch = () => {
         setInputVal('');
         setQuery('');
-        syncUrl('', category, listingType, sort);
+        syncUrl('', category, sort);
     };
 
     useEffect(() => {
         const urlQ = searchParams.get('q') ?? '';
-        const urlType = (searchParams.get('type') as 'all' | ListingType | null) ?? 'all';
         startTransition(() => {
             setInputVal(urlQ);
             setQuery(urlQ);
-            setListingType(urlType);
         });
     }, [searchParams]);
 
-    const hasFilters = query || category !== 'All' || listingType !== 'all';
+    const hasFilters = query || category !== 'All';
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-black text-black tracking-tight">Browse</h1>
-                    <p className="text-xs text-gray-400 mt-1">Browse auctions and permanent listings separately. Sold items stay here for 48 hours, then remain only on the seller&apos;s page.</p>
+                    <h1 className="text-2xl font-black text-black tracking-tight">{pageTitle}</h1>
+                    <p className="text-xs text-gray-400 mt-1">{pageDescription} Sold items stay here for 48 hours, then remain only on the seller&apos;s page.</p>
                 </div>
                 {hasFilters && (
                     <button
@@ -107,8 +100,7 @@ function AuctionsContent() {
                             setInputVal('');
                             setQuery('');
                             setCategory('All');
-                            setListingType('all');
-                            syncUrl('', 'All', 'all', sort);
+                            syncUrl('', 'All', sort);
                         }}
                         className="text-xs font-semibold text-gray-400 hover:text-black transition-colors flex items-center gap-1"
                     >
@@ -152,18 +144,21 @@ function AuctionsContent() {
             )}
 
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
-                {LISTING_TYPES.map((type) => (
-                    <button
-                        key={type.value}
-                        onClick={() => handleListingType(type.value)}
+                {[
+                    { href: '/auctions', label: 'Auctions', active: listingType === 'auction' },
+                    { href: '/listings', label: 'Permanent Listings', active: listingType === 'permanent' },
+                ].map((tab) => (
+                    <Link
+                        key={tab.href}
+                        href={tab.href}
                         className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${
-                            listingType === type.value
+                            tab.active
                                 ? 'bg-black text-white border-black'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
                         }`}
                     >
-                        {type.label}
-                    </button>
+                        {tab.label}
+                    </Link>
                 ))}
             </div>
 
@@ -210,7 +205,15 @@ function AuctionsContent() {
 export default function AuctionsPageClient() {
     return (
         <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" /></div>}>
-            <AuctionsContent />
+            <AuctionsContent listingType="auction" />
+        </Suspense>
+    );
+}
+
+export function PermanentListingsPageClient() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" /></div>}>
+            <AuctionsContent listingType="permanent" />
         </Suspense>
     );
 }

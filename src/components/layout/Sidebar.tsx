@@ -40,7 +40,8 @@ const typeIcon = (type: string) => {
 
 const NAV_ITEMS = [
     { href: '/', label: 'Home', icon: Home, exact: true },
-    { href: '/auctions', label: 'Browse', icon: Search },
+    { href: '/auctions', label: 'Auctions', icon: Search },
+    { href: '/listings', label: 'Permanent Listings', icon: Package },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authRequired: true },
     { href: '/profile', label: 'Profile', icon: User, authRequired: true },
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
