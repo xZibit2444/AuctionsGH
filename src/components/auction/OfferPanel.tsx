@@ -240,11 +240,14 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                         }`}>
                             <span className="px-2.5 py-2.5 text-xs font-semibold text-gray-500 border-r border-gray-200 bg-gray-50 select-none">GHS</span>
                             <input
-                                type="number"
-                                min="1"
-                                step="1"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={amount}
-                                onChange={(e) => { setAmount(e.target.value); setFormError(''); }}
+                                onChange={(e) => {
+                                    setAmount(e.target.value.replace(/[^0-9]/g, ''));
+                                    setFormError('');
+                                }}
                                 placeholder="Your offer amount"
                                 className="flex-1 px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
                             />

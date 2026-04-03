@@ -26,8 +26,8 @@ import NotificationBell from './NotificationBell';
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/auctions', label: 'Auctions', icon: Search },
-    { href: '/listings', label: 'Listings', icon: Package },
     { href: '/auctions/create', label: 'Sell', icon: Plus, highlighted: true },
+    { href: '/listings', label: 'Listings', icon: Package },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
