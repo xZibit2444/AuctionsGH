@@ -2,12 +2,19 @@ import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import NewsPageClient from '@/components/news/NewsPageClient';
 
+type NewsUpdate = {
+    id: string;
+    title: string;
+    content: string;
+    created_at: string;
+};
+
 export const metadata: Metadata = {
     title: 'News & Updates | AuctionsGH',
     description: 'Stay updated with the latest news and announcements from AuctionsGH.',
 };
 
-const fallbackNews = [
+const fallbackNews: NewsUpdate[] = [
     {
         id: '1',
         title: '[VEHICLE] Motorbike — Supreme Start CG150',
@@ -73,9 +80,9 @@ const fallbackNews = [
 export default async function NewsPage() {
     const supabase = await createClient();
 
-    let news = [];
+    let news: NewsUpdate[] = [];
 
-    let error = null;
+    let error: unknown = null;
 
     try {
         const result = await supabase
