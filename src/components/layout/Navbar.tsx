@@ -69,6 +69,7 @@ export default function Navbar() {
                     <div className="hidden sm:flex items-center gap-6 text-sm font-semibold text-gray-500">
                         <Link href="/auctions" onClick={(e) => handleNavClick(e, '/auctions')} className="hover:text-black transition-colors">Auctions</Link>
                         <Link href="/listings" onClick={(e) => handleNavClick(e, '/listings')} className="hover:text-black transition-colors">Permanent Listings</Link>
+                        <Link href="/news" onClick={(e) => handleNavClick(e, '/news')} className="hover:text-black transition-colors">News</Link>
                         <Link href="/saved" onClick={(e) => handleNavClick(e, '/saved')} className="hover:text-black transition-colors">Saved</Link>
                     </div>
 
@@ -173,6 +174,13 @@ export default function Navbar() {
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
                                                     <Settings className="h-4 w-4" strokeWidth={1.5} />
                                                     Settings
+                                                </Link>
+                                                <Link href="/news" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/news'); }}
+                                                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 5H5m14 0v14H5V5m14 0-4 4M5 5l4 4m-4 4h14m-14 4h8" />
+                                                    </svg>
+                                                    News
                                                 </Link>
                                                 <Link href="/faq" onClick={(e) => { setDropdownOpen(false); handleNavClick(e, '/faq'); }}
                                                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors">

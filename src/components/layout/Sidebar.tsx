@@ -9,7 +9,7 @@ import {
     Home, Search, LayoutDashboard, Heart, Package,
     HelpCircle, Plus, LogOut, Settings, User,
     Gavel, Bell, X, Trophy, Clock, Info, MessageCircle, Tag, ChevronRight,
-    PanelLeftClose, PanelLeftOpen,
+    PanelLeftClose, PanelLeftOpen, Newspaper,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils';
@@ -47,6 +47,7 @@ const NAV_ITEMS = [
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
     { href: '/orders', label: 'Orders', icon: Package, authRequired: true },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
+    { href: '/news', label: 'News', icon: Newspaper },
 ];
 
 export default function Sidebar() {

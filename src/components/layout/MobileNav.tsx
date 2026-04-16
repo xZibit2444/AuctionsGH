@@ -20,6 +20,7 @@ import {
     Settings,
     LogOut,
     ChevronRight,
+    Newspaper,
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
@@ -28,6 +29,7 @@ const tabs = [
     { href: '/auctions', label: 'Auctions', icon: Search },
     { href: '/auctions/create', label: 'Sell', icon: Plus, highlighted: true },
     { href: '/listings', label: 'Listings', icon: Package },
+    { href: '/news', label: 'News', icon: Newspaper },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
@@ -40,6 +42,7 @@ const drawerItems = [
     { href: '/saved', label: 'Saved', icon: Heart, authRequired: true },
     { href: '/orders', label: 'Orders', icon: Package, authRequired: true },
     { href: '/faq', label: 'FAQ', icon: HelpCircle },
+    { href: '/news', label: 'News', icon: Newspaper },
 ];
 
 export default function MobileNav() {
