@@ -20,6 +20,37 @@ function getDisplayName(profile: { full_name?: string | null; username?: string 
     return profile?.full_name?.trim() || profile?.username?.trim() || fallback;
 }
 
+async function getAuctionOfferAccess(auctionId: string, userId: string) {
+    const { data: auction, error } = await supabaseAdmin
+        .from('auctions')
+        .select('id, title, seller_id, status')
+        .eq('id', auctionId)
+        .single();
+
+    if (error || !auction) {
+        return { error: 'Auction not found', auction: null, buyerId: null as string | null };
+    }
+
+    if (auction.seller_id === userId) {
+        return { error: null, auction, buyerId: null as string | null };
+    }
+
+    const { data: latestOffer } = await supabaseAdmin
+        .from('auction_offers')
+        .select('buyer_id')
+        .eq('auction_id', auctionId)
+        .eq('buyer_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (!latestOffer?.buyer_id) {
+        return { error: 'You need to send an offer before chatting with the seller.', auction, buyerId: null as string | null };
+    }
+
+    return { error: null, auction, buyerId: latestOffer.buyer_id as string };
+}
+
 export async function makeOfferAction(
     auctionId: string,
     amount: number
@@ -38,13 +69,6 @@ export async function makeOfferAction(
     if (auctionErr || !auction) return { success: false, error: 'Auction not found' };
     if (auction.status !== 'active') return { success: false, error: 'Auction is no longer active' };
     if (auction.seller_id === user.id) return { success: false, error: 'You cannot make an offer on your own auction' };
-
-    await supabaseAdmin
-        .from('auction_offers')
-        .update({ status: 'declined', updated_at: new Date().toISOString() })
-        .eq('auction_id', auctionId)
-        .eq('buyer_id', user.id)
-        .eq('status', 'pending');
 
     const { data: offer, error: insertErr } = await supabaseAdmin
         .from('auction_offers')
@@ -108,6 +132,78 @@ export async function makeOfferAction(
     }
 
     return { success: true, offerId: offer.id };
+}
+
+export async function sendOfferMessageAction(
+    auctionId: string,
+    buyerId: string,
+    body: string
+): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'You must be logged in to send messages.' };
+
+    const trimmed = body.trim();
+    if (!trimmed) return { success: false, error: 'Message cannot be empty.' };
+    if (trimmed.length > 2000) return { success: false, error: 'Message is too long (max 2000 characters).' };
+
+    const { data: auction, error: auctionErr } = await supabaseAdmin
+        .from('auctions')
+        .select('id, title, seller_id, status')
+        .eq('id', auctionId)
+        .single();
+
+    if (auctionErr || !auction) return { success: false, error: 'Auction not found.' };
+
+    const isSeller = auction.seller_id === user.id;
+    const isBuyer = buyerId === user.id;
+    if (!isSeller && !isBuyer) return { success: false, error: 'Access denied.' };
+
+    const { data: offerThread } = await supabaseAdmin
+        .from('auction_offers')
+        .select('id, status')
+        .eq('auction_id', auctionId)
+        .eq('buyer_id', buyerId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    if (!offerThread || offerThread.length === 0) {
+        return { success: false, error: 'No offer thread found for this buyer.' };
+    }
+
+    const acceptedOfferExists = offerThread.some((offer) => offer.status === 'accepted');
+    if (auction.status !== 'active' || acceptedOfferExists) {
+        return { success: false, error: 'Offer chat is closed for this listing.' };
+    }
+
+    const { data: msg, error: msgErr } = await supabaseAdmin
+        .from('auction_offer_messages')
+        .insert({
+            auction_id: auctionId,
+            buyer_id: buyerId,
+            seller_id: auction.seller_id,
+            sender_id: user.id,
+            body: trimmed,
+        })
+        .select('id')
+        .single();
+
+    if (msgErr || !msg) {
+        return { success: false, error: msgErr?.message ?? 'Failed to send message.' };
+    }
+
+    const recipientId = isBuyer ? auction.seller_id : buyerId;
+    const senderLabel = isBuyer ? 'Buyer' : 'Seller';
+
+    await insertNotificationIfEnabled(supabaseAdmin as never, {
+        user_id: recipientId,
+        type: 'new_message',
+        title: `New message from ${senderLabel}`,
+        body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
+        auction_id: auctionId,
+    });
+
+    return { success: true, messageId: msg.id };
 }
 
 export async function respondToOfferAction(

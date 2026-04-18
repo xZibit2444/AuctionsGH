@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
 import { formatCurrency } from '@/lib/utils';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
+import OfferThreadChat from './OfferThreadChat';
 
 interface Offer {
     id: string;
@@ -24,6 +25,13 @@ interface OfferPanelProps {
     isSeller: boolean;
     userId?: string | null;
     isActive?: boolean;
+}
+
+interface OfferThread {
+    buyerId: string;
+    sellerId: string;
+    buyerProfile?: Offer['buyer_profile'];
+    offers: Offer[];
 }
 
 export default function OfferPanel({ auctionId, isSeller, userId, isActive = true }: OfferPanelProps) {
@@ -101,137 +109,182 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     // Don't render at all if auction is inactive and there's nothing to show
     if (!isActive && offers.length === 0) return null;
 
-    const hasPending = !isSeller && offers.some((o) => o.status === 'pending');
+    const threads = useMemo<OfferThread[]>(() => {
+        const grouped = new Map<string, OfferThread>();
+
+        for (const offer of offers) {
+            const existing = grouped.get(offer.buyer_id);
+            if (existing) {
+                existing.offers.push(offer);
+                if (!existing.buyerProfile && offer.buyer_profile) {
+                    existing.buyerProfile = offer.buyer_profile;
+                }
+            } else {
+                grouped.set(offer.buyer_id, {
+                    buyerId: offer.buyer_id,
+                    sellerId: offer.seller_id,
+                    buyerProfile: offer.buyer_profile,
+                    offers: [offer],
+                });
+            }
+        }
+
+        return Array.from(grouped.values()).map((thread) => ({
+            ...thread,
+            offers: [...thread.offers].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+        }));
+    }, [offers]);
+
+    const buyerThread = !isSeller ? threads[0] ?? null : null;
+    const hasAccepted = !isSeller && buyerThread?.offers.some((offer) => offer.status === 'accepted');
+    const canBuyerSendOffers = !isSeller && isActive && !hasAccepted;
+
+    const renderOfferCard = (offer: Offer, threadIsMine: boolean) => {
+        const isResponding = responding === offer.id;
+
+        return (
+            <div key={offer.id} className="space-y-1.5">
+                <div className={`flex ${threadIsMine ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[82%] px-4 py-3 text-sm leading-snug ${
+                        threadIsMine
+                            ? 'bg-black text-white'
+                            : 'bg-white border border-gray-200 text-black'
+                    }`}>
+                        <p>
+                            Will you accept{' '}
+                            <span className="font-bold">{formatCurrency(offer.amount)}</span>{' '}
+                            for this item?
+                        </p>
+                        <p className="text-[10px] mt-1.5 opacity-50 text-right">
+                            {new Date(offer.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
+                </div>
+
+                {isSeller && offer.status === 'pending' && (
+                    <div className="flex gap-1.5">
+                        <button
+                            onClick={() => handleRespond(offer.id, 'accepted')}
+                            disabled={!!responding}
+                            className="flex-1 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        >
+                            {isResponding
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <CheckCircle2 className="h-3 w-3" />}
+                            Accept
+                        </button>
+                        <button
+                            onClick={() => handleRespond(offer.id, 'declined')}
+                            disabled={!!responding}
+                            className="flex-1 py-2 bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        >
+                            {isResponding
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <XCircle className="h-3 w-3 text-red-400" />}
+                            Decline
+                        </button>
+                    </div>
+                )}
+
+                {offer.status !== 'pending' && (
+                    <div className={`flex ${isSeller ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[82%] px-4 py-2.5 text-sm ${
+                            offer.status === 'accepted'
+                                ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                                : 'bg-red-50 border border-red-100 text-red-700'
+                        }`}>
+                            {offer.status === 'accepted'
+                                ? '✓ Offer accepted'
+                                : '✗ Offer declined'}
+                        </div>
+                    </div>
+                )}
+
+                {!isSeller && offer.status === 'accepted' && (
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => router.push(`/checkout/${auctionId}`)}
+                            className="mt-1 px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center gap-1.5"
+                        >
+                            <CheckCircle2 className="h-3 w-3" />
+                            Proceed to Checkout →
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
-            {/* Header */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
                 <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                 <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                    {isSeller ? 'Buyer Offers' : 'Make an Offer'}
+                    {isSeller ? 'Offer Threads' : 'Negotiate Offer'}
                 </p>
             </div>
 
-            {/* Chat messages */}
-            <div className="max-h-60 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
-                {offers.length === 0 ? (
+            <div className="px-4 py-4 bg-gray-50 space-y-4">
+                {threads.length === 0 ? (
                     <div className="py-8 text-center">
                         <Tag className="h-6 w-6 text-gray-200 mx-auto mb-2" />
                         <p className="text-xs text-gray-400">
                             {isSeller
-                                ? 'No offers yet. Buyers can send you a fixed-price offer.'
-                                : 'Send the seller a price offer below.'}
+                                ? 'No offer threads yet. Buyers will appear here once they send an offer.'
+                                : 'Send your first offer to open a negotiation chat with the seller.'}
                         </p>
                     </div>
                 ) : (
-                    offers.map((o) => {
-                        const isMine = o.buyer_id === userId;
-                        const buyerName = o.buyer_profile
-                            ? (o.buyer_profile.full_name || o.buyer_profile.username || 'Buyer')
+                    threads.map((thread) => {
+                        const buyerName = thread.buyerProfile
+                            ? (thread.buyerProfile.full_name || thread.buyerProfile.username || 'Buyer')
                             : 'Buyer';
-                        const isResponding = responding === o.id;
+                        const threadIsMine = thread.buyerId === userId;
+                        const chatClosed = thread.offers.some((offer) => offer.status === 'accepted') || !isActive;
 
                         return (
-                            <div key={o.id} className="space-y-1.5">
-                                {/* Label for seller view */}
+                            <div key={thread.buyerId} className="border border-gray-200 bg-white">
                                 {isSeller && (
-                                    o.buyer_profile?.id ? (
-                                        <Link href={`/users/${o.buyer_profile.id}`} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-black">
-                                            {buyerName}
-                                        </Link>
-                                    ) : (
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{buyerName}</p>
-                                    )
-                                )}
-
-                                {/* Offer bubble */}
-                                <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[82%] px-4 py-3 text-sm leading-snug ${
-                                        isMine
-                                            ? 'bg-black text-white'
-                                            : 'bg-white border border-gray-200 text-black'
-                                    }`}>
-                                        <p>
-                                            Will you accept{' '}
-                                            <span className="font-bold">{formatCurrency(o.amount)}</span>{' '}
-                                            for this item?
-                                        </p>
-                                        <p className="text-[10px] mt-1.5 opacity-50 text-right">
-                                            {new Date(o.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                    <div className="px-4 py-3 border-b border-gray-100 bg-white flex items-center justify-between gap-3">
+                                        {thread.buyerProfile?.id ? (
+                                            <Link href={`/users/${thread.buyerProfile.id}`} className="text-[11px] font-black text-black uppercase tracking-widest hover:underline underline-offset-2">
+                                                {buyerName}
+                                            </Link>
+                                        ) : (
+                                            <p className="text-[11px] font-black text-black uppercase tracking-widest">{buyerName}</p>
+                                        )}
+                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                                            {thread.offers.length} {thread.offers.length === 1 ? 'offer' : 'offers'}
                                         </p>
                                     </div>
+                                )}
+
+                                <div className="max-h-72 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+                                    {thread.offers.map((offer) => renderOfferCard(offer, !isSeller || threadIsMine))}
+                                    <div ref={threadIsMine ? bottomRef : undefined} />
                                 </div>
 
-                                {/* Seller Yes / No buttons — only on pending, only for seller */}
-                                {isSeller && o.status === 'pending' && (
-                                    <div className="flex gap-1.5">
-                                        <button
-                                            onClick={() => handleRespond(o.id, 'accepted')}
-                                            disabled={!!responding}
-                                            className="flex-1 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-                                        >
-                                            {isResponding
-                                                ? <Loader2 className="h-3 w-3 animate-spin" />
-                                                : <CheckCircle2 className="h-3 w-3" />}
-                                            Yes
-                                        </button>
-                                        <button
-                                            onClick={() => handleRespond(o.id, 'declined')}
-                                            disabled={!!responding}
-                                            className="flex-1 py-2 bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-                                        >
-                                            {isResponding
-                                                ? <Loader2 className="h-3 w-3 animate-spin" />
-                                                : <XCircle className="h-3 w-3 text-red-400" />}
-                                            No
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Response bubble */}
-                                {o.status !== 'pending' && (
-                                    <div className={`flex ${isSeller ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[82%] px-4 py-2.5 text-sm ${
-                                            o.status === 'accepted'
-                                                ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                                                : 'bg-red-50 border border-red-100 text-red-700'
-                                        }`}>
-                                            {o.status === 'accepted'
-                                                ? '✓ Yes — offer accepted!'
-                                                : '✗ No — offer declined.'}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Checkout CTA for buyer on accepted offer */}
-                                {!isSeller && o.status === 'accepted' && (
-                                    <div className="flex justify-end">
-                                        <button
-                                            onClick={() => router.push(`/checkout/${auctionId}`)}
-                                            className="mt-1 px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center gap-1.5"
-                                        >
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            Proceed to Checkout →
-                                        </button>
-                                    </div>
-                                )}
+                                <OfferThreadChat
+                                    auctionId={auctionId}
+                                    buyerId={thread.buyerId}
+                                    sellerId={thread.sellerId}
+                                    userId={userId!}
+                                    canChat={!chatClosed}
+                                />
                             </div>
                         );
                     })
                 )}
-                <div ref={bottomRef} />
             </div>
 
-            {/* Input area — buyer only, auction must be active */}
-            {!isSeller && isActive && (
+            {canBuyerSendOffers && (
                 <form onSubmit={handleSendOffer} className="border-t border-gray-200 bg-white">
                     {formError && (
                         <p className="px-4 pt-2 text-[11px] text-red-500 font-semibold">{formError}</p>
                     )}
-                    {hasPending && (
+                    {buyerThread && buyerThread.offers.some((offer) => offer.status === 'pending') && (
                         <p className="px-4 pt-2 text-[10px] text-amber-600 italic">
-                            Sending a new offer will replace your pending one.
+                            You can keep negotiating by sending another offer while previous ones remain in the thread.
                         </p>
                     )}
                     <div className="p-3 flex gap-2">
@@ -240,9 +293,10 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                         }`}>
                             <span className="px-2.5 py-2.5 text-xs font-semibold text-gray-500 border-r border-gray-200 bg-gray-50 select-none">GHS</span>
                             <input
-                                type="text"
+                                type="number"
                                 inputMode="numeric"
-                                pattern="[0-9]*"
+                                min="1"
+                                step="1"
                                 value={amount}
                                 onChange={(e) => {
                                     setAmount(e.target.value.replace(/[^0-9]/g, ''));
@@ -269,10 +323,9 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                 </form>
             )}
 
-            {/* Seller footer note */}
             {isSeller && (
                 <div className="border-t border-gray-100 px-4 py-2.5">
-                    <p className="text-[10px] text-gray-400 text-center">You can only respond Yes or No to each offer.</p>
+                    <p className="text-[10px] text-gray-400 text-center">Each buyer now has a negotiation thread with chat and offer history.</p>
                 </div>
             )}
         </div>
