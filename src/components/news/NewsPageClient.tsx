@@ -47,13 +47,48 @@ function getFieldValue(content: string, label: string) {
     return parseContent(content).find((entry) => entry.label.toLowerCase() === label.toLowerCase())?.value ?? null;
 }
 
+function getEffectiveDateDay(item: NewsUpdate) {
+    const contentDate = getFieldValue(item.content, 'Date');
+
+    if (contentDate) {
+        return contentDate.split(',')[0]?.trim() || contentDate;
+    }
+
+    return new Date(item.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+}
+
+function getEffectiveDateLabel(item: NewsUpdate) {
+    const contentDate = getFieldValue(item.content, 'Date');
+
+    if (contentDate) {
+        return contentDate;
+    }
+
+    return new Date(item.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+}
+
 export default function NewsPageClient({ initialNews, error }: NewsPageClientProps) {
     const [news] = useState(initialNews);
     const [activeFilter, setActiveFilter] = useState('All');
+    const [activeDayFilter, setActiveDayFilter] = useState('All days');
     const categories = useMemo(() => ['All', ...Array.from(new Set(news.map((item) => getCategoryFromTitle(item.title))))], [news]);
+    const dayFilters = useMemo(() => ['All days', ...Array.from(new Set(news.map((item) => getEffectiveDateDay(item))))], [news]);
     const filteredNews = useMemo(
-        () => (activeFilter === 'All' ? news : news.filter((item) => getCategoryFromTitle(item.title) === activeFilter)),
-        [activeFilter, news]
+        () => news.filter((item) => {
+            const matchesCategory = activeFilter === 'All' || getCategoryFromTitle(item.title) === activeFilter;
+            const matchesDay = activeDayFilter === 'All days' || getEffectiveDateDay(item) === activeDayFilter;
+
+            return matchesCategory && matchesDay;
+        }),
+        [activeDayFilter, activeFilter, news]
     );
 
     return (
@@ -80,21 +115,46 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                 )}
 
                 {news.length > 0 && (
-                    <div className="mt-6 flex flex-wrap gap-2">
-                        {categories.map((category) => {
-                            const isActive = activeFilter === category;
+                    <div className="mt-6 space-y-4">
+                        <div>
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Filter by category</p>
+                            <div className="flex flex-wrap gap-2">
+                                {categories.map((category) => {
+                                    const isActive = activeFilter === category;
 
-                            return (
-                                <button
-                                    key={category}
-                                    type="button"
-                                    onClick={() => setActiveFilter(category)}
-                                    className={`border px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
-                                >
-                                    {category}
-                                </button>
-                            );
-                        })}
+                                    return (
+                                        <button
+                                            key={category}
+                                            type="button"
+                                            onClick={() => setActiveFilter(category)}
+                                            className={`border px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
+                                        >
+                                            {category}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Filter by day</p>
+                            <div className="flex flex-wrap gap-2">
+                                {dayFilters.map((day) => {
+                                    const isActive = activeDayFilter === day;
+
+                                    return (
+                                        <button
+                                            key={day}
+                                            type="button"
+                                            onClick={() => setActiveDayFilter(day)}
+                                            className={`border px-3 py-2 text-[11px] font-black transition-colors ${isActive ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
+                                        >
+                                            {day}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -112,12 +172,12 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
             {filteredNews.length === 0 ? (
                 <div className="border border-gray-200 bg-gray-50 p-6 sm:p-8">
                     <h2 className="text-sm font-black uppercase tracking-widest text-black mb-2">
-                        {news.length === 0 ? 'No updates yet' : `No ${activeFilter.toLowerCase()} notices`}
+                        {news.length === 0 ? 'No updates yet' : 'No matching notices'}
                     </h2>
                     <p className="text-sm text-gray-500 leading-relaxed">
                         {news.length === 0
                             ? 'There are no news updates available right now. Check back soon for announcements and platform updates.'
-                            : 'Try another filter to view more auction notices.'}
+                            : 'Try another category or day filter to view more auction notices.'}
                     </p>
                 </div>
             ) : (
@@ -126,6 +186,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                         const parsedContent = parseContent(item.content);
                         const category = getCategoryFromTitle(item.title);
                         const reserved = getFieldValue(item.content, 'Reserved Price') ?? getFieldValue(item.content, 'Reserved price');
+                        const effectiveDateLabel = getEffectiveDateLabel(item);
 
                         return (
                             <article key={item.id} className="border border-gray-200 bg-white overflow-hidden">
@@ -151,11 +212,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                                             <h2 className="text-lg sm:text-xl font-black tracking-tight text-black leading-tight">{getDisplayTitle(item.title)}</h2>
                                         </div>
                                         <time className="text-[11px] font-black uppercase tracking-widest text-gray-400 shrink-0">
-                                            {new Date(item.created_at).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            })}
+                                            {effectiveDateLabel}
                                         </time>
                                     </div>
                                 </div>

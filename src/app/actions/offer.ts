@@ -7,6 +7,7 @@ import {
     sendAuctionSoldEmail,
     sendAuctionWonEmail,
     sendOfferDeclinedEmail,
+    sendOfferReceivedEmail,
 } from '@/lib/email/sender';
 
 const supabaseAdmin = createAdminClient(
@@ -76,6 +77,35 @@ export async function makeOfferAction(
         body: `${buyerLabel} is asking: "Will you accept GHS ${Number(amount).toLocaleString()} for ${auction.title}?"`,
         auction_id: auctionId,
     });
+
+    const [{ data: sellerProfile }, sellerAuthResult] = await Promise.all([
+        supabaseAdmin
+            .from('profiles')
+            .select('full_name, username')
+            .eq('id', auction.seller_id)
+            .maybeSingle(),
+        supabaseAdmin.auth.admin.getUserById(auction.seller_id),
+    ]);
+
+    if (sellerAuthResult.data.user?.email) {
+        const sellerName = getDisplayName(
+            sellerProfile as { full_name?: string | null; username?: string | null } | null,
+            'Seller'
+        );
+
+        const offerReceivedEmailResult = await sendOfferReceivedEmail(
+            sellerAuthResult.data.user.email,
+            sellerName,
+            buyerLabel,
+            auction.title,
+            Number(amount),
+            auctionId
+        );
+
+        if (!offerReceivedEmailResult.success) {
+            console.error('Failed to send new offer email:', offerReceivedEmailResult.error);
+        }
+    }
 
     return { success: true, offerId: offer.id };
 }

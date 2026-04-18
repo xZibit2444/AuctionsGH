@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
 import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
+import NewsAnnouncementEmail from '@/emails/NewsAnnouncementEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
+import OfferReceivedEmail from '@/emails/OfferReceivedEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
@@ -9,12 +11,13 @@ import OrderConfirmedSellerEmail from '@/emails/OrderConfirmedSellerEmail';
 import OutbidEmail from '@/emails/OutbidEmail';
 import SellerApprovedEmail from '@/emails/SellerApprovedEmail';
 import SignupVerificationEmail from '@/emails/SignupVerificationEmail';
+import ThankYouEmail from '@/emails/ThankYouEmail';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'AuctionsGH <onboarding@resend.dev>';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'AuctionsGH <noreply@auctionsgh.com>';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 
 interface OrderCompletedSummaryEmailPayload {
     recipientName: string;
@@ -34,6 +37,19 @@ interface OrderCompletedSummaryEmailPayload {
         sentAtLabel: string;
         body: string;
     }>;
+}
+
+interface NewsAnnouncementEmailPayload {
+    recipientName?: string;
+    updates: Array<{
+        title: string;
+        content: string;
+    }>;
+}
+
+function getResend() {
+    const apiKey = process.env.RESEND_API_KEY;
+    return apiKey ? new Resend(apiKey) : null;
 }
 
 export async function sendOutbidEmail(
@@ -218,6 +234,45 @@ export async function sendOfferDeclinedEmail(
     }
 }
 
+export async function sendOfferReceivedEmail(
+    to: string,
+    sellerName: string,
+    buyerName: string,
+    auctionTitle: string,
+    amount: number,
+    auctionId: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `New offer received for ${auctionTitle}`,
+            react: OfferReceivedEmail({
+                sellerName,
+                buyerName,
+                auctionTitle,
+                amount,
+                auctionUrl: `${SITE_URL}/auctions/${auctionId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send offer received email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending offer received email:', error);
+        return { success: false, error };
+    }
+}
+
 export async function sendOrderConfirmedBuyerEmail(
     to: string,
     buyerName: string,
@@ -378,6 +433,68 @@ export async function sendSellerApprovedEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending seller approved email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendThankYouEmail(to: string) {
+    const resend = getResend();
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: 'Thank you for using AuctionsGH!',
+            react: ThankYouEmail(),
+        });
+
+        if (error) {
+            console.error('Failed to send thank you email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending thank you email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendNewsAnnouncementEmail(
+    to: string,
+    payload: NewsAnnouncementEmailPayload
+) {
+    const resend = getResend();
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: 'AuctionsGH News & Updates is now live',
+            react: NewsAnnouncementEmail({
+                recipientName: payload.recipientName,
+                newsUrl: `${SITE_URL}/news`,
+                logoUrl: `${SITE_URL}/logo.png`,
+                updates: payload.updates,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send news announcement email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending news announcement email:', error);
         return { success: false, error };
     }
 }
