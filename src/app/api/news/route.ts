@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET() {
-    const supabase = createClient();
+type AdminProfile = {
+    is_admin?: boolean | null;
+    is_super_admin?: boolean | null;
+};
 
-    const { data, error } = await supabase
-        .from('news_updates')
+type NewsUpdate = {
+    title: string;
+    content: string;
+    is_published: boolean;
+};
+
+export async function GET() {
+    const supabase = await createClient();
+
+    // Database types in this repo lag behind the live schema for news_updates.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('news_updates') as any)
         .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
@@ -18,21 +30,26 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    // Database types in this repo lag behind the live schema for profiles admin flags.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase
         .from('profiles')
         .select('is_admin, is_super_admin')
         .eq('id', user.id)
-        .single();
+        .single() as any);
 
-    if (!profile?.is_admin && !profile?.is_super_admin) {
+    const adminProfile = profile as AdminProfile | null;
+
+    if (!adminProfile?.is_admin && !adminProfile?.is_super_admin) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -42,8 +59,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-        .from('news_updates')
+    // Database types in this repo lag behind the live schema for news_updates.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('news_updates') as any)
         .insert({
             title,
             content,

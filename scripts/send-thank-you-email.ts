@@ -3,10 +3,12 @@
 
 require('dotenv').config({ path: '.env.local' });
 
-process.env.RESEND_API_KEY = process.env.RESEND_API_KEY || 're_QmVRDtAp_J2GW3M2mRWdczPna3SpxY3pX'; // fallback
-
 import { createClient } from '@supabase/supabase-js';
 import { sendThankYouEmail } from '../src/lib/email/sender';
+
+type UserWithEmail = {
+  email: string;
+};
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -26,7 +28,7 @@ async function main() {
     process.exit(1);
   }
 
-  const users = usersData.users.filter(u => u.email);
+  const users = usersData.users.filter((u): u is typeof u & UserWithEmail => typeof u.email === 'string');
   console.log(`Sending thank you email to ${users.length} users...`);
 
   let successCount = 0;
