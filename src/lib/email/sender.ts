@@ -482,7 +482,6 @@ export async function sendNewsAnnouncementEmail(
             react: NewsAnnouncementEmail({
                 recipientName: payload.recipientName,
                 newsUrl: `${SITE_URL}/news`,
-                logoUrl: `${SITE_URL}/logo.png`,
                 updates: payload.updates,
             }),
         });

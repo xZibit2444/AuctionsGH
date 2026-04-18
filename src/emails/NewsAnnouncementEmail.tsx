@@ -4,13 +4,13 @@ import {
     Head,
     Heading,
     Html,
-    Img,
     Link,
     Preview,
     Section,
     Text,
 } from '@react-email/components';
 import * as React from 'react';
+import EmailLogo from './EmailLogo';
 
 interface NewsAnnouncementItem {
     title: string;
@@ -20,14 +20,12 @@ interface NewsAnnouncementItem {
 interface NewsAnnouncementEmailProps {
     recipientName?: string;
     newsUrl: string;
-    logoUrl: string;
     updates: NewsAnnouncementItem[];
 }
 
 export default function NewsAnnouncementEmail({
     recipientName,
     newsUrl,
-    logoUrl,
     updates,
 }: NewsAnnouncementEmailProps) {
     const greetingName = recipientName?.trim() || 'there';
@@ -38,15 +36,7 @@ export default function NewsAnnouncementEmail({
             <Preview>AuctionsGH has a new News & Updates section</Preview>
             <Body style={main}>
                 <Container style={container}>
-                    <Link href={newsUrl} style={logoLink}>
-                        <Img
-                            src={logoUrl}
-                            alt="AuctionsGH Logo"
-                            width="150"
-                            height="50"
-                            style={logo}
-                        />
-                    </Link>
+                    <EmailLogo href={newsUrl} />
                     <Heading style={heading}>Our new News & Updates section is live</Heading>
                     <Text style={text}>Hi {greetingName},</Text>
                     <Text style={text}>
@@ -93,17 +83,6 @@ const container = {
     border: '1px solid #f0f0f0',
     borderRadius: '5px',
     maxWidth: '560px',
-};
-
-const logo = {
-    margin: '0 auto 24px',
-    display: 'block',
-};
-
-const logoLink = {
-    display: 'block',
-    textAlign: 'center' as const,
-    textDecoration: 'none',
 };
 
 const heading = {

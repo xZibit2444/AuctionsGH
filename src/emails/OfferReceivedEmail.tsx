@@ -10,6 +10,7 @@ import {
     Text,
 } from '@react-email/components';
 import * as React from 'react';
+import EmailLogo from './EmailLogo';
 
 interface OfferReceivedEmailProps {
     sellerName: string;
@@ -32,7 +33,7 @@ export default function OfferReceivedEmail({
             <Preview>You received a new offer on your listing</Preview>
             <Body style={main}>
                 <Container style={container}>
-                    <Text style={logo}>AUCTIONS<span style={{ color: '#666' }}>GH</span></Text>
+                    <EmailLogo />
                     <Heading style={heading}>You received a new offer</Heading>
                     <Text style={text}>Hi {sellerName},</Text>
                     <Text style={text}>
@@ -67,14 +68,6 @@ const container = {
     border: '1px solid #f0f0f0',
     borderRadius: '5px',
     maxWidth: '560px',
-};
-
-const logo = {
-    fontSize: '24px',
-    fontWeight: '900',
-    letterSpacing: '-1px',
-    margin: '0 0 24px',
-    color: '#000',
 };
 
 const heading = {

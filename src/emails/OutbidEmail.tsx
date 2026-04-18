@@ -10,6 +10,7 @@ import {
     Section,
 } from '@react-email/components';
 import * as React from 'react';
+import EmailLogo from './EmailLogo';
 
 interface OutbidEmailProps {
     userName: string;
@@ -26,21 +27,21 @@ export const OutbidEmail = ({
 }: OutbidEmailProps) => (
     <Html>
         <Head />
-        <Preview>You've been outbid on {auctionTitle}!</Preview>
+        <Preview>You&apos;ve been outbid on {auctionTitle}!</Preview>
         <Body style={main}>
             <Container style={container}>
                 <Section style={header}>
-                    <Text style={logo}>AUCTIONS<span style={{ color: '#666' }}>GH</span></Text>
+                    <EmailLogo />
                 </Section>
 
-                <Heading style={h1}>You've been outbid!</Heading>
+                <Heading style={h1}>You&apos;ve been outbid!</Heading>
 
                 <Text style={text}>Hi {userName},</Text>
                 <Text style={text}>
                     Someone just placed a higher bid of <strong>GHS {newBidAmount.toLocaleString()}</strong> on the <strong>{auctionTitle}</strong> you were watching.
                 </Text>
                 <Text style={text}>
-                    Don't lose it! There's still time to place a counter-bid before the auction ends.
+                    Don&apos;t lose it! There&apos;s still time to place a counter-bid before the auction ends.
                 </Text>
 
                 <Section style={btnContainer}>
@@ -74,14 +75,6 @@ const container = {
 
 const header = {
     marginBottom: '32px',
-};
-
-const logo = {
-    fontSize: '24px',
-    fontWeight: '900',
-    letterSpacing: '-1px',
-    margin: '0',
-    color: '#000',
 };
 
 const h1 = {

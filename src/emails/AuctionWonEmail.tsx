@@ -10,6 +10,7 @@ import {
     Section,
 } from '@react-email/components';
 import * as React from 'react';
+import EmailLogo from './EmailLogo';
 
 interface AuctionWonEmailProps {
     userName: string;
@@ -30,7 +31,7 @@ export const AuctionWonEmail = ({
         <Body style={main}>
             <Container style={container}>
                 <Section style={header}>
-                    <Text style={logo}>AUCTIONS<span style={{ color: '#666' }}>GH</span></Text>
+                    <EmailLogo />
                 </Section>
 
                 <Heading style={h1}>Congratulations, you won!</Heading>
@@ -74,14 +75,6 @@ const container = {
 
 const header = {
     marginBottom: '32px',
-};
-
-const logo = {
-    fontSize: '24px',
-    fontWeight: '900',
-    letterSpacing: '-1px',
-    margin: '0',
-    color: '#000',
 };
 
 const h1 = {
