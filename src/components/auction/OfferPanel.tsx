@@ -105,10 +105,6 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
         if (result.success && response === 'accepted') router.refresh();
     };
 
-    if (loading) return null;
-    // Don't render at all if auction is inactive and there's nothing to show
-    if (!isActive && offers.length === 0) return null;
-
     const threads = useMemo<OfferThread[]>(() => {
         const grouped = new Map<string, OfferThread>();
 
@@ -138,6 +134,10 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     const buyerThread = !isSeller ? threads[0] ?? null : null;
     const hasAccepted = !isSeller && buyerThread?.offers.some((offer) => offer.status === 'accepted');
     const canBuyerSendOffers = !isSeller && isActive && !hasAccepted;
+
+    if (loading) return null;
+    // Don't render at all if auction is inactive and there's nothing to show
+    if (!isActive && offers.length === 0) return null;
 
     const renderOfferCard = (offer: Offer, threadIsMine: boolean) => {
         const isResponding = responding === offer.id;
