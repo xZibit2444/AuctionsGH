@@ -3,6 +3,7 @@
         "/^git add -A ; git commit -m \"feat: add mobile top header with logo and notification bell\" ; git push$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "npx tsx": true
     }
 }

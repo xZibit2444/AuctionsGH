@@ -19,6 +19,7 @@ import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import ShareButton from '@/components/ui/ShareButton';
 import OfferPanel from './OfferPanel';
+import AuctionComments from './AuctionComments';
 import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
@@ -476,6 +477,11 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             </p>
                         </div>
                     )}
+
+                    <AuctionComments
+                        auctionId={auction.id}
+                        currentUserId={user?.id}
+                    />
 
                     {isWinner && auction.status === 'sold' && winnerNote && (
                         <div className="border border-emerald-200 bg-emerald-50 p-5 mt-2">

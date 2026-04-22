@@ -1,9 +1,7 @@
 import { Resend } from 'resend';
 import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
-import NewsAnnouncementEmail from '@/emails/NewsAnnouncementEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
-import OfferReceivedEmail from '@/emails/OfferReceivedEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
@@ -17,7 +15,7 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'AuctionsGH <noreply@auctionsgh.com>';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 interface OrderCompletedSummaryEmailPayload {
     recipientName: string;
@@ -36,14 +34,6 @@ interface OrderCompletedSummaryEmailPayload {
         senderName: string;
         sentAtLabel: string;
         body: string;
-    }>;
-}
-
-interface NewsAnnouncementEmailPayload {
-    recipientName?: string;
-    updates: Array<{
-        title: string;
-        content: string;
     }>;
 }
 
@@ -234,45 +224,6 @@ export async function sendOfferDeclinedEmail(
     }
 }
 
-export async function sendOfferReceivedEmail(
-    to: string,
-    sellerName: string,
-    buyerName: string,
-    auctionTitle: string,
-    amount: number,
-    auctionId: string
-) {
-    if (!resend) {
-        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
-        return { success: false, error: 'API key missing' };
-    }
-
-    try {
-        const { data, error } = await resend.emails.send({
-            from: SENDER_EMAIL,
-            to,
-            subject: `New offer received for ${auctionTitle}`,
-            react: OfferReceivedEmail({
-                sellerName,
-                buyerName,
-                auctionTitle,
-                amount,
-                auctionUrl: `${SITE_URL}/auctions/${auctionId}`,
-            }),
-        });
-
-        if (error) {
-            console.error('Failed to send offer received email:', error);
-            return { success: false, error };
-        }
-
-        return { success: true, data };
-    } catch (error) {
-        console.error('Error sending offer received email:', error);
-        return { success: false, error };
-    }
-}
-
 export async function sendOrderConfirmedBuyerEmail(
     to: string,
     buyerName: string,
@@ -449,7 +400,7 @@ export async function sendThankYouEmail(to: string) {
             from: SENDER_EMAIL,
             to,
             subject: 'Thank you for using AuctionsGH!',
-            react: ThankYouEmail(),
+            react: ThankYouEmail({}),
         });
 
         if (error) {
@@ -460,40 +411,6 @@ export async function sendThankYouEmail(to: string) {
         return { success: true, data };
     } catch (error) {
         console.error('Error sending thank you email:', error);
-        return { success: false, error };
-    }
-}
-
-export async function sendNewsAnnouncementEmail(
-    to: string,
-    payload: NewsAnnouncementEmailPayload
-) {
-    const resend = getResend();
-    if (!resend) {
-        console.warn('RESEND_API_KEY is not set. Email not sent.', { to });
-        return { success: false, error: 'API key missing' };
-    }
-
-    try {
-        const { data, error } = await resend.emails.send({
-            from: SENDER_EMAIL,
-            to,
-            subject: 'AuctionsGH News & Updates is now live',
-            react: NewsAnnouncementEmail({
-                recipientName: payload.recipientName,
-                newsUrl: `${SITE_URL}/news`,
-                updates: payload.updates,
-            }),
-        });
-
-        if (error) {
-            console.error('Failed to send news announcement email:', error);
-            return { success: false, error };
-        }
-
-        return { success: true, data };
-    } catch (error) {
-        console.error('Error sending news announcement email:', error);
         return { success: false, error };
     }
 }

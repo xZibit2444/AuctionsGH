@@ -420,7 +420,7 @@ export default function SettingsPage() {
         auction_ending: true,
         auction_won: true,
         new_message: false,
-        promotions: true,
+        promotions: false,
     };
     const [notifSettings, setNotifSettings] = useState(defaultNotifSettings);
     const [notifSaved, setNotifSaved] = useState(false);

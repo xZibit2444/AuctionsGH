@@ -1,52 +1,100 @@
 {
+
   "name": "auctionsgh",
+
   "version": "0.1.0",
+
   "private": true,
+
   "scripts": {
+
     "dev": "next dev -H 0.0.0.0",
+
     "build": "next build",
+
     "start": "next start -H 0.0.0.0",
+
     "lint": "eslint",
-    "email:news:preview": "tsx scripts/broadcast-news-announcement.ts --dry-run",
-    "email:news:send": "tsx scripts/broadcast-news-announcement.ts",
+
     "test": "vitest run",
+
     "test:watch": "vitest",
+
     "test:ui": "vitest --ui",
+
     "android": "npx cap open android",
+
     "android:sync": "npx cap sync android",
+
     "android:build": "npx cap sync android && cd android && ./gradlew assembleRelease"
+
   },
+
   "dependencies": {
+
     "@capacitor/android": "^8.2.0",
+
     "@capacitor/cli": "^8.2.0",
+
     "@capacitor/core": "^8.2.0",
+
     "@capacitor/local-notifications": "^8.0.2",
+
     "@capacitor/push-notifications": "^8.0.2",
+
     "@react-email/components": "^1.0.8",
+
     "@react-email/render": "^2.0.4",
+
     "@supabase/ssr": "^0.9.0",
+
     "@supabase/supabase-js": "^2.98.0",
+
     "@vercel/speed-insights": "^1.3.1",
+
     "dotenv": "^17.3.1",
+
     "lucide-react": "^0.577.0",
+
     "next": "16.1.6",
+
     "react": "19.2.3",
+
     "react-dom": "19.2.3",
+
     "resend": "^6.9.3",
+
     "zod": "^4.3.6"
+
   },
+
   "devDependencies": {
+
     "@tailwindcss/postcss": "^4",
+
     "@types/node": "^20",
+
     "@types/react": "^19",
+
     "@types/react-dom": "^19",
+
     "@vitest/ui": "^4.0.18",
+
     "eslint": "^9",
+
     "eslint-config-next": "16.1.6",
+
     "tailwindcss": "^4",
+
     "tsx": "^4.21.0",
+
     "typescript": "^5",
+
     "vite-tsconfig-paths": "^6.1.1",
+
     "vitest": "^4.0.18"
+
   }
+
 }
+
