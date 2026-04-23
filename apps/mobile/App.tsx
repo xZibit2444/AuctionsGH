@@ -11,7 +11,7 @@ import OfferChatScreen from './src/screens/OfferChatScreen';
 type Screen =
     | { name: 'home' }
     | { name: 'detail'; auctionId: string }
-    | { name: 'offerChat'; auctionId: string; auctionTitle: string; sellerId: string; buyerId: string };
+    | { name: 'offerChat'; auctionId: string; auctionTitle: string; sellerId: string; buyerId: string; offerId: string; offerStatus: 'pending' | 'accepted' | 'declined' };
 
 export default function App() {
     const [session, setSession] = useState<Session | null>(null);
@@ -57,8 +57,8 @@ export default function App() {
                     session={session}
                     auctionId={screen.auctionId}
                     onBack={() => setScreen({ name: 'home' })}
-                    onOpenChat={(auctionId, auctionTitle, sellerId, buyerId) =>
-                        setScreen({ name: 'offerChat', auctionId, auctionTitle, sellerId, buyerId })
+                    onOpenChat={(auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus) =>
+                        setScreen({ name: 'offerChat', auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus })
                     }
                 />
             </>
@@ -75,6 +75,8 @@ export default function App() {
                     auctionTitle={screen.auctionTitle}
                     sellerId={screen.sellerId}
                     buyerId={screen.buyerId}
+                    offerId={screen.offerId}
+                    offerStatus={screen.offerStatus}
                     onBack={() => setScreen({ name: 'detail', auctionId: screen.auctionId })}
                 />
             </>

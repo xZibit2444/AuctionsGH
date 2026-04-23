@@ -10,11 +10,13 @@ import {
     type MobileAuctionDetail, type MobileOffer,
 } from '../features/home/data';
 
+type OfferStatus = 'pending' | 'accepted' | 'declined';
+
 interface Props {
     session: Session;
     auctionId: string;
     onBack: () => void;
-    onOpenChat: (auctionId: string, auctionTitle: string, sellerId: string, buyerId: string) => void;
+    onOpenChat: (auctionId: string, auctionTitle: string, sellerId: string, buyerId: string, offerId: string, offerStatus: OfferStatus) => void;
 }
 
 export default function AuctionDetailScreen({ session, auctionId, onBack, onOpenChat }: Props) {
@@ -163,7 +165,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                                 <TouchableOpacity
                                     key={o.id}
                                     style={styles.offerRow}
-                                    onPress={() => onOpenChat(detail.id, detail.title, detail.seller_id, userId)}
+                                    onPress={() => onOpenChat(detail.id, detail.title, detail.seller_id, userId, o.id, o.status)}
                                 >
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.offerAmount}>GHS {Number(o.amount).toLocaleString()}</Text>
@@ -189,7 +191,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                                 <TouchableOpacity
                                     key={o.id}
                                     style={styles.offerRow}
-                                    onPress={() => onOpenChat(detail.id, detail.title, detail.seller_id, o.buyer_id)}
+                                    onPress={() => onOpenChat(detail.id, detail.title, detail.seller_id, o.buyer_id, o.id, o.status)}
                                 >
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.offerAmount}>GHS {Number(o.amount).toLocaleString()}</Text>

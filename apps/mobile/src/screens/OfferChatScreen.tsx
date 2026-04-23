@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator, FlatList, KeyboardAvoidingView, Platform,
+    ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform,
     SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { fetchOfferMessages, sendOfferMessage, type MobileOfferMessage } from '../features/home/data';
+import { fetchOfferMessages, sendOfferMessage, respondToMobileOffer, type MobileOfferMessage } from '../features/home/data';
 
 interface Props {
     session: Session;
@@ -13,16 +13,20 @@ interface Props {
     auctionTitle: string;
     sellerId: string;
     buyerId: string;   // the buyer whose thread we are viewing
+    offerId: string;
+    offerStatus: 'pending' | 'accepted' | 'declined';
     onBack: () => void;
 }
 
 export default function OfferChatScreen({
-    session, auctionId, auctionTitle, sellerId, buyerId, onBack,
+    session, auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus: initialOfferStatus, onBack,
 }: Props) {
     const [messages, setMessages] = useState<MobileOfferMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [input, setInput] = useState('');
     const [sending, setSending] = useState(false);
+    const [offerStatus, setOfferStatus] = useState(initialOfferStatus);
+    const [responding, setResponding] = useState(false);
     const listRef = useRef<FlatList<MobileOfferMessage>>(null);
 
     const token = session.access_token;
@@ -77,6 +81,18 @@ export default function OfferChatScreen({
         return () => { supabase.removeChannel(channel); };
     }, [auctionId, buyerId]);
 
+    const handleRespond = async (response: 'accepted' | 'declined') => {
+        setResponding(true);
+        try {
+            await respondToMobileOffer(offerId, response, token);
+            setOfferStatus(response);
+        } catch (e) {
+            Alert.alert('Error', e instanceof Error ? e.message : 'Failed to respond.');
+        } finally {
+            setResponding(false);
+        }
+    };
+
     const handleSend = async () => {
         const text = input.trim();
         if (!text || sending) return;
@@ -127,6 +143,36 @@ export default function OfferChatScreen({
                     <Text style={styles.headerSub}>{isSeller ? 'Chat with buyer' : 'Chat with seller'}</Text>
                 </View>
             </View>
+
+            {/* Seller accept/decline banner — only shown when offer is still pending */}
+            {isSeller && offerStatus === 'pending' && (
+                <View style={styles.respondBar}>
+                    <Text style={styles.respondLabel}>Respond to this offer</Text>
+                    <View style={styles.respondBtns}>
+                        <TouchableOpacity
+                            style={[styles.respondBtn, styles.declineBtn, responding && styles.respondBtnDisabled]}
+                            onPress={() => handleRespond('declined')}
+                            disabled={responding}
+                        >
+                            <Text style={styles.declineBtnText}>{responding ? '…' : 'Decline'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.respondBtn, styles.acceptBtn, responding && styles.respondBtnDisabled]}
+                            onPress={() => handleRespond('accepted')}
+                            disabled={responding}
+                        >
+                            <Text style={styles.acceptBtnText}>{responding ? '…' : 'Accept'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+            {isSeller && offerStatus !== 'pending' && (
+                <View style={[styles.respondBar, offerStatus === 'accepted' ? styles.respondBarAccepted : styles.respondBarDeclined]}>
+                    <Text style={styles.respondStatusText}>
+                        {offerStatus === 'accepted' ? '✓ Offer accepted' : '✗ Offer declined'}
+                    </Text>
+                </View>
+            )}
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
@@ -218,4 +264,21 @@ const styles = StyleSheet.create({
     },
     sendBtnDisabled: { backgroundColor: '#9ca3af' },
     sendText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    // Accept / decline banner
+    respondBar: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: 14, paddingVertical: 10,
+        borderBottomWidth: 1, borderBottomColor: '#e5e7eb', backgroundColor: '#fffbeb',
+    },
+    respondBarAccepted: { backgroundColor: '#f0fdf4' },
+    respondBarDeclined: { backgroundColor: '#fef2f2' },
+    respondLabel: { fontSize: 13, fontWeight: '600', color: '#92400e' },
+    respondStatusText: { fontSize: 13, fontWeight: '700', color: '#374151' },
+    respondBtns: { flexDirection: 'row', gap: 8 },
+    respondBtn: { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, minWidth: 76, alignItems: 'center' },
+    respondBtnDisabled: { opacity: 0.5 },
+    acceptBtn: { backgroundColor: '#16a34a' },
+    acceptBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+    declineBtn: { borderWidth: 1, borderColor: '#dc2626', backgroundColor: '#fff' },
+    declineBtnText: { color: '#dc2626', fontWeight: '700', fontSize: 13 },
 });

@@ -156,6 +156,19 @@ export async function fetchOfferMessages(
     return (json.messages ?? []) as MobileOfferMessage[];
 }
 
+// Accept or decline a pending offer (seller only).
+export async function respondToMobileOffer(
+    offerId: string,
+    response: 'accepted' | 'declined',
+    token: string
+): Promise<{ success: boolean }> {
+    const json = await apiCall('/api/offers/respond', token, {
+        method: 'POST',
+        body: JSON.stringify({ offer_id: offerId, response }),
+    });
+    return json as { success: boolean };
+}
+
 // Send a message in an offer thread.
 // Sellers must pass buyerId; buyers leave it undefined.
 export async function sendOfferMessage(
