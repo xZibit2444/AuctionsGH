@@ -9,6 +9,7 @@ import { fetchMyOrders, type MobileOrder } from '../features/home/data';
 interface Props {
     session: Session;
     onBack: () => void;
+    onSelectOrder?: (orderId: string) => void;
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -37,7 +38,7 @@ const STATUS_LABEL: Record<string, string> = {
     refunded:        'Refunded',
 };
 
-export default function OrdersScreen({ session, onBack }: Props) {
+export default function OrdersScreen({ session, onBack, onSelectOrder }: Props) {
     const [orders, setOrders] = useState<MobileOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -69,7 +70,7 @@ export default function OrdersScreen({ session, onBack }: Props) {
             .sort((a, b) => a.position - b.position)[0];
 
         return (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => onSelectOrder?.(item.id)} activeOpacity={onSelectOrder ? 0.7 : 1}>
                 <View style={styles.cardTop}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.cardTitle} numberOfLines={2}>
@@ -114,7 +115,7 @@ export default function OrdersScreen({ session, onBack }: Props) {
                     {item.fulfillment_type === 'meet_and_inspect' ? 'Meet & Inspect' : 'Escrow Delivery'} ·{' '}
                     {new Date(item.created_at).toLocaleDateString('en-GH')}
                 </Text>
-            </View>
+            </TouchableOpacity>
         );
     };
 

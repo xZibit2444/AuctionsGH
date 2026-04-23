@@ -22,6 +22,7 @@ import CheckoutScreen from './src/screens/CheckoutScreen';
 import SavedScreen from './src/screens/SavedScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import SellerApplyScreen from './src/screens/SellerApplyScreen';
+import OrderDetailScreen from './src/screens/OrderDetailScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -93,7 +94,12 @@ function ProfileScreenWrapper({ navigation }: NativeStackScreenProps<ProfileStac
 
 function OrdersWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Orders'>) {
     const session = useSession();
-    return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
+    return <OrdersScreen session={session} onBack={() => navigation.goBack()} onSelectOrder={id => navigation.navigate('OrderDetail', { orderId: id })} />;
+}
+
+function OrderDetailWrapper({ navigation, route }: NativeStackScreenProps<ProfileStackParams, 'OrderDetail'>) {
+    const session = useSession();
+    return <OrderDetailScreen orderId={route.params.orderId} session={session!} onBack={() => navigation.goBack()} />;
 }
 
 function DashboardWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'Dashboard'>) {
@@ -103,7 +109,12 @@ function DashboardWrapper({ navigation }: NativeStackScreenProps<DashboardStackP
 
 function DashboardOrdersWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'Orders'>) {
     const session = useSession();
-    return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
+    return <OrdersScreen session={session} onBack={() => navigation.goBack()} onSelectOrder={id => navigation.navigate('OrderDetail', { orderId: id })} />;
+}
+
+function DashboardOrderDetailWrapper({ navigation, route }: NativeStackScreenProps<DashboardStackParams, 'OrderDetail'>) {
+    const session = useSession();
+    return <OrderDetailScreen orderId={route.params.orderId} session={session!} onBack={() => navigation.goBack()} />;
 }
 
 function CreateAuctionWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'CreateAuction'>) {
@@ -156,6 +167,7 @@ function ProfileStackNav() {
         <ProfileStack.Navigator screenOptions={stackOpts}>
             <ProfileStack.Screen name="Profile" component={ProfileScreenWrapper} />
             <ProfileStack.Screen name="Orders" component={OrdersWrapper} />
+            <ProfileStack.Screen name="OrderDetail" component={OrderDetailWrapper} />
             <ProfileStack.Screen name="Saved" component={SavedWrapper} />
             <ProfileStack.Screen name="Settings" component={SettingsWrapper} />
             <ProfileStack.Screen name="SellerApply" component={SellerApplyWrapper} />
@@ -170,6 +182,7 @@ function DashboardStackNav() {
             <DashboardStack.Screen name="CreateAuction" component={CreateAuctionWrapper} />
             <DashboardStack.Screen name="Checkout" component={CheckoutWrapper} />
             <DashboardStack.Screen name="Orders" component={DashboardOrdersWrapper} />
+            <DashboardStack.Screen name="OrderDetail" component={DashboardOrderDetailWrapper} />
         </DashboardStack.Navigator>
     );
 }
