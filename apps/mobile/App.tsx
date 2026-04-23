@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { registerForPushNotifications, deregisterPushToken } from './src/lib/pushNotifications';
 import { isSupabaseConfigured, supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -21,6 +22,7 @@ export default function App() {
     const [session, setSession] = useState<Session | null>(null);
     const [loadingSession, setLoadingSession] = useState(true);
     const [screen, setScreen] = useState<Screen>({ name: 'home' });
+    const pushTokenRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!isSupabaseConfigured) { setLoadingSession(false); return; }
@@ -30,10 +32,29 @@ export default function App() {
         });
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
             setSession(s ?? null);
-            if (!s) setScreen({ name: 'home' });
+            if (!s) {
+                // Deregister push token on sign-out
+                if (pushTokenRef.current) {
+                    void supabase.auth.getSession().then(({ data }) => {
+                        if (data.session && pushTokenRef.current) {
+                            void deregisterPushToken(pushTokenRef.current, data.session.access_token);
+                        }
+                    });
+                    pushTokenRef.current = null;
+                }
+                setScreen({ name: 'home' });
+            }
         });
         return () => subscription.unsubscribe();
     }, []);
+
+    // Register push token once session is available
+    useEffect(() => {
+        if (!session || pushTokenRef.current) return;
+        registerForPushNotifications(session.access_token).then(t => {
+            if (t) pushTokenRef.current = t;
+        });
+    }, [session?.user.id]);
 
     if (!isSupabaseConfigured || loadingSession) {
         return (

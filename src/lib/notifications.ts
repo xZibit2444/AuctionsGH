@@ -63,5 +63,40 @@ export async function insertNotificationIfEnabled(
     // Database types in this repo lag behind the live schema for notifications.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from('notifications') as any).insert(notification);
+
+    // Fire-and-forget Expo push to any registered device tokens for this user
+    void sendExpoPushIfTokens(supabase, notification).catch(() => {/* non-critical */});
+
     return { skipped: false, error };
+}
+
+async function sendExpoPushIfTokens(
+    supabase: SupabaseClient<Database>,
+    notification: NotificationInsert
+) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: tokenRows } = await (supabase as any)
+        .from('device_push_tokens')
+        .select('token')
+        .eq('user_id', notification.user_id) as { data: { token: string }[] | null };
+
+    if (!tokenRows || tokenRows.length === 0) return;
+
+    const messages = tokenRows.map(({ token }) => ({
+        to: token,
+        title: notification.title,
+        body: notification.body ?? undefined,
+        data: {
+            type: notification.type,
+            auction_id: notification.auction_id ?? undefined,
+            order_id: notification.order_id ?? undefined,
+        },
+        sound: 'default' as const,
+    }));
+
+    await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(messages),
+    });
 }
