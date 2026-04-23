@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase as any)
         .from('profiles')
         .select('is_admin, is_super_admin')
         .eq('id', user.id)
@@ -39,7 +40,8 @@ export async function POST(request: NextRequest) {
     const dateLabel: string | undefined = body.dateLabel;
 
     // Fetch news items to include
-    let newsQuery = supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let newsQuery = (supabase as any)
         .from('news_updates')
         .select('id, title, content, created_at')
         .eq('is_published', true)
@@ -73,7 +75,8 @@ export async function POST(request: NextRequest) {
 
     // Use profiles table to gather emails — join with auth.users not exposed,
     // so we rely on email stored in profiles or fall back to auth admin API.
-    const { data: profiles, error: profilesError } = await serviceSupabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profiles, error: profilesError } = await (serviceSupabase as any)
         .from('profiles')
         .select('email')
         .not('email', 'is', null);
@@ -86,8 +89,8 @@ export async function POST(request: NextRequest) {
     }
 
     const emails = (profiles ?? [])
-        .map((p) => p.email as string)
-        .filter((e) => typeof e === 'string' && e.includes('@'));
+        .map((p: { email: string | null }) => p.email as string)
+        .filter((e: string) => typeof e === 'string' && e.includes('@'));
 
     if (emails.length === 0) {
         return NextResponse.json(
