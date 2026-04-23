@@ -68,9 +68,11 @@ async function main() {
 
   for (const user of users) {
 
+    if (!user.email) continue;
+
     try {
 
-      const result = await sendThankYouEmail(user.email);
+      const result = await sendThankYouEmail(user.email as string);
 
       if (result.success) {
 
