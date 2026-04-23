@@ -47,8 +47,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "5b96ddd1-9559-4004-98a3-56d58f5e5567"
       }
-    }
+    },
+    "owner": "jnytieku"
   }
 }
