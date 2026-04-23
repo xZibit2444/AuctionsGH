@@ -178,7 +178,7 @@ export default async function NewsPage() {
 
 
 
-    let news = [];
+    let news: { id: string; title: string; content: string; created_at: string }[] = [];
 
 
 
