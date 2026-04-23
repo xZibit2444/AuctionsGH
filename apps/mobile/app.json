@@ -36,6 +36,12 @@
     },
     "plugins": [
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "AuctionsGH needs access to your photos to upload listing images."
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",

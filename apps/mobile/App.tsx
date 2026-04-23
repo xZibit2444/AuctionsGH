@@ -17,6 +17,7 @@ import OfferChatScreen from './src/screens/OfferChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import CreateAuctionScreen from './src/screens/CreateAuctionScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -98,6 +99,11 @@ function DashboardOrdersWrapper({ navigation }: NativeStackScreenProps<Dashboard
     return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
 }
 
+function CreateAuctionWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'CreateAuction'>) {
+    const session = useSession();
+    return <CreateAuctionScreen navigation={navigation} route={{ key: 'CreateAuction', name: 'CreateAuction' }} session={session!} />;
+}
+
 // ─── Stack / Tab navigators ───────────────────────────────────────────────────
 
 const stackOpts = { headerShown: false, animation: 'slide_from_right' as const };
@@ -125,6 +131,7 @@ function DashboardStackNav() {
     return (
         <DashboardStack.Navigator screenOptions={stackOpts}>
             <DashboardStack.Screen name="Dashboard" component={DashboardWrapper} />
+            <DashboardStack.Screen name="CreateAuction" component={CreateAuctionWrapper} />
             <DashboardStack.Screen name="Orders" component={DashboardOrdersWrapper} />
         </DashboardStack.Navigator>
     );
