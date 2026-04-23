@@ -97,13 +97,35 @@ export async function fetchMobileProfile(userId: string): Promise<MobileProfile 
     return data as MobileProfile | null;
 }
 
-export async function fetchActiveAuctions(): Promise<MobileAuctionListItem[]> {
-    const { data } = await supabase
-        .from('auctions')
-        .select('id, title, brand, model, current_price, bid_count, status, ends_at, seller_id, auction_images(url)')
-        .eq('status', 'active')
-        .order('ends_at', { ascending: true })
-        .limit(50);
+export type AuctionFetchParams = {
+    listingType?: 'timed' | 'permanent';
+    search?: string;
+    brand?: string;
+    sort?: 'ends_at:asc' | 'created_at:desc' | 'current_price:asc' | 'current_price:desc';
+    limit?: number;
+};
+
+export async function fetchActiveAuctions(params: AuctionFetchParams = {}): Promise<MobileAuctionListItem[]> {
+    const { listingType, search, brand, sort = 'ends_at:asc', limit = 60 } = params;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q = (supabase.from('auctions') as any)
+        .select('id, title, brand, model, current_price, bid_count, status, ends_at, seller_id, auction_images(url)');
+
+    if (listingType === 'permanent') {
+        q = q.in('status', ['active', 'sold']).gt('ends_at', '2090-01-01');
+    } else if (listingType === 'timed') {
+        q = q.eq('status', 'active').lt('ends_at', '2090-01-01');
+    } else {
+        q = q.eq('status', 'active');
+    }
+
+    if (brand && brand !== 'All') q = q.eq('brand', brand);
+    if (search) q = q.ilike('title', `%${search}%`);
+
+    const [orderBy, dir] = sort.split(':');
+    q = q.order(orderBy, { ascending: dir === 'asc' }).limit(limit);
+
+    const { data } = await q;
     return (data ?? []) as unknown as MobileAuctionListItem[];
 }
 

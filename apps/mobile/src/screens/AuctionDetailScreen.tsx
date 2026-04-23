@@ -5,6 +5,7 @@ import {
     TouchableOpacity, View,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import {
     fetchAuctionDetail, fetchMobileOffers, placeMobileBid, placeMobileOffer,
     type MobileAuctionDetail, type MobileOffer,
@@ -17,9 +18,10 @@ interface Props {
     auctionId: string;
     onBack: () => void;
     onOpenChat: (auctionId: string, auctionTitle: string, sellerId: string, buyerId: string, offerId: string, offerStatus: OfferStatus) => void;
+    onOpenSellerProfile?: (sellerId: string) => void;
 }
 
-export default function AuctionDetailScreen({ session, auctionId, onBack, onOpenChat }: Props) {
+export default function AuctionDetailScreen({ session, auctionId, onBack, onOpenChat, onOpenSellerProfile }: Props) {
     const [detail, setDetail] = useState<MobileAuctionDetail | null>(null);
     const [offers, setOffers] = useState<MobileOffer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,9 +29,33 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
     const [offerAmount, setOfferAmount] = useState('');
     const [placingBid, setPlacingBid] = useState(false);
     const [sendingOffer, setSendingOffer] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [savingToggle, setSavingToggle] = useState(false);
 
     const token = session.access_token;
     const userId = session.user.id;
+
+    const checkSaved = async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase.from('saved_auctions') as any)
+            .select('id').eq('user_id', userId).eq('auction_id', auctionId).maybeSingle();
+        setSaved(!!data);
+    };
+
+    const toggleSave = async () => {
+        if (savingToggle) return;
+        setSavingToggle(true);
+        if (saved) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase.from('saved_auctions') as any).delete().eq('user_id', userId).eq('auction_id', auctionId);
+            setSaved(false);
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase.from('saved_auctions') as any).insert({ user_id: userId, auction_id: auctionId });
+            setSaved(true);
+        }
+        setSavingToggle(false);
+    };
 
     const load = async () => {
         setLoading(true);
@@ -51,7 +77,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
         }
     };
 
-    useEffect(() => { void load(); }, [auctionId]);
+    useEffect(() => { void load(); void checkSaved(); }, [auctionId]);
 
     const handleBid = async () => {
         if (!detail) return;
@@ -102,9 +128,14 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
 
     return (
         <SafeAreaView style={styles.container}>
-            <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                <Text style={styles.backText}>← Back</Text>
-            </TouchableOpacity>
+            <View style={styles.topBar}>
+                <TouchableOpacity onPress={onBack} style={styles.backBtn}>
+                    <Text style={styles.backText}>← Back</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={toggleSave} style={styles.saveBtn} disabled={savingToggle}>
+                    <Text style={styles.saveBtnText}>{saved ? '🔖 Saved' : '🔖 Save'}</Text>
+                </TouchableOpacity>
+            </View>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.content}>
                     <Text style={styles.title}>{detail.title}</Text>
@@ -117,10 +148,12 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                         <Text style={styles.meta}>Ends {new Date(detail.ends_at).toLocaleString()}</Text>
                     </View>
                     {seller && (
-                        <Text style={styles.meta}>
-                            Seller: {seller.full_name ?? seller.username ?? 'Unknown'}
-                            {seller.location ? ` · ${seller.location}` : ''}
-                        </Text>
+                        <TouchableOpacity onPress={() => onOpenSellerProfile?.(detail.seller_id)} disabled={!onOpenSellerProfile}>
+                            <Text style={[styles.meta, onOpenSellerProfile && styles.sellerLink]}>
+                                Seller: {seller.full_name ?? seller.username ?? 'Unknown'}
+                                {seller.location ? ` · ${seller.location}` : ''}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                     {detail.condition && <Text style={styles.meta}>Condition: {detail.condition}</Text>}
                     {detail.description ? (
@@ -240,4 +273,8 @@ const styles = StyleSheet.create({
     offerAmount: { fontSize: 14, fontWeight: '600', color: '#111827' },
     offerStatus: { fontSize: 11, fontWeight: '700' },
     chatLink: { fontSize: 13, color: '#6366f1', fontWeight: '600' },
+    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 12 },
+    saveBtn: { paddingHorizontal: 12, paddingVertical: 10 },
+    saveBtnText: { fontSize: 13, fontWeight: '700', color: '#000' },
+    sellerLink: { color: '#6366f1', textDecorationLine: 'underline' },
 });

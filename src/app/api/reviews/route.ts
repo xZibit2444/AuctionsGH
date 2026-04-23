@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+
+const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 const reviewSchema = z.object({
     order_id: z.string().uuid(),
@@ -10,11 +17,20 @@ const reviewSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-    const supabase = await createClient();
+    const authHeader = req.headers.get('authorization') ?? '';
+    const bearerToken = authHeader.replace('Bearer ', '').trim();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let user: { id: string } | null = null;
+
+    if (bearerToken) {
+        const { data, error } = await supabaseAdmin.auth.getUser(bearerToken);
+        if (error || !data.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        user = data.user;
+    } else {
+        const supabase = await createClient();
+        const { data, error: authError } = await supabase.auth.getUser();
+        if (authError || !data.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        user = data.user;
     }
 
     let body: unknown;
@@ -32,7 +48,7 @@ export async function POST(req: NextRequest) {
     const { order_id, reviewee_id, rating, comment } = parsed.data;
 
     // Verify the order exists, is complete, and this user is a party to it
-    const { data: order, error: orderError } = await (supabase as any)
+    const { data: order, error: orderError } = await (supabaseAdmin as any)
         .from('orders')
         .select('id, buyer_id, seller_id, status')
         .eq('id', order_id)
@@ -58,7 +74,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid reviewee' }, { status: 400 });
     }
 
-    const { error: insertError } = await (supabase as any).from('user_reviews').insert({
+    const { error: insertError } = await (supabaseAdmin as any).from('user_reviews').insert({
         order_id,
         reviewer_id: user.id,
         reviewee_id,

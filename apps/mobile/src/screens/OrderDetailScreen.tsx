@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator, FlatList, KeyboardAvoidingView,
+    ActivityIndicator, Alert, FlatList, KeyboardAvoidingView,
     Platform, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
@@ -61,6 +61,10 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     const [body, setBody] = useState('');
     const [sending, setSending] = useState(false);
     const flatRef = useRef<FlatList>(null);
+    const [hasReviewed, setHasReviewed] = useState(false);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
 
     const loadOrder = useCallback(async () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,6 +82,13 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
         setLoadingOrder(false);
     }, [orderId]);
 
+    const checkReviewed = useCallback(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase.from('user_reviews') as any)
+            .select('id').eq('order_id', orderId).eq('reviewer_id', userId).maybeSingle();
+        setHasReviewed(!!data);
+    }, [orderId, userId]);
+
     const loadMessages = useCallback(async () => {
         const { data } = await supabase
             .from('order_messages' as never)
@@ -91,6 +102,7 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     useEffect(() => {
         void loadOrder();
         void loadMessages();
+        void checkReviewed();
 
         const channel = supabase
             .channel(`order_messages:${orderId}`)
@@ -100,7 +112,7 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
             .subscribe();
 
         return () => { void supabase.removeChannel(channel); };
-    }, [orderId, loadOrder, loadMessages]);
+    }, [orderId, loadOrder, loadMessages, checkReviewed]);
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -136,8 +148,31 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
 
     const otherParty = order.buyer_id === userId ? order.seller : order.buyer;
     const otherName = otherParty?.full_name ?? otherParty?.username ?? 'Other Party';
+    const otherPartyId = otherParty?.id ?? '';
     const role = order.buyer_id === userId ? 'Buyer' : 'Seller';
     const statusColor = STATUS_COLORS[order.status] ?? '#9ca3af';
+    const isCompleted = order.status === 'completed' || order.status === 'pin_verified';
+    const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+
+    const submitReview = async () => {
+        if (!otherPartyId || submittingReview) return;
+        setSubmittingReview(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/reviews`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                body: JSON.stringify({ order_id: orderId, reviewee_id: otherPartyId, rating: reviewRating, comment: reviewComment.trim() || undefined }),
+            });
+            const json = await res.json() as { success?: boolean; error?: string };
+            if (res.ok && json.success) {
+                setHasReviewed(true);
+                Alert.alert('Review Submitted', 'Thank you for your feedback!');
+            } else {
+                Alert.alert('Error', json.error ?? 'Failed to submit review.');
+            }
+        } catch { Alert.alert('Error', 'Network error.'); }
+        setSubmittingReview(false);
+    };
 
     return (
         <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
@@ -181,6 +216,32 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
                     <Text style={styles.metaValue}>{order.fulfillment_type === 'escrow_delivery' ? 'Delivery' : 'Meet & Inspect'}</Text>
                 </View>
             </View>
+
+            {/* Review form — only for completed orders not yet reviewed */}
+            {isCompleted && !hasReviewed && (
+                <View style={styles.reviewPanel}>
+                    <Text style={styles.reviewTitle}>Rate your experience with {otherName}</Text>
+                    <View style={styles.starsRow}>
+                        {[1, 2, 3, 4, 5].map(n => (
+                            <TouchableOpacity key={n} onPress={() => setReviewRating(n)}>
+                                <Text style={[styles.star, reviewRating >= n && styles.starActive]}>★</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <TextInput
+                        style={styles.reviewInput}
+                        value={reviewComment}
+                        onChangeText={setReviewComment}
+                        placeholder="Optional comment…"
+                        placeholderTextColor="#9ca3af"
+                        multiline
+                        maxLength={500}
+                    />
+                    <TouchableOpacity style={[styles.reviewBtn, submittingReview && styles.reviewBtnDisabled]} onPress={submitReview} disabled={submittingReview}>
+                        <Text style={styles.reviewBtnText}>{submittingReview ? 'Submitting…' : 'Submit Review'}</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Chat */}
             <View style={styles.chatHeader}>
@@ -263,4 +324,13 @@ const styles = StyleSheet.create({
     sendBtn: { width: 44, height: 44, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
     sendBtnDisabled: { opacity: 0.4 },
     sendIcon: { color: '#fff', fontSize: 16 },
+    reviewPanel: { backgroundColor: '#fffbeb', borderTopWidth: 1, borderTopColor: '#fde68a', borderBottomWidth: 1, borderBottomColor: '#fde68a', padding: 14, gap: 10 },
+    reviewTitle: { fontSize: 13, fontWeight: '700', color: '#92400e' },
+    starsRow: { flexDirection: 'row', gap: 8 },
+    star: { fontSize: 28, color: '#d1d5db' },
+    starActive: { color: '#f59e0b' },
+    reviewInput: { borderWidth: 1, borderColor: '#fde68a', padding: 10, fontSize: 13, color: '#000', backgroundColor: '#fff', minHeight: 60 },
+    reviewBtn: { backgroundColor: '#000', paddingVertical: 10, alignItems: 'center' },
+    reviewBtnDisabled: { opacity: 0.4 },
+    reviewBtnText: { color: '#fff', fontSize: 13, fontWeight: '900' },
 });

@@ -23,6 +23,7 @@ import SavedScreen from './src/screens/SavedScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import SellerApplyScreen from './src/screens/SellerApplyScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
+import SellerProfileScreen from './src/screens/SellerProfileScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -62,6 +63,19 @@ function AuctionDetailWrapper({ navigation, route }: NativeStackScreenProps<Home
             onOpenChat={(auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus) =>
                 navigation.navigate('OfferChat', { auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus })
             }
+            onOpenSellerProfile={id => navigation.navigate('SellerProfile', { sellerId: id })}
+        />
+    );
+}
+
+function SellerProfileWrapper({ navigation, route }: NativeStackScreenProps<HomeStackParams, 'SellerProfile'>) {
+    const session = useSession();
+    return (
+        <SellerProfileScreen
+            sellerId={route.params.sellerId}
+            session={session!}
+            onBack={() => navigation.goBack()}
+            onSelectAuction={id => navigation.navigate('AuctionDetail', { auctionId: id })}
         />
     );
 }
@@ -157,6 +171,7 @@ function HomeStackNav() {
         <HomeStack.Navigator screenOptions={stackOpts}>
             <HomeStack.Screen name="Home" component={HomeScreenWrapper} />
             <HomeStack.Screen name="AuctionDetail" component={AuctionDetailWrapper} />
+            <HomeStack.Screen name="SellerProfile" component={SellerProfileWrapper} />
             <HomeStack.Screen name="OfferChat" component={OfferChatWrapper} />
         </HomeStack.Navigator>
     );

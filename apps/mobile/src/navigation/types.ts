@@ -1,6 +1,7 @@
 export type HomeStackParams = {
     Home: undefined;
     AuctionDetail: { auctionId: string };
+    SellerProfile: { sellerId: string };
     OfferChat: {
         auctionId: string; auctionTitle: string;
         sellerId: string; buyerId: string;

@@ -40,6 +40,8 @@ export default function DashboardScreen({ navigation, session }: Props) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [relistingId, setRelistingId] = useState<string | null>(null);
+    const [markingSentId, setMarkingSentId] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         const [buyer, profile] = await Promise.all([
@@ -70,6 +72,44 @@ export default function DashboardScreen({ navigation, session }: Props) {
         setRefreshing(true);
         await load();
         setRefreshing(false);
+    };
+
+    const API = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+
+    const handleRelist = async (auctionId: string) => {
+        setRelistingId(auctionId);
+        try {
+            const res = await fetch(`${API}/api/listings/${auctionId}/relist`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const json = await res.json() as { success?: boolean; error?: string };
+            if (res.ok && json.success) {
+                Alert.alert('Relisted', 'Your listing is now active again.');
+                await load();
+            } else {
+                Alert.alert('Error', json.error ?? 'Could not relist.');
+            }
+        } catch { Alert.alert('Error', 'Network error.'); }
+        setRelistingId(null);
+    };
+
+    const handleMarkSent = async (orderId: string) => {
+        setMarkingSentId(orderId);
+        try {
+            const res = await fetch(`${API}/api/orders/${orderId}/mark-sent`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const json = await res.json() as { success?: boolean; error?: string };
+            if (res.ok && json.success) {
+                Alert.alert('Marked Sent', 'Order status updated to in-delivery.');
+                await load();
+            } else {
+                Alert.alert('Error', json.error ?? 'Could not mark as sent.');
+            }
+        } catch { Alert.alert('Error', 'Network error.'); }
+        setMarkingSentId(null);
     };
 
     const handleDelete = (auctionId: string, title: string) => {
@@ -199,15 +239,26 @@ export default function DashboardScreen({ navigation, session }: Props) {
                                             <Text style={styles.badgeText}>{a.status.toUpperCase()}</Text>
                                         </View>
                                     </View>
-                                    <TouchableOpacity
-                                        style={styles.deleteBtn}
-                                        onPress={() => handleDelete(a.id, a.title)}
-                                        disabled={deletingId === a.id}
-                                    >
-                                        <Text style={styles.deleteBtnText}>
-                                            {deletingId === a.id ? '...' : 'Delete'}
-                                        </Text>
-                                    </TouchableOpacity>
+                                    <View style={styles.actionCol}>
+                                        {(a.status === 'ended' || a.status === 'sold') && (
+                                            <TouchableOpacity
+                                                style={styles.relistBtn}
+                                                onPress={() => void handleRelist(a.id)}
+                                                disabled={relistingId === a.id}
+                                            >
+                                                <Text style={styles.relistBtnText}>{relistingId === a.id ? '…' : 'Relist'}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                        <TouchableOpacity
+                                            style={styles.deleteBtn}
+                                            onPress={() => handleDelete(a.id, a.title)}
+                                            disabled={deletingId === a.id}
+                                        >
+                                            <Text style={styles.deleteBtnText}>
+                                                {deletingId === a.id ? '...' : 'Delete'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             );
                         })
@@ -247,6 +298,9 @@ const styles = StyleSheet.create({
     badgeText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
     deleteBtn: { paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#fca5a5' },
     deleteBtnText: { color: '#dc2626', fontSize: 11, fontWeight: '700' },
+    actionCol: { gap: 6, alignItems: 'flex-end' },
+    relistBtn: { paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#6366f1' },
+    relistBtnText: { color: '#6366f1', fontSize: 11, fontWeight: '700' },
     linkRow: { marginTop: 16, paddingVertical: 12, alignItems: 'center' },
     linkText: { fontSize: 13, fontWeight: '700', color: '#6b7280' },
     empty: { fontSize: 13, color: '#9ca3af', textAlign: 'center', paddingVertical: 24 },
