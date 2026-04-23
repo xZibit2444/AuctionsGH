@@ -13,10 +13,11 @@ import {
 interface Props {
     session: Session;
     onSelectAuction: (id: string) => void;
+    onOpenProfile: () => void;
     onSignOut: () => void;
 }
 
-export default function HomeScreen({ session, onSelectAuction, onSignOut }: Props) {
+export default function HomeScreen({ session, onSelectAuction, onOpenProfile, onSignOut }: Props) {
     const [profile, setProfile] = useState<MobileProfile | null>(null);
     const [auctions, setAuctions] = useState<MobileAuctionListItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,8 +78,10 @@ export default function HomeScreen({ session, onSelectAuction, onSignOut }: Prop
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>AuctionsGH</Text>
-                <TouchableOpacity onPress={onSignOut} style={styles.signOutBtn}>
-                    <Text style={styles.signOutText}>Sign Out</Text>
+                <TouchableOpacity onPress={onOpenProfile} style={styles.profileBtn}>
+                    <Text style={styles.profileBtnText}>
+                        {profile?.full_name?.split(' ')[0] ?? profile?.username ?? 'Profile'}
+                    </Text>
                 </TouchableOpacity>
             </View>
 
@@ -119,8 +122,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1, borderBottomColor: '#e5e7eb', backgroundColor: '#fff',
     },
     headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
-    signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
-    signOutText: { fontSize: 13, color: '#6b7280' },
+    profileBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' },
+    profileBtnText: { fontSize: 13, fontWeight: '600', color: '#111827' },
     welcome: { paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#374151' },
     list: { padding: 12, gap: 10, paddingBottom: 24 },
     card: { backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#e5e7eb', gap: 4 },

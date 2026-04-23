@@ -7,9 +7,11 @@ import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import AuctionDetailScreen from './src/screens/AuctionDetailScreen';
 import OfferChatScreen from './src/screens/OfferChatScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 type Screen =
     | { name: 'home' }
+    | { name: 'profile' }
     | { name: 'detail'; auctionId: string }
     | { name: 'offerChat'; auctionId: string; auctionTitle: string; sellerId: string; buyerId: string; offerId: string; offerStatus: 'pending' | 'accepted' | 'declined' };
 
@@ -45,6 +47,19 @@ export default function App() {
             <>
                 <StatusBar style="dark" />
                 <AuthScreen onAuthenticated={() => setScreen({ name: 'home' })} />
+            </>
+        );
+    }
+
+    if (screen.name === 'profile') {
+        return (
+            <>
+                <StatusBar style="dark" />
+                <ProfileScreen
+                    session={session}
+                    onBack={() => setScreen({ name: 'home' })}
+                    onSignOut={() => setScreen({ name: 'home' })}
+                />
             </>
         );
     }
@@ -89,6 +104,7 @@ export default function App() {
             <HomeScreen
                 session={session}
                 onSelectAuction={id => setScreen({ name: 'detail', auctionId: id })}
+                onOpenProfile={() => setScreen({ name: 'profile' })}
                 onSignOut={() => supabase.auth.signOut()}
             />
         </>
