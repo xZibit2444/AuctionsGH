@@ -16,10 +16,11 @@ interface Stats {
 interface Props {
     session: Session;
     onBack: () => void;
+    onOpenOrders: () => void;
     onSignOut: () => void;
 }
 
-export default function ProfileScreen({ session, onBack, onSignOut }: Props) {
+export default function ProfileScreen({ session, onBack, onOpenOrders, onSignOut }: Props) {
     const [profile, setProfile] = useState<MobileProfile | null>(null);
     const [stats, setStats] = useState<Stats>({ listings: 0, activeListings: 0, bids: 0 });
     const [loading, setLoading] = useState(true);
@@ -111,7 +112,13 @@ export default function ProfileScreen({ session, onBack, onSignOut }: Props) {
                     <StatCard label="Bids Placed" value={stats.bids} />
                 </View>
 
-                {/* Badges */}
+                {/* Orders quick link */}
+                <TouchableOpacity style={styles.navRow} onPress={onOpenOrders}>
+                    <Text style={styles.navRowText}>My Orders</Text>
+                    <Text style={styles.navRowArrow}>›</Text>
+                </TouchableOpacity>
+
+                {/* Account details */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Account</Text>
                     <InfoRow label="Email" value={session.user.email ?? '—'} />
@@ -194,6 +201,12 @@ const styles = StyleSheet.create({
     },
     infoLabel: { fontSize: 14, color: '#6b7280' },
     infoValue: { fontSize: 14, fontWeight: '600', color: '#111827', maxWidth: '60%', textAlign: 'right' },
+    navRow: {
+        backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
+        borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    },
+    navRowText: { fontSize: 15, fontWeight: '600', color: '#111827' },
+    navRowArrow: { fontSize: 20, color: '#9ca3af' },
     signOutBtn: {
         backgroundColor: '#fff', borderRadius: 12, paddingVertical: 14,
         alignItems: 'center', borderWidth: 1, borderColor: '#fca5a5',

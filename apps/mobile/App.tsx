@@ -8,10 +8,12 @@ import HomeScreen from './src/screens/HomeScreen';
 import AuctionDetailScreen from './src/screens/AuctionDetailScreen';
 import OfferChatScreen from './src/screens/OfferChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import OrdersScreen from './src/screens/OrdersScreen';
 
 type Screen =
     | { name: 'home' }
     | { name: 'profile' }
+    | { name: 'orders' }
     | { name: 'detail'; auctionId: string }
     | { name: 'offerChat'; auctionId: string; auctionTitle: string; sellerId: string; buyerId: string; offerId: string; offerStatus: 'pending' | 'accepted' | 'declined' };
 
@@ -58,7 +60,20 @@ export default function App() {
                 <ProfileScreen
                     session={session}
                     onBack={() => setScreen({ name: 'home' })}
+                    onOpenOrders={() => setScreen({ name: 'orders' })}
                     onSignOut={() => setScreen({ name: 'home' })}
+                />
+            </>
+        );
+    }
+
+    if (screen.name === 'orders') {
+        return (
+            <>
+                <StatusBar style="dark" />
+                <OrdersScreen
+                    session={session}
+                    onBack={() => setScreen({ name: 'profile' })}
                 />
             </>
         );
