@@ -32,42 +32,47 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'offer_id and response (accepted|declined) are required' }, { status: 400 });
     }
 
-    const { data: offer, error: fetchErr } = await supabaseAdmin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: offer, error: fetchErr } = await (supabaseAdmin as any)
         .from('auction_offers')
         .select('id, auction_id, buyer_id, seller_id, amount, status')
         .eq('id', offerId)
-        .single();
+        .single() as { data: { id: string; auction_id: string; buyer_id: string; seller_id: string; amount: number; status: string } | null; error: unknown };
 
     if (fetchErr || !offer) return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     if (offer.seller_id !== user.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     if (offer.status !== 'pending') return NextResponse.json({ error: 'This offer is no longer pending' }, { status: 409 });
 
-    await supabaseAdmin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabaseAdmin as any)
         .from('auction_offers')
         .update({ status: response, updated_at: new Date().toISOString() })
         .eq('id', offerId);
 
     if (response === 'accepted') {
-        const { data: auction } = await supabaseAdmin
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: auction } = await (supabaseAdmin as any)
             .from('auctions')
             .select('title, status')
             .eq('id', offer.auction_id)
-            .single();
+            .single() as { data: { title: string; status: string } | null };
 
         if (!auction || auction.status !== 'active') {
             return NextResponse.json({ error: 'Auction is no longer active' }, { status: 409 });
         }
 
         const now = new Date().toISOString();
-        const { error: updateErr } = await supabaseAdmin
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: updateErr } = await (supabaseAdmin as any)
             .from('auctions')
             .update({ status: 'sold', winner_id: offer.buyer_id, current_price: offer.amount, ends_at: now, updated_at: now })
             .eq('id', offer.auction_id)
-            .eq('status', 'active');
+            .eq('status', 'active') as { error: unknown };
 
         if (updateErr) return NextResponse.json({ error: 'Failed to finalise auction' }, { status: 500 });
 
-        await supabaseAdmin
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabaseAdmin as any)
             .from('auction_offers')
             .update({ status: 'declined', updated_at: now })
             .eq('auction_id', offer.auction_id)
@@ -90,15 +95,17 @@ export async function POST(request: NextRequest) {
             auction_id: offer.auction_id,
         });
 
-        const [{ data: sellerProfile }, { data: buyerProfile }, sellerAuthResult, buyerAuthResult] = await Promise.all([
-            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.seller_id).maybeSingle(),
-            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
+        const [sellerProfileRes, buyerProfileRes, sellerAuthResult, buyerAuthResult] = await Promise.all([
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (supabaseAdmin as any).from('profiles').select('full_name, username').eq('id', offer.seller_id).maybeSingle() as Promise<{ data: { full_name: string | null; username: string | null } | null }>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (supabaseAdmin as any).from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle() as Promise<{ data: { full_name: string | null; username: string | null } | null }>,
             supabaseAdmin.auth.admin.getUserById(offer.seller_id),
             supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
         ]);
 
-        const sellerName = getDisplayName(sellerProfile as never, 'Seller');
-        const buyerName = getDisplayName(buyerProfile as never, 'Buyer');
+        const sellerName = getDisplayName(sellerProfileRes.data, 'Seller');
+        const buyerName = getDisplayName(buyerProfileRes.data, 'Buyer');
 
         if (buyerAuthResult.data.user?.email) {
             await sendAuctionWonEmail(buyerAuthResult.data.user.email, buyerName, auction.title, Number(offer.amount), offer.auction_id);
@@ -107,11 +114,14 @@ export async function POST(request: NextRequest) {
             await sendAuctionSoldEmail(sellerAuthResult.data.user.email, sellerName, auction.title, Number(offer.amount), buyerName);
         }
     } else {
-        const [{ data: auction }, { data: buyerProfile }, buyerAuthResult] = await Promise.all([
-            supabaseAdmin.from('auctions').select('title').eq('id', offer.auction_id).single(),
-            supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
+        const [auctionRes, buyerProfileRes2, buyerAuthResult] = await Promise.all([
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (supabaseAdmin as any).from('auctions').select('title').eq('id', offer.auction_id).single() as Promise<{ data: { title: string } | null }>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (supabaseAdmin as any).from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle() as Promise<{ data: { full_name: string | null; username: string | null } | null }>,
             supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
         ]);
+        const auction = auctionRes.data;
 
         await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
@@ -122,7 +132,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (buyerAuthResult.data.user?.email) {
-            const buyerName = getDisplayName(buyerProfile as never, 'Buyer');
+            const buyerName = getDisplayName(buyerProfileRes2.data, 'Buyer');
             await sendOfferDeclinedEmail(buyerAuthResult.data.user.email, buyerName, auction?.title ?? 'this item', Number(offer.amount), offer.auction_id);
         }
     }
