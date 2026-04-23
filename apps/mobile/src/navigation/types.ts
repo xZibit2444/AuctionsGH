@@ -11,6 +11,9 @@ export type HomeStackParams = {
 export type ProfileStackParams = {
     Profile: undefined;
     Orders: undefined;
+    Saved: undefined;
+    Settings: undefined;
+    SellerApply: undefined;
 };
 
 export type DashboardStackParams = {

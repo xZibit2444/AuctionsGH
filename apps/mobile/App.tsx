@@ -18,6 +18,10 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import CreateAuctionScreen from './src/screens/CreateAuctionScreen';
+import CheckoutScreen from './src/screens/CheckoutScreen';
+import SavedScreen from './src/screens/SavedScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import SellerApplyScreen from './src/screens/SellerApplyScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -79,6 +83,9 @@ function ProfileScreenWrapper({ navigation }: NativeStackScreenProps<ProfileStac
             session={session}
             onBack={() => navigation.getParent<BottomTabScreenProps<TabParams>['navigation']>()?.navigate('HomeTab')}
             onOpenOrders={() => navigation.navigate('Orders')}
+            onOpenSaved={() => navigation.navigate('Saved')}
+            onOpenSettings={() => navigation.navigate('Settings')}
+            onOpenSellerApply={() => navigation.navigate('SellerApply')}
             onSignOut={() => { void supabase.auth.signOut(); }}
         />
     );
@@ -104,6 +111,32 @@ function CreateAuctionWrapper({ navigation }: NativeStackScreenProps<DashboardSt
     return <CreateAuctionScreen navigation={navigation} route={{ key: 'CreateAuction', name: 'CreateAuction' }} session={session!} />;
 }
 
+function CheckoutWrapper({ navigation, route }: NativeStackScreenProps<DashboardStackParams, 'Checkout'>) {
+    const session = useSession();
+    return <CheckoutScreen navigation={navigation} route={route} session={session!} />;
+}
+
+function SavedWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Saved'>) {
+    const session = useSession();
+    return (
+        <SavedScreen
+            session={session!}
+            onBack={() => navigation.goBack()}
+            onSelectAuction={id => navigation.getParent()?.navigate('HomeTab', { screen: 'AuctionDetail', params: { auctionId: id } })}
+        />
+    );
+}
+
+function SettingsWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Settings'>) {
+    const session = useSession();
+    return <SettingsScreen session={session!} onBack={() => navigation.goBack()} onSignOut={() => { void supabase.auth.signOut(); }} />;
+}
+
+function SellerApplyWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'SellerApply'>) {
+    const session = useSession();
+    return <SellerApplyScreen session={session!} onBack={() => navigation.goBack()} />;
+}
+
 // ─── Stack / Tab navigators ───────────────────────────────────────────────────
 
 const stackOpts = { headerShown: false, animation: 'slide_from_right' as const };
@@ -123,6 +156,9 @@ function ProfileStackNav() {
         <ProfileStack.Navigator screenOptions={stackOpts}>
             <ProfileStack.Screen name="Profile" component={ProfileScreenWrapper} />
             <ProfileStack.Screen name="Orders" component={OrdersWrapper} />
+            <ProfileStack.Screen name="Saved" component={SavedWrapper} />
+            <ProfileStack.Screen name="Settings" component={SettingsWrapper} />
+            <ProfileStack.Screen name="SellerApply" component={SellerApplyWrapper} />
         </ProfileStack.Navigator>
     );
 }
@@ -132,6 +168,7 @@ function DashboardStackNav() {
         <DashboardStack.Navigator screenOptions={stackOpts}>
             <DashboardStack.Screen name="Dashboard" component={DashboardWrapper} />
             <DashboardStack.Screen name="CreateAuction" component={CreateAuctionWrapper} />
+            <DashboardStack.Screen name="Checkout" component={CheckoutWrapper} />
             <DashboardStack.Screen name="Orders" component={DashboardOrdersWrapper} />
         </DashboardStack.Navigator>
     );
