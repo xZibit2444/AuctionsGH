@@ -400,7 +400,7 @@ export async function sendThankYouEmail(to: string) {
             from: SENDER_EMAIL,
             to,
             subject: 'Thank you for using AuctionsGH!',
-            react: ThankYouEmail({}),
+            react: ThankYouEmail(),
         });
 
         if (error) {
