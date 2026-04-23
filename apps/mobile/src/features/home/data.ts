@@ -154,6 +154,84 @@ export async function fetchMyOrders(userId: string): Promise<MobileOrder[]> {
     }));
 }
 
+export type MobileListing = {
+    id: string;
+    title: string;
+    status: string;
+    current_price: number;
+    bid_count: number;
+    ends_at: string;
+    created_at: string;
+    auction_images: { url: string }[];
+};
+
+export type MobileSellerStats = {
+    totalListings: number;
+    activeListings: number;
+    soldListings: number;
+    totalRevenue: number;
+};
+
+export type MobileBuyerStats = {
+    totalBids: number;
+    wonAuctions: number;
+    totalSpent: number;
+    pendingOrders: number;
+};
+
+export async function fetchMyListings(userId: string): Promise<MobileListing[]> {
+    const { data } = await supabase
+        .from('auctions')
+        .select('id, title, status, current_price, bid_count, ends_at, created_at, auction_images(url)')
+        .eq('seller_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+    return (data ?? []) as unknown as MobileListing[];
+}
+
+export async function fetchSellerStats(userId: string): Promise<MobileSellerStats> {
+    const { data } = await supabase
+        .from('auctions')
+        .select('status, current_price')
+        .eq('seller_id', userId);
+    const rows = (data ?? []) as { status: string; current_price: number }[];
+    return {
+        totalListings: rows.length,
+        activeListings: rows.filter(r => r.status === 'active').length,
+        soldListings: rows.filter(r => r.status === 'sold').length,
+        totalRevenue: rows.filter(r => r.status === 'sold').reduce((s, r) => s + r.current_price, 0),
+    };
+}
+
+export async function fetchBuyerStats(userId: string): Promise<MobileBuyerStats> {
+    const [bidsRes, ordersRes] = await Promise.all([
+        supabase.from('bids').select('id', { count: 'exact', head: true }).eq('bidder_id', userId),
+        supabase.from('orders').select('id, status, amount').eq('buyer_id', userId),
+    ]);
+    const orders = (ordersRes.data ?? []) as { id: string; status: string; amount: number }[];
+    return {
+        totalBids: bidsRes.count ?? 0,
+        wonAuctions: orders.length,
+        totalSpent: orders.filter(o => o.status === 'completed').reduce((s, o) => s + o.amount, 0),
+        pendingOrders: orders.filter(o => o.status === 'pending').length,
+    };
+}
+
+export async function fetchWonAuctions(userId: string): Promise<MobileAuctionListItem[]> {
+    const { data } = await supabase
+        .from('auctions')
+        .select('id, title, brand, model, current_price, bid_count, status, ends_at, seller_id, auction_images(url)')
+        .eq('winner_id', userId)
+        .eq('status', 'sold')
+        .order('ends_at', { ascending: false })
+        .limit(20);
+    return (data ?? []) as unknown as MobileAuctionListItem[];
+}
+
+export async function deleteMyListing(auctionId: string, token: string) {
+    return apiCall(`/api/listings/${auctionId}`, token, { method: 'DELETE' });
+}
+
 // Place a bid via Supabase RPC (SECURITY DEFINER function handles validation).
 export async function placeMobileBid(auctionId: string, amount: number) {
     const { data: userData } = await supabase.auth.getUser();

@@ -8,6 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { registerForPushNotifications, deregisterPushToken } from './src/lib/pushNotifications';
+import type { HomeStackParams, ProfileStackParams, DashboardStackParams, TabParams } from './src/navigation/types';
 import { isSupabaseConfigured, supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -15,36 +16,19 @@ import AuctionDetailScreen from './src/screens/AuctionDetailScreen';
 import OfferChatScreen from './src/screens/OfferChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
 export const SessionContext = createContext<Session | null>(null);
 export function useSession() { return useContext(SessionContext)!; }
 
-// ─── Navigation param types ───────────────────────────────────────────────────
-
-type HomeStackParams = {
-    Home: undefined;
-    AuctionDetail: { auctionId: string };
-    OfferChat: {
-        auctionId: string; auctionTitle: string;
-        sellerId: string; buyerId: string;
-        offerId: string; offerStatus: 'pending' | 'accepted' | 'declined';
-    };
-};
-
-type ProfileStackParams = {
-    Profile: undefined;
-    Orders: undefined;
-};
-
-type TabParams = {
-    HomeTab: undefined;
-    ProfileTab: undefined;
-};
+// ─── Navigation param types (see src/navigation/types.ts) ────────────────────
+export type { DashboardStackParams } from './src/navigation/types';
 
 const HomeStack = createNativeStackNavigator<HomeStackParams>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParams>();
+const DashboardStack = createNativeStackNavigator<DashboardStackParams>();
 const Tab = createBottomTabNavigator<TabParams>();
 const Root = createNativeStackNavigator();
 
@@ -104,6 +88,16 @@ function OrdersWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams
     return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
 }
 
+function DashboardWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'Dashboard'>) {
+    const session = useSession();
+    return <DashboardScreen navigation={navigation} route={{ key: 'Dashboard', name: 'Dashboard' }} session={session!} />;
+}
+
+function DashboardOrdersWrapper({ navigation }: NativeStackScreenProps<DashboardStackParams, 'Orders'>) {
+    const session = useSession();
+    return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
+}
+
 // ─── Stack / Tab navigators ───────────────────────────────────────────────────
 
 const stackOpts = { headerShown: false, animation: 'slide_from_right' as const };
@@ -127,6 +121,15 @@ function ProfileStackNav() {
     );
 }
 
+function DashboardStackNav() {
+    return (
+        <DashboardStack.Navigator screenOptions={stackOpts}>
+            <DashboardStack.Screen name="Dashboard" component={DashboardWrapper} />
+            <DashboardStack.Screen name="Orders" component={DashboardOrdersWrapper} />
+        </DashboardStack.Navigator>
+    );
+}
+
 function MainTabs() {
     return (
         <Tab.Navigator
@@ -142,6 +145,11 @@ function MainTabs() {
                 name="HomeTab"
                 component={HomeStackNav}
                 options={{ title: 'Auctions', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'🏛'}</Text> }}
+            />
+            <Tab.Screen
+                name="DashboardTab"
+                component={DashboardStackNav}
+                options={{ title: 'Dashboard', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'📊'}</Text> }}
             />
             <Tab.Screen
                 name="ProfileTab"
