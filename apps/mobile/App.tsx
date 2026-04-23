@@ -1,7 +1,12 @@
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { registerForPushNotifications, deregisterPushToken } from './src/lib/pushNotifications';
 import { isSupabaseConfigured, supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
@@ -11,17 +16,147 @@ import OfferChatScreen from './src/screens/OfferChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 
-type Screen =
-    | { name: 'home' }
-    | { name: 'profile' }
-    | { name: 'orders' }
-    | { name: 'detail'; auctionId: string }
-    | { name: 'offerChat'; auctionId: string; auctionTitle: string; sellerId: string; buyerId: string; offerId: string; offerStatus: 'pending' | 'accepted' | 'declined' };
+// ─── Session context ──────────────────────────────────────────────────────────
+
+export const SessionContext = createContext<Session | null>(null);
+export function useSession() { return useContext(SessionContext)!; }
+
+// ─── Navigation param types ───────────────────────────────────────────────────
+
+type HomeStackParams = {
+    Home: undefined;
+    AuctionDetail: { auctionId: string };
+    OfferChat: {
+        auctionId: string; auctionTitle: string;
+        sellerId: string; buyerId: string;
+        offerId: string; offerStatus: 'pending' | 'accepted' | 'declined';
+    };
+};
+
+type ProfileStackParams = {
+    Profile: undefined;
+    Orders: undefined;
+};
+
+type TabParams = {
+    HomeTab: undefined;
+    ProfileTab: undefined;
+};
+
+const HomeStack = createNativeStackNavigator<HomeStackParams>();
+const ProfileStack = createNativeStackNavigator<ProfileStackParams>();
+const Tab = createBottomTabNavigator<TabParams>();
+const Root = createNativeStackNavigator();
+
+// ─── Screen wrappers (bridge callback-based screens → React Navigation) ───────
+
+function HomeScreenWrapper({ navigation }: NativeStackScreenProps<HomeStackParams, 'Home'>) {
+    const session = useSession();
+    return (
+        <HomeScreen
+            session={session}
+            onSelectAuction={id => navigation.navigate('AuctionDetail', { auctionId: id })}
+            onOpenProfile={() => navigation.getParent<BottomTabScreenProps<TabParams>['navigation']>()?.navigate('ProfileTab')}
+            onSignOut={() => { void supabase.auth.signOut(); }}
+        />
+    );
+}
+
+function AuctionDetailWrapper({ navigation, route }: NativeStackScreenProps<HomeStackParams, 'AuctionDetail'>) {
+    const session = useSession();
+    return (
+        <AuctionDetailScreen
+            session={session}
+            auctionId={route.params.auctionId}
+            onBack={() => navigation.goBack()}
+            onOpenChat={(auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus) =>
+                navigation.navigate('OfferChat', { auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus })
+            }
+        />
+    );
+}
+
+function OfferChatWrapper({ navigation, route }: NativeStackScreenProps<HomeStackParams, 'OfferChat'>) {
+    const session = useSession();
+    return (
+        <OfferChatScreen
+            session={session}
+            {...route.params}
+            onBack={() => navigation.goBack()}
+        />
+    );
+}
+
+function ProfileScreenWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Profile'>) {
+    const session = useSession();
+    return (
+        <ProfileScreen
+            session={session}
+            onBack={() => navigation.getParent<BottomTabScreenProps<TabParams>['navigation']>()?.navigate('HomeTab')}
+            onOpenOrders={() => navigation.navigate('Orders')}
+            onSignOut={() => { void supabase.auth.signOut(); }}
+        />
+    );
+}
+
+function OrdersWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Orders'>) {
+    const session = useSession();
+    return <OrdersScreen session={session} onBack={() => navigation.goBack()} />;
+}
+
+// ─── Stack / Tab navigators ───────────────────────────────────────────────────
+
+const stackOpts = { headerShown: false, animation: 'slide_from_right' as const };
+
+function HomeStackNav() {
+    return (
+        <HomeStack.Navigator screenOptions={stackOpts}>
+            <HomeStack.Screen name="Home" component={HomeScreenWrapper} />
+            <HomeStack.Screen name="AuctionDetail" component={AuctionDetailWrapper} />
+            <HomeStack.Screen name="OfferChat" component={OfferChatWrapper} />
+        </HomeStack.Navigator>
+    );
+}
+
+function ProfileStackNav() {
+    return (
+        <ProfileStack.Navigator screenOptions={stackOpts}>
+            <ProfileStack.Screen name="Profile" component={ProfileScreenWrapper} />
+            <ProfileStack.Screen name="Orders" component={OrdersWrapper} />
+        </ProfileStack.Navigator>
+    );
+}
+
+function MainTabs() {
+    return (
+        <Tab.Navigator
+            screenOptions={{
+                headerShown: false,
+                tabBarActiveTintColor: '#f59e0b',
+                tabBarInactiveTintColor: '#9ca3af',
+                tabBarStyle: { borderTopColor: '#e5e7eb', backgroundColor: '#fff' },
+                tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+            }}
+        >
+            <Tab.Screen
+                name="HomeTab"
+                component={HomeStackNav}
+                options={{ title: 'Auctions', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'🏛'}</Text> }}
+            />
+            <Tab.Screen
+                name="ProfileTab"
+                component={ProfileStackNav}
+                options={{ title: 'Profile', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'👤'}</Text> }}
+            />
+        </Tab.Navigator>
+    );
+}
+
+// ─── Root app ─────────────────────────────────────────────────────────────────
 
 export default function App() {
     const [session, setSession] = useState<Session | null>(null);
     const [loadingSession, setLoadingSession] = useState(true);
-    const [screen, setScreen] = useState<Screen>({ name: 'home' });
     const pushTokenRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -32,23 +167,17 @@ export default function App() {
         });
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
             setSession(s ?? null);
-            if (!s) {
-                // Deregister push token on sign-out
-                if (pushTokenRef.current) {
-                    void supabase.auth.getSession().then(({ data }) => {
-                        if (data.session && pushTokenRef.current) {
-                            void deregisterPushToken(pushTokenRef.current, data.session.access_token);
-                        }
-                    });
-                    pushTokenRef.current = null;
-                }
-                setScreen({ name: 'home' });
+            if (!s && pushTokenRef.current) {
+                const tok = pushTokenRef.current;
+                pushTokenRef.current = null;
+                supabase.auth.getSession().then(({ data }) => {
+                    if (data.session) void deregisterPushToken(tok, data.session.access_token);
+                });
             }
         });
         return () => subscription.unsubscribe();
     }, []);
 
-    // Register push token once session is available
     useEffect(() => {
         if (!session || pushTokenRef.current) return;
         registerForPushNotifications(session.access_token).then(t => {
@@ -65,85 +194,21 @@ export default function App() {
         );
     }
 
-    if (!session) {
-        return (
-            <>
-                <StatusBar style="dark" />
-                <AuthScreen onAuthenticated={() => setScreen({ name: 'home' })} />
-            </>
-        );
-    }
-
-    if (screen.name === 'profile') {
-        return (
-            <>
-                <StatusBar style="dark" />
-                <ProfileScreen
-                    session={session}
-                    onBack={() => setScreen({ name: 'home' })}
-                    onOpenOrders={() => setScreen({ name: 'orders' })}
-                    onSignOut={() => setScreen({ name: 'home' })}
-                />
-            </>
-        );
-    }
-
-    if (screen.name === 'orders') {
-        return (
-            <>
-                <StatusBar style="dark" />
-                <OrdersScreen
-                    session={session}
-                    onBack={() => setScreen({ name: 'profile' })}
-                />
-            </>
-        );
-    }
-
-    if (screen.name === 'detail') {
-        return (
-            <>
-                <StatusBar style="dark" />
-                <AuctionDetailScreen
-                    session={session}
-                    auctionId={screen.auctionId}
-                    onBack={() => setScreen({ name: 'home' })}
-                    onOpenChat={(auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus) =>
-                        setScreen({ name: 'offerChat', auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus })
-                    }
-                />
-            </>
-        );
-    }
-
-    if (screen.name === 'offerChat') {
-        return (
-            <>
-                <StatusBar style="dark" />
-                <OfferChatScreen
-                    session={session}
-                    auctionId={screen.auctionId}
-                    auctionTitle={screen.auctionTitle}
-                    sellerId={screen.sellerId}
-                    buyerId={screen.buyerId}
-                    offerId={screen.offerId}
-                    offerStatus={screen.offerStatus}
-                    onBack={() => setScreen({ name: 'detail', auctionId: screen.auctionId })}
-                />
-            </>
-        );
-    }
-
     return (
-        <>
+        <SessionContext.Provider value={session}>
             <StatusBar style="dark" />
-            <HomeScreen
-                session={session}
-                onSelectAuction={id => setScreen({ name: 'detail', auctionId: id })}
-                onOpenProfile={() => setScreen({ name: 'profile' })}
-                onSignOut={() => supabase.auth.signOut()}
-            />
-        </>
+            <NavigationContainer>
+                <Root.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
+                    {session ? (
+                        <Root.Screen name="Main" component={MainTabs} />
+                    ) : (
+                        <Root.Screen name="Auth">
+                            {() => <AuthScreen onAuthenticated={() => {/* handled by onAuthStateChange */}} />}
+                        </Root.Screen>
+                    )}
+                </Root.Navigator>
+            </NavigationContainer>
+        </SessionContext.Provider>
     );
 }
 
