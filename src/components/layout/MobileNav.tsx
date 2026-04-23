@@ -29,7 +29,6 @@ const tabs = [
     { href: '/auctions', label: 'Auctions', icon: Search },
     { href: '/auctions/create', label: 'Sell', icon: Plus, highlighted: true },
     { href: '/listings', label: 'Listings', icon: Package },
-    { href: '/news', label: 'News', icon: Newspaper },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 

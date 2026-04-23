@@ -209,15 +209,18 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                     </span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2 min-w-0">
-                                <h1 className="text-3xl font-black tracking-tight text-black whitespace-nowrap">{profileLabel || 'User'}</h1>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h1 className="text-3xl font-black tracking-tight text-black">{profileLabel || 'User'}</h1>
                                 {profile.is_verified && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                         <ShieldCheck className="h-3 w-3" />
                                         Verified
                                     </span>
                                 )}
                             </div>
+                            {profile.username && (
+                                <p className="text-sm text-gray-400 mt-0.5">@{profile.username}</p>
+                            )}
                             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500">
                                 {profile.location && (
                                     <span className="inline-flex items-center gap-1.5">
