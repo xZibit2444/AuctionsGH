@@ -225,6 +225,36 @@ function DashboardStackNav() {
 }
 
 function MainTabs() {
+    const session = useSession();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!session?.user.id) return;
+        const userId = session.user.id;
+
+        const fetchCount = async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { count } = await (supabase.from('notifications') as any)
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .eq('is_read', false);
+            setUnreadCount(count ?? 0);
+        };
+        void fetchCount();
+
+        const channel = supabase
+            .channel(`notif_badge:${userId}`)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+                () => setUnreadCount(n => n + 1))
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+                () => void fetchCount())
+            .subscribe();
+
+        return () => { void supabase.removeChannel(channel); };
+    }, [session?.user.id]);
+
+    const badge = unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined;
+
     return (
         <Tab.Navigator
             screenOptions={{
@@ -248,7 +278,7 @@ function MainTabs() {
             <Tab.Screen
                 name="ProfileTab"
                 component={ProfileStackNav}
-                options={{ title: 'Profile', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'👤'}</Text> }}
+                options={{ title: 'Profile', tabBarBadge: badge, tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'👤'}</Text> }}
             />
         </Tab.Navigator>
     );
