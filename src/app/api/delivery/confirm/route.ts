@@ -4,6 +4,19 @@ import { sendOrderCompletionEmails } from '@/lib/orderCompletionEmails';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
+const supabaseAdmin = createAdminClient();
+
+async function resolveUser(req: NextRequest) {
+    const bearer = req.headers.get('authorization')?.replace('Bearer ', '').trim();
+    if (bearer) {
+        const { data, error } = await supabaseAdmin.auth.getUser(bearer);
+        if (!error && data.user) return data.user;
+    }
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ?? null;
+}
+
 type DeliveryConfirmationRow = {
     id: string;
     seller_id: string;
@@ -25,9 +38,8 @@ const CONFIRM_WINDOW_MS = 10 * 60_000;
  */
 export async function POST(req: NextRequest) {
     try {
-        // Authenticate caller
-        const supabase = await createServerClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        // Authenticate caller (cookie OR Bearer token for mobile)
+        const user = await resolveUser(req);
         if (!user) {
             return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
         }
@@ -47,7 +59,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'orderId and code are required' }, { status: 400 });
         }
 
-        const supabaseAdmin = createAdminClient();
         const { data: delivery, error: fetchErr } = await supabaseAdmin
             .from('deliveries')
             .select('id, seller_id, delivery_code, status')
