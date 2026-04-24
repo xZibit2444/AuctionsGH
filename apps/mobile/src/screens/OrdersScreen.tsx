@@ -39,8 +39,11 @@ const STATUS_LABEL: Record<string, string> = {
     refunded:        'Refunded',
 };
 
+type Tab = 'all' | 'buying' | 'selling';
+
 export default function OrdersScreen({ session, onBack, onSelectOrder }: Props) {
     const [orders, setOrders] = useState<MobileOrder[]>([]);
+    const [tab, setTab] = useState<Tab>('all');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -76,6 +79,11 @@ export default function OrdersScreen({ session, onBack, onSelectOrder }: Props) 
             void supabase.removeChannel(sellerCh);
         };
     }, []);
+
+    const userId = session.user.id;
+    const buying  = orders.filter(o => o.buyer_id  === userId);
+    const selling = orders.filter(o => o.seller_id === userId);
+    const visible = tab === 'buying' ? buying : tab === 'selling' ? selling : orders;
 
     const isBuyer = (order: MobileOrder) => order.buyer_id === session.user.id;
 
@@ -149,17 +157,29 @@ export default function OrdersScreen({ session, onBack, onSelectOrder }: Props) 
                 <View style={{ width: 60 }} />
             </View>
 
+            <View style={styles.tabs}>
+                {(['all', 'buying', 'selling'] as Tab[]).map(t => (
+                    <TouchableOpacity key={t} style={[styles.tab, tab === t && styles.tabActive]} onPress={() => setTab(t)}>
+                        <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
+                            {t === 'all' ? `All (${orders.length})` : t === 'buying' ? `Buying (${buying.length})` : `Selling (${selling.length})`}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
             {loading ? (
                 <View style={styles.centered}><ActivityIndicator size="large" /></View>
             ) : (
                 <FlatList
-                    data={orders}
+                    data={visible}
                     keyExtractor={o => o.id}
                     renderItem={renderItem}
                     contentContainerStyle={styles.list}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
                     ListEmptyComponent={
-                        <Text style={styles.empty}>No orders yet.{'\n'}Win an auction to see your orders here.</Text>
+                        <Text style={styles.empty}>
+                            {tab === 'buying' ? 'No purchases yet.' : tab === 'selling' ? 'No sales yet.' : 'No orders yet.'}
+                        </Text>
                     }
                 />
             )}
@@ -178,6 +198,11 @@ const styles = StyleSheet.create({
     backBtn: {},
     backText: { color: '#6366f1', fontSize: 15, fontWeight: '600' },
     headerTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
+    tabs: { flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+    tab: { flex: 1, paddingVertical: 11, alignItems: 'center' },
+    tabActive: { borderBottomWidth: 2, borderBottomColor: '#111827' },
+    tabText: { fontSize: 12, fontWeight: '600', color: '#9ca3af' },
+    tabTextActive: { color: '#111827' },
     list: { padding: 14, gap: 12, paddingBottom: 40 },
     card: {
         backgroundColor: '#fff', borderRadius: 12,
