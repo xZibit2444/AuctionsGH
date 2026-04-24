@@ -3,6 +3,7 @@ import {
     ActivityIndicator, FlatList, Image, RefreshControl, SafeAreaView,
     ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
@@ -118,8 +119,9 @@ export default function HomeScreen({ session, onSelectAuction, onOpenProfile }: 
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>AuctionsGH</Text>
+                <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
                 <TouchableOpacity onPress={onOpenProfile} style={styles.profileBtn}>
+                    <Ionicons name="person-circle-outline" size={22} color="#374151" />
                     <Text style={styles.profileBtnText}>
                         {profile?.full_name?.split(' ')[0] ?? profile?.username ?? 'Profile'}
                     </Text>
@@ -128,17 +130,20 @@ export default function HomeScreen({ session, onSelectAuction, onOpenProfile }: 
 
             {/* Tabs */}
             <View style={styles.tabRow}>
-                {([['timed', '🏛 Auctions'], ['permanent', '🏷 Buy Now']] as [ListingTab, string][]).map(([t, label]) => (
-                    <TouchableOpacity key={t} style={[styles.tab, tab === t && styles.tabActive]} onPress={() => setTab(t)}>
-                        <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>{label}</Text>
-                    </TouchableOpacity>
-                ))}
+                <TouchableOpacity style={[styles.tab, tab === 'timed' && styles.tabActive]} onPress={() => setTab('timed')}>
+                    <Ionicons name={tab === 'timed' ? 'hammer' : 'hammer-outline'} size={15} color={tab === 'timed' ? '#000' : '#9ca3af'} />
+                    <Text style={[styles.tabText, tab === 'timed' && styles.tabTextActive]}>Auctions</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.tab, tab === 'permanent' && styles.tabActive]} onPress={() => setTab('permanent')}>
+                    <Ionicons name={tab === 'permanent' ? 'pricetag' : 'pricetag-outline'} size={15} color={tab === 'permanent' ? '#000' : '#9ca3af'} />
+                    <Text style={[styles.tabText, tab === 'permanent' && styles.tabTextActive]}>Buy Now</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Search bar */}
             <View style={styles.searchRow}>
                 <View style={styles.searchBox}>
-                    <Text style={styles.searchIcon}>🔍</Text>
+                    <Ionicons name="search-outline" size={16} color="#9ca3af" />
                     <TextInput
                         style={styles.searchInput}
                         value={inputVal}
@@ -150,12 +155,12 @@ export default function HomeScreen({ session, onSelectAuction, onOpenProfile }: 
                     />
                     {inputVal ? (
                         <TouchableOpacity onPress={() => { setInputVal(''); setSearch(''); }}>
-                            <Text style={styles.clearBtn}>✕</Text>
+                            <Ionicons name="close-circle" size={16} color="#9ca3af" />
                         </TouchableOpacity>
                     ) : null}
                 </View>
                 <TouchableOpacity style={styles.sortBtn} onPress={() => setShowSort(s => !s)}>
-                    <Text style={styles.sortBtnText}>⇅</Text>
+                    <Ionicons name="swap-vertical" size={20} color="#fff" />
                 </TouchableOpacity>
             </View>
 
@@ -182,7 +187,8 @@ export default function HomeScreen({ session, onSelectAuction, onOpenProfile }: 
             {/* Clear filters */}
             {hasFilters && (
                 <TouchableOpacity style={styles.clearFilters} onPress={clearFilters}>
-                    <Text style={styles.clearFiltersText}>✕ Clear filters</Text>
+                    <Ionicons name="close-circle-outline" size={13} color="#6b7280" />
+                    <Text style={styles.clearFiltersText}> Clear filters</Text>
                 </TouchableOpacity>
             )}
 
@@ -216,22 +222,19 @@ function formatTimeLeft(endsAt: Date): string {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f9fafb' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', backgroundColor: '#fff' },
-    headerTitle: { fontSize: 20, fontWeight: '900', color: '#000' },
-    profileBtn: { paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', backgroundColor: '#fff' },
+    logo: { height: 36, width: 130 },
+    profileBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' },
     profileBtnText: { fontSize: 13, fontWeight: '600', color: '#111827' },
     tabRow: { flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-    tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+    tab: { flex: 1, flexDirection: 'row', paddingVertical: 10, alignItems: 'center', justifyContent: 'center', gap: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
     tabActive: { borderBottomColor: '#000' },
     tabText: { fontSize: 13, fontWeight: '700', color: '#9ca3af' },
     tabTextActive: { color: '#000' },
     searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
     searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 10, paddingVertical: 7, gap: 6, backgroundColor: '#f9fafb' },
-    searchIcon: { fontSize: 14 },
     searchInput: { flex: 1, fontSize: 14, color: '#000', padding: 0 },
-    clearBtn: { color: '#9ca3af', fontSize: 14 },
     sortBtn: { width: 40, height: 40, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-    sortBtnText: { color: '#fff', fontSize: 18 },
     sortDropdown: { position: 'absolute', top: 145, right: 10, zIndex: 100, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 6 },
     sortOption: { paddingHorizontal: 20, paddingVertical: 12 },
     sortOptionActive: { backgroundColor: '#f3f4f6' },
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
     chipActive: { backgroundColor: '#000', borderColor: '#000' },
     chipText: { fontSize: 11, fontWeight: '700', color: '#374151' },
     chipTextActive: { color: '#fff' },
-    clearFilters: { paddingHorizontal: 16, paddingVertical: 6, backgroundColor: '#f9fafb', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+    clearFilters: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 6, backgroundColor: '#f9fafb', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
     clearFiltersText: { fontSize: 11, fontWeight: '700', color: '#6b7280' },
     list: { padding: 8, paddingBottom: 32 },
     columnWrapper: { gap: 8, marginBottom: 8 },
