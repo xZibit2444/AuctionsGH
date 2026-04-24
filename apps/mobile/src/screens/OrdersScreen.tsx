@@ -4,6 +4,7 @@ import {
     SafeAreaView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { fetchMyOrders, type MobileOrder } from '../features/home/data';
 
 interface Props {
@@ -55,7 +56,26 @@ export default function OrdersScreen({ session, onBack, onSelectOrder }: Props) 
         }
     };
 
-    useEffect(() => { void load(); }, []);
+    useEffect(() => {
+        void load();
+
+        const buyerCh = supabase
+            .channel(`orders_buyer:${session.user.id}`)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `buyer_id=eq.${session.user.id}` },
+                () => void load())
+            .subscribe();
+
+        const sellerCh = supabase
+            .channel(`orders_seller:${session.user.id}`)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `seller_id=eq.${session.user.id}` },
+                () => void load())
+            .subscribe();
+
+        return () => {
+            void supabase.removeChannel(buyerCh);
+            void supabase.removeChannel(sellerCh);
+        };
+    }, []);
 
     const isBuyer = (order: MobileOrder) => order.buyer_id === session.user.id;
 

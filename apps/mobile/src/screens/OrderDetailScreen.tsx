@@ -122,14 +122,24 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
         void checkReviewed();
         void loadDelivery();
 
-        const channel = supabase
+        const msgChannel = supabase
             .channel(`order_messages:${orderId}`)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_messages', filter: `order_id=eq.${orderId}` }, payload => {
                 setMessages(prev => [...prev, payload.new as OrderMessage]);
             })
             .subscribe();
 
-        return () => { void supabase.removeChannel(channel); };
+        const statusChannel = supabase
+            .channel(`order_status:${orderId}`)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
+                setOrder(prev => prev ? { ...prev, ...(payload.new as Partial<OrderDetail>) } : prev);
+            })
+            .subscribe();
+
+        return () => {
+            void supabase.removeChannel(msgChannel);
+            void supabase.removeChannel(statusChannel);
+        };
     }, [orderId, loadOrder, loadMessages, checkReviewed, loadDelivery]);
 
     useEffect(() => {
