@@ -46,10 +46,6 @@ const sections: FAQSection[] = [
                 q: 'Can I cancel my bid after placing it?',
                 a: 'Bids are final once placed. Before bidding, make sure you are ready to complete the purchase. If you win, you are expected to follow through with checkout and collection.',
             },
-            {
-                q: 'What is a bid feed?',
-                a: 'Every auction page shows a live bid feed — a real-time list of all bids placed so far, showing who bid and how much. It updates instantly each time a new bid comes in, so you always see the current state of the auction.',
-            },
         ],
     },
     {
@@ -124,7 +120,12 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'Can I buy an item without bidding?',
-                a: 'AuctionsGH is an auction-only marketplace — all purchases go through competitive bidding. There is no "Buy Now" option at this time.',
+                a: (
+                    <div className="space-y-2">
+                        <p>Yes — some listings are <span className="font-semibold text-black">Permanent Listings</span> with a fixed price. On these you can make an offer directly at the listed price rather than competing in a timed auction. Permanent listings do not have a countdown timer and remain active until the seller sells the item or removes it.</p>
+                        <p>Standard timed auctions still run through competitive bidding — the highest bidder at the end of the countdown wins.</p>
+                    </div>
+                ),
             },
             {
                 q: 'What if I win but decide not to buy?',
@@ -152,10 +153,14 @@ const sections: FAQSection[] = [
                 a: (
                     <div className="space-y-2">
                         <ul className="space-y-1.5">
-                            <li><span className="font-bold text-black">Pending Meetup</span> — Order created, awaiting physical meetup</li>
-                            <li><span className="font-bold text-black">Pending</span> — Shown on seller dashboard while the order is active</li>
-                            <li><span className="font-bold text-black">Delivered</span> — Seller has entered the delivery code successfully</li>
-                            <li><span className="font-bold text-black">Completed</span> — Transaction fully closed, both sides confirmed</li>
+                            <li><span className="font-bold text-black">Pending Meetup</span> — Order created, awaiting physical meetup or delivery arrangement</li>
+                            <li><span className="font-bold text-black">In Delivery</span> — Seller has marked the item as sent; awaiting your receipt</li>
+                            <li><span className="font-bold text-black">Pin Verified</span> — Your 6-digit delivery code was accepted; transaction closing</li>
+                            <li><span className="font-bold text-black">Completed</span> — Transaction fully closed and confirmed by both sides</li>
+                            <li><span className="font-bold text-black">Ghosted</span> — Buyer did not show up or respond; order flagged</li>
+                            <li><span className="font-bold text-black">Pin Refused</span> — Buyer rejected the delivery at handover</li>
+                            <li><span className="font-bold text-black">Returning</span> — Item is being returned to the seller</li>
+                            <li><span className="font-bold text-black">Refunded</span> — Transaction reversed and funds returned</li>
                         </ul>
                     </div>
                 ),
@@ -241,7 +246,7 @@ const sections: FAQSection[] = [
         items: [
             {
                 q: 'How do I save an auction to watch later?',
-                a: 'Tap the heart icon on any auction card or detail page to save it. All saved auctions appear in the Saved section of the navigation so you can track them easily without having to search again.',
+                a: 'Open any auction and tap the Save button on the listing detail page. All saved auctions appear in the Saved section of the navigation so you can track them easily without having to search again.',
             },
             {
                 q: 'What notifications will I receive?',
