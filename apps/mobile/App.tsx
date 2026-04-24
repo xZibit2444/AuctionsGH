@@ -26,6 +26,7 @@ import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import SellerProfileScreen from './src/screens/SellerProfileScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import WonAuctionsScreen from './src/screens/WonAuctionsScreen';
+import { Ionicons } from '@expo/vector-icons';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -289,17 +290,17 @@ function MainTabs() {
             <Tab.Screen
                 name="HomeTab"
                 component={HomeStackNav}
-                options={{ title: 'Auctions', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'🏛'}</Text> }}
+                options={{ title: 'Auctions', tabBarIcon: ({ color, size }: { color: string; size: number }) => <Ionicons name="hammer-outline" size={size} color={color} /> }}
             />
             <Tab.Screen
                 name="DashboardTab"
                 component={DashboardStackNav}
-                options={{ title: 'Dashboard', tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'📊'}</Text> }}
+                options={{ title: 'Dashboard', tabBarIcon: ({ color, size }: { color: string; size: number }) => <Ionicons name="bar-chart-outline" size={size} color={color} /> }}
             />
             <Tab.Screen
                 name="ProfileTab"
                 component={ProfileStackNav}
-                options={{ title: 'Profile', tabBarBadge: badge, tabBarIcon: ({ color }: { color: string }) => <Text style={{ fontSize: 18, color }}>{'👤'}</Text> }}
+                options={{ title: 'Profile', tabBarBadge: badge, tabBarIcon: ({ color, size }: { color: string; size: number }) => <Ionicons name="person-outline" size={size} color={color} /> }}
             />
         </Tab.Navigator>
     );

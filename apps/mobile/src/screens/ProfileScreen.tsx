@@ -3,6 +3,7 @@ import {
     ActivityIndicator, Alert, SafeAreaView, ScrollView,
     StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { fetchMobileProfile, type MobileProfile } from '../features/home/data';
@@ -118,30 +119,12 @@ export default function ProfileScreen({ session, onBack, onOpenOrders, onOpenSav
                 </View>
 
                 {/* Nav rows */}
-                <TouchableOpacity style={styles.navRow} onPress={onOpenNotifications}>
-                    <Text style={styles.navRowText}>🔔  Notifications</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navRow} onPress={onOpenWonAuctions}>
-                    <Text style={styles.navRowText}>🏆  Won Auctions</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navRow} onPress={onOpenOrders}>
-                    <Text style={styles.navRowText}>📦  My Orders</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navRow} onPress={onOpenSaved}>
-                    <Text style={styles.navRowText}>🔖  Saved Auctions</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navRow} onPress={onOpenSellerApply}>
-                    <Text style={styles.navRowText}>🏪  Become a Seller</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navRow} onPress={onOpenSettings}>
-                    <Text style={styles.navRowText}>⚙️  Settings</Text>
-                    <Text style={styles.navRowArrow}>›</Text>
-                </TouchableOpacity>
+                <NavRow icon="notifications-outline" label="Notifications" onPress={onOpenNotifications} />
+                <NavRow icon="trophy-outline" label="Won Auctions" onPress={onOpenWonAuctions} />
+                <NavRow icon="cube-outline" label="My Orders" onPress={onOpenOrders} />
+                <NavRow icon="bookmark-outline" label="Saved Auctions" onPress={onOpenSaved} />
+                <NavRow icon="storefront-outline" label="Become a Seller" onPress={onOpenSellerApply} />
+                <NavRow icon="settings-outline" label="Settings" onPress={onOpenSettings} />
 
                 {/* Account details */}
                 <View style={styles.section}>
@@ -159,6 +142,20 @@ export default function ProfileScreen({ session, onBack, onOpenOrders, onOpenSav
                 </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
+    );
+}
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+function NavRow({ icon, label, onPress }: { icon: IoniconsName; label: string; onPress: () => void }) {
+    return (
+        <TouchableOpacity style={styles.navRow} onPress={onPress}>
+            <View style={styles.navRowLeft}>
+                <Ionicons name={icon} size={20} color="#6b7280" style={styles.navRowIcon} />
+                <Text style={styles.navRowText}>{label}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+        </TouchableOpacity>
     );
 }
 
@@ -230,8 +227,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
         borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     },
+    navRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    navRowIcon: {},
     navRowText: { fontSize: 15, fontWeight: '600', color: '#111827' },
-    navRowArrow: { fontSize: 20, color: '#9ca3af' },
     signOutBtn: {
         backgroundColor: '#fff', borderRadius: 12, paddingVertical: 14,
         alignItems: 'center', borderWidth: 1, borderColor: '#fca5a5',
