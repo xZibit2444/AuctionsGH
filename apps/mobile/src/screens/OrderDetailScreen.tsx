@@ -65,6 +65,22 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
+    const [deliveryCode, setDeliveryCode] = useState<string | null>(null);
+    const [pinInput, setPinInput] = useState('');
+    const [confirmingPin, setConfirmingPin] = useState(false);
+
+    const loadDelivery = useCallback(async () => {
+        const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+        try {
+            const res = await fetch(`${API_BASE}/api/delivery/${orderId}?by=order`, {
+                headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+                const json = await res.json() as { delivery?: { delivery_code?: string } };
+                setDeliveryCode(json.delivery?.delivery_code ?? null);
+            }
+        } catch { /* silent */ }
+    }, [orderId, session.access_token]);
 
     const loadOrder = useCallback(async () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,6 +119,7 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
         void loadOrder();
         void loadMessages();
         void checkReviewed();
+        void loadDelivery();
 
         const channel = supabase
             .channel(`order_messages:${orderId}`)
@@ -112,7 +129,7 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
             .subscribe();
 
         return () => { void supabase.removeChannel(channel); };
-    }, [orderId, loadOrder, loadMessages, checkReviewed]);
+    }, [orderId, loadOrder, loadMessages, checkReviewed, loadDelivery]);
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -152,7 +169,30 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     const role = order.buyer_id === userId ? 'Buyer' : 'Seller';
     const statusColor = STATUS_COLORS[order.status] ?? '#9ca3af';
     const isCompleted = order.status === 'completed' || order.status === 'pin_verified';
+    const isActive = !isCompleted && order.status !== 'ghosted' && order.status !== 'refunded' && order.status !== 'cancelled';
     const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+
+    const confirmDelivery = async () => {
+        const code = pinInput.trim();
+        if (code.length !== 6 || confirmingPin) return;
+        setConfirmingPin(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/delivery/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                body: JSON.stringify({ orderId, code }),
+            });
+            const json = await res.json() as { success?: boolean; error?: string };
+            if (res.ok && json.success) {
+                Alert.alert('Delivery Confirmed!', 'The order is now marked as completed.');
+                setPinInput('');
+                void loadOrder();
+            } else {
+                Alert.alert('Error', json.error ?? 'Failed to confirm delivery.');
+            }
+        } catch { Alert.alert('Error', 'Network error.'); }
+        setConfirmingPin(false);
+    };
 
     const submitReview = async () => {
         if (!otherPartyId || submittingReview) return;
@@ -216,6 +256,41 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
                     <Text style={styles.metaValue}>{order.fulfillment_type === 'escrow_delivery' ? 'Delivery' : 'Meet & Inspect'}</Text>
                 </View>
             </View>
+
+            {/* Buyer: delivery code card */}
+            {role === 'Buyer' && isActive && deliveryCode && (
+                <View style={styles.codePanel}>
+                    <Text style={styles.codePanelTitle}>YOUR DELIVERY CODE</Text>
+                    <Text style={styles.codeValue}>{deliveryCode}</Text>
+                    <Text style={styles.codeHint}>Show this to the seller only after you have inspected the item and are satisfied.</Text>
+                </View>
+            )}
+
+            {/* Seller: PIN entry to confirm delivery */}
+            {role === 'Seller' && isActive && (
+                <View style={styles.pinPanel}>
+                    <Text style={styles.pinPanelTitle}>CONFIRM DELIVERY</Text>
+                    <Text style={styles.pinHint}>Enter the 6-digit code the buyer gives you at handover.</Text>
+                    <View style={styles.pinRow}>
+                        <TextInput
+                            style={styles.pinInput}
+                            value={pinInput}
+                            onChangeText={t => setPinInput(t.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="000000"
+                            placeholderTextColor="#9ca3af"
+                            keyboardType="number-pad"
+                            maxLength={6}
+                        />
+                        <TouchableOpacity
+                            style={[styles.pinBtn, (pinInput.length !== 6 || confirmingPin) && styles.pinBtnDisabled]}
+                            onPress={confirmDelivery}
+                            disabled={pinInput.length !== 6 || confirmingPin}
+                        >
+                            <Text style={styles.pinBtnText}>{confirmingPin ? 'Confirming…' : 'Confirm'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
 
             {/* Review form — only for completed orders not yet reviewed */}
             {isCompleted && !hasReviewed && (
@@ -333,4 +408,16 @@ const styles = StyleSheet.create({
     reviewBtn: { backgroundColor: '#000', paddingVertical: 10, alignItems: 'center' },
     reviewBtnDisabled: { opacity: 0.4 },
     reviewBtnText: { color: '#fff', fontSize: 13, fontWeight: '900' },
+    codePanel: { backgroundColor: '#000', margin: 12, padding: 16, alignItems: 'center', gap: 6 },
+    codePanelTitle: { fontSize: 10, fontWeight: '900', color: '#9ca3af', letterSpacing: 1.5, textTransform: 'uppercase' },
+    codeValue: { fontSize: 40, fontWeight: '900', color: '#fff', letterSpacing: 8, fontVariant: ['tabular-nums'] },
+    codeHint: { fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 4 },
+    pinPanel: { backgroundColor: '#fff', margin: 12, padding: 14, borderWidth: 1, borderColor: '#e5e7eb', gap: 8 },
+    pinPanelTitle: { fontSize: 10, fontWeight: '900', color: '#000', letterSpacing: 1.5, textTransform: 'uppercase' },
+    pinHint: { fontSize: 12, color: '#6b7280' },
+    pinRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+    pinInput: { flex: 1, borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 14, paddingVertical: 10, fontSize: 22, fontWeight: '900', color: '#000', letterSpacing: 6, textAlign: 'center' },
+    pinBtn: { backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 12 },
+    pinBtnDisabled: { opacity: 0.4 },
+    pinBtnText: { color: '#fff', fontSize: 13, fontWeight: '900' },
 });
