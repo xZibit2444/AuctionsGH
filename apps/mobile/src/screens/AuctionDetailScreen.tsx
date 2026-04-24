@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform,
+    ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView, Platform,
     SafeAreaView, ScrollView, StyleSheet, Text, TextInput,
     TouchableOpacity, View,
 } from 'react-native';
+
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
     fetchAuctionDetail, fetchMobileOffers, placeMobileBid, placeMobileOffer,
     type MobileAuctionDetail, type MobileOffer,
 } from '../features/home/data';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const IMG_HEIGHT = 260;
 
 type OfferStatus = 'pending' | 'accepted' | 'declined';
 
@@ -169,9 +173,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                         <Text style={styles.description}>{detail.description}</Text>
                     ) : null}
 
-                    {detail.auction_images.map((img, i) => (
-                        <Image key={i} source={{ uri: img.url }} style={styles.image} resizeMode="cover" />
-                    ))}
+                    <ImageGallery images={detail.auction_images.map(i => i.url)} />
 
                     {/* Won auction CTA — winner only */}
                     {isWinner && (
@@ -268,6 +270,46 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
     );
 }
 
+function ImageGallery({ images }: { images: string[] }) {
+    const [index, setIndex] = useState(0);
+    const scrollRef = useRef<ScrollView>(null);
+
+    if (images.length === 0) return null;
+
+    if (images.length === 1) {
+        return (
+            <View style={styles.galleryWrap}>
+                <Image source={{ uri: images[0] }} style={styles.image} resizeMode="cover" />
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.galleryWrap}>
+            <ScrollView
+                ref={scrollRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={e => {
+                    const newIndex = Math.round(e.nativeEvent.contentOffset.x / (SCREEN_WIDTH - 40));
+                    setIndex(newIndex);
+                }}
+            >
+                {images.map((url, i) => (
+                    <Image key={i} source={{ uri: url }} style={styles.image} resizeMode="cover" />
+                ))}
+            </ScrollView>
+            <View style={styles.galleryDots}>
+                {images.map((_, i) => (
+                    <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+                ))}
+            </View>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f9fafb' },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -279,7 +321,7 @@ const styles = StyleSheet.create({
     price: { fontSize: 22, fontWeight: '700', color: '#111827' },
     row: { flexDirection: 'row', justifyContent: 'space-between' },
     description: { fontSize: 14, color: '#374151', lineHeight: 20 },
-    image: { width: '100%', height: 220, borderRadius: 10, backgroundColor: '#e5e7eb' },
+    image: { width: SCREEN_WIDTH - 40, height: IMG_HEIGHT, borderRadius: 0, backgroundColor: '#e5e7eb' },
     panel: { backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#e5e7eb', gap: 10 },
     panelLabel: { fontSize: 15, fontWeight: '700', color: '#111827' },
     input: {
@@ -301,6 +343,10 @@ const styles = StyleSheet.create({
     saveBtn: { paddingHorizontal: 12, paddingVertical: 10 },
     saveBtnText: { fontSize: 13, fontWeight: '700', color: '#000' },
     sellerLink: { color: '#6366f1', textDecorationLine: 'underline' },
+    galleryWrap: { marginHorizontal: -20, overflow: 'hidden' },
+    galleryDots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#d1d5db' },
+    dotActive: { backgroundColor: '#111827', width: 18 },
     wonBanner: { backgroundColor: '#052e16', borderRadius: 12, padding: 16, gap: 8 },
     wonTitle: { fontSize: 16, fontWeight: '800', color: '#4ade80' },
     wonBody: { fontSize: 13, color: '#86efac', lineHeight: 18 },
