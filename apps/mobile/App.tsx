@@ -65,8 +65,14 @@ function AuctionDetailWrapper({ navigation, route }: NativeStackScreenProps<Home
                 navigation.navigate('OfferChat', { auctionId, auctionTitle, sellerId, buyerId, offerId, offerStatus })
             }
             onOpenSellerProfile={id => navigation.navigate('SellerProfile', { sellerId: id })}
+            onOpenCheckout={id => navigation.navigate('Checkout', { auctionId: id })}
         />
     );
+}
+
+function HomeCheckoutWrapper({ navigation, route }: NativeStackScreenProps<HomeStackParams, 'Checkout'>) {
+    const session = useSession();
+    return <CheckoutScreen navigation={navigation as never} route={route as never} session={session!} />;
 }
 
 function SellerProfileWrapper({ navigation, route }: NativeStackScreenProps<HomeStackParams, 'SellerProfile'>) {
@@ -186,6 +192,7 @@ function HomeStackNav() {
             <HomeStack.Screen name="Home" component={HomeScreenWrapper} />
             <HomeStack.Screen name="AuctionDetail" component={AuctionDetailWrapper} />
             <HomeStack.Screen name="SellerProfile" component={SellerProfileWrapper} />
+            <HomeStack.Screen name="Checkout" component={HomeCheckoutWrapper} />
             <HomeStack.Screen name="OfferChat" component={OfferChatWrapper} />
         </HomeStack.Navigator>
     );

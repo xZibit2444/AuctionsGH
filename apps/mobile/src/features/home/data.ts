@@ -26,6 +26,7 @@ export type MobileAuctionListItem = {
     status: string;
     ends_at: string;
     seller_id: string;
+    winner_id: string | null;
     auction_images: { url: string }[];
 };
 
@@ -133,7 +134,7 @@ export async function fetchAuctionDetail(auctionId: string): Promise<MobileAucti
     const { data } = await supabase
         .from('auctions')
         .select(`
-            id, title, brand, model, current_price, bid_count, status, ends_at, seller_id,
+            id, title, brand, model, current_price, bid_count, status, ends_at, seller_id, winner_id,
             description, condition, storage_gb, ram_gb, min_increment,
             auction_images(url),
             profiles!auctions_seller_id_fkey(full_name, username, location)

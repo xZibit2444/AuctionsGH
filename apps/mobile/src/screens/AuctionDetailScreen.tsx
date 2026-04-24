@@ -19,9 +19,10 @@ interface Props {
     onBack: () => void;
     onOpenChat: (auctionId: string, auctionTitle: string, sellerId: string, buyerId: string, offerId: string, offerStatus: OfferStatus) => void;
     onOpenSellerProfile?: (sellerId: string) => void;
+    onOpenCheckout?: (auctionId: string) => void;
 }
 
-export default function AuctionDetailScreen({ session, auctionId, onBack, onOpenChat, onOpenSellerProfile }: Props) {
+export default function AuctionDetailScreen({ session, auctionId, onBack, onOpenChat, onOpenSellerProfile, onOpenCheckout }: Props) {
     const [detail, setDetail] = useState<MobileAuctionDetail | null>(null);
     const [offers, setOffers] = useState<MobileOffer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -125,6 +126,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
     const isSeller = detail.seller_id === userId;
     const isActive = detail.status === 'active';
     const isPermanent = new Date(detail.ends_at).getFullYear() >= 2090;
+    const isWinner = detail.status === 'sold' && detail.winner_id === userId;
     const seller = detail.profiles;
 
     return (
@@ -170,6 +172,21 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                     {detail.auction_images.map((img, i) => (
                         <Image key={i} source={{ uri: img.url }} style={styles.image} resizeMode="cover" />
                     ))}
+
+                    {/* Won auction CTA — winner only */}
+                    {isWinner && (
+                        <View style={styles.wonBanner}>
+                            <Text style={styles.wonTitle}>🏆 You won this auction!</Text>
+                            <Text style={styles.wonBody}>Complete your order to arrange delivery with the seller.</Text>
+                            <TouchableOpacity
+                                style={styles.wonBtn}
+                                onPress={() => onOpenCheckout?.(detail.id)}
+                                disabled={!onOpenCheckout}
+                            >
+                                <Text style={styles.wonBtnText}>Complete Order →</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
 
                     {/* Bid panel — buyers only, active timed auctions only */}
                     {!isSeller && isActive && !isPermanent && (
@@ -284,4 +301,9 @@ const styles = StyleSheet.create({
     saveBtn: { paddingHorizontal: 12, paddingVertical: 10 },
     saveBtnText: { fontSize: 13, fontWeight: '700', color: '#000' },
     sellerLink: { color: '#6366f1', textDecorationLine: 'underline' },
+    wonBanner: { backgroundColor: '#052e16', borderRadius: 12, padding: 16, gap: 8 },
+    wonTitle: { fontSize: 16, fontWeight: '800', color: '#4ade80' },
+    wonBody: { fontSize: 13, color: '#86efac', lineHeight: 18 },
+    wonBtn: { backgroundColor: '#16a34a', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
+    wonBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
 });
