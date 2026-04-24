@@ -24,6 +24,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import SellerApplyScreen from './src/screens/SellerApplyScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import SellerProfileScreen from './src/screens/SellerProfileScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ function ProfileScreenWrapper({ navigation }: NativeStackScreenProps<ProfileStac
             onOpenSaved={() => navigation.navigate('Saved')}
             onOpenSettings={() => navigation.navigate('Settings')}
             onOpenSellerApply={() => navigation.navigate('SellerApply')}
+            onOpenNotifications={() => navigation.navigate('Notifications')}
             onSignOut={() => { void supabase.auth.signOut(); }}
         />
     );
@@ -162,6 +164,18 @@ function SellerApplyWrapper({ navigation }: NativeStackScreenProps<ProfileStackP
     return <SellerApplyScreen session={session!} onBack={() => navigation.goBack()} />;
 }
 
+function NotificationsWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Notifications'>) {
+    const session = useSession();
+    return (
+        <NotificationsScreen
+            session={session!}
+            onBack={() => navigation.goBack()}
+            onOpenAuction={id => navigation.getParent()?.navigate('HomeTab', { screen: 'AuctionDetail', params: { auctionId: id } })}
+            onOpenOrder={id => navigation.navigate('OrderDetail', { orderId: id })}
+        />
+    );
+}
+
 // ─── Stack / Tab navigators ───────────────────────────────────────────────────
 
 const stackOpts = { headerShown: false, animation: 'slide_from_right' as const };
@@ -186,6 +200,7 @@ function ProfileStackNav() {
             <ProfileStack.Screen name="Saved" component={SavedWrapper} />
             <ProfileStack.Screen name="Settings" component={SettingsWrapper} />
             <ProfileStack.Screen name="SellerApply" component={SellerApplyWrapper} />
+            <ProfileStack.Screen name="Notifications" component={NotificationsWrapper} />
         </ProfileStack.Navigator>
     );
 }

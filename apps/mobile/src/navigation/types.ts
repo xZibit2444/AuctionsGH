@@ -16,6 +16,7 @@ export type ProfileStackParams = {
     Saved: undefined;
     Settings: undefined;
     SellerApply: undefined;
+    Notifications: undefined;
 };
 
 export type DashboardStackParams = {

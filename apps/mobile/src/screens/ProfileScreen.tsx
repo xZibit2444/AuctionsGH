@@ -20,10 +20,11 @@ interface Props {
     onOpenSaved: () => void;
     onOpenSettings: () => void;
     onOpenSellerApply: () => void;
+    onOpenNotifications: () => void;
     onSignOut: () => void;
 }
 
-export default function ProfileScreen({ session, onBack, onOpenOrders, onOpenSaved, onOpenSettings, onOpenSellerApply, onSignOut }: Props) {
+export default function ProfileScreen({ session, onBack, onOpenOrders, onOpenSaved, onOpenSettings, onOpenSellerApply, onOpenNotifications, onSignOut }: Props) {
     const [profile, setProfile] = useState<MobileProfile | null>(null);
     const [stats, setStats] = useState<Stats>({ listings: 0, activeListings: 0, bids: 0 });
     const [loading, setLoading] = useState(true);
@@ -116,6 +117,10 @@ export default function ProfileScreen({ session, onBack, onOpenOrders, onOpenSav
                 </View>
 
                 {/* Nav rows */}
+                <TouchableOpacity style={styles.navRow} onPress={onOpenNotifications}>
+                    <Text style={styles.navRowText}>🔔  Notifications</Text>
+                    <Text style={styles.navRowArrow}>›</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.navRow} onPress={onOpenOrders}>
                     <Text style={styles.navRowText}>📦  My Orders</Text>
                     <Text style={styles.navRowArrow}>›</Text>
