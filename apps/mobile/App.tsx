@@ -25,6 +25,7 @@ import SellerApplyScreen from './src/screens/SellerApplyScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import SellerProfileScreen from './src/screens/SellerProfileScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
+import WonAuctionsScreen from './src/screens/WonAuctionsScreen';
 
 // ─── Session context ──────────────────────────────────────────────────────────
 
@@ -109,6 +110,7 @@ function ProfileScreenWrapper({ navigation }: NativeStackScreenProps<ProfileStac
             onOpenSettings={() => navigation.navigate('Settings')}
             onOpenSellerApply={() => navigation.navigate('SellerApply')}
             onOpenNotifications={() => navigation.navigate('Notifications')}
+            onOpenWonAuctions={() => navigation.navigate('WonAuctions')}
             onSignOut={() => { void supabase.auth.signOut(); }}
         />
     );
@@ -170,6 +172,23 @@ function SellerApplyWrapper({ navigation }: NativeStackScreenProps<ProfileStackP
     return <SellerApplyScreen session={session!} onBack={() => navigation.goBack()} />;
 }
 
+function WonAuctionsWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'WonAuctions'>) {
+    const session = useSession();
+    return (
+        <WonAuctionsScreen
+            session={session!}
+            onBack={() => navigation.goBack()}
+            onOpenCheckout={id => navigation.navigate('Checkout', { auctionId: id })}
+            onOpenOrder={id => navigation.navigate('OrderDetail', { orderId: id })}
+        />
+    );
+}
+
+function ProfileCheckoutWrapper({ navigation, route }: NativeStackScreenProps<ProfileStackParams, 'Checkout'>) {
+    const session = useSession();
+    return <CheckoutScreen navigation={navigation as never} route={route as never} session={session!} />;
+}
+
 function NotificationsWrapper({ navigation }: NativeStackScreenProps<ProfileStackParams, 'Notifications'>) {
     const session = useSession();
     return (
@@ -208,6 +227,8 @@ function ProfileStackNav() {
             <ProfileStack.Screen name="Settings" component={SettingsWrapper} />
             <ProfileStack.Screen name="SellerApply" component={SellerApplyWrapper} />
             <ProfileStack.Screen name="Notifications" component={NotificationsWrapper} />
+            <ProfileStack.Screen name="WonAuctions" component={WonAuctionsWrapper} />
+            <ProfileStack.Screen name="Checkout" component={ProfileCheckoutWrapper} />
         </ProfileStack.Navigator>
     );
 }

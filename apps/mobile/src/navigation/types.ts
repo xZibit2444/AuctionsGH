@@ -18,6 +18,8 @@ export type ProfileStackParams = {
     Settings: undefined;
     SellerApply: undefined;
     Notifications: undefined;
+    WonAuctions: undefined;
+    Checkout: { auctionId: string };
 };
 
 export type DashboardStackParams = {
