@@ -68,6 +68,7 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     const [deliveryCode, setDeliveryCode] = useState<string | null>(null);
     const [pinInput, setPinInput] = useState('');
     const [confirmingPin, setConfirmingPin] = useState(false);
+    const [markingSent, setMarkingSent] = useState(false);
 
     const loadDelivery = useCallback(async () => {
         const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
@@ -172,6 +173,31 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
     const isActive = !isCompleted && order.status !== 'ghosted' && order.status !== 'refunded' && order.status !== 'cancelled';
     const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
+    const markAsSent = async () => {
+        if (markingSent) return;
+        Alert.alert('Mark as Sent', 'Confirm that you have dispatched this item to the buyer?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Confirm', onPress: async () => {
+                    setMarkingSent(true);
+                    try {
+                        const res = await fetch(`${API_BASE}/api/orders/${orderId}/mark-sent`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${session.access_token}` },
+                        });
+                        const json = await res.json() as { success?: boolean; error?: string };
+                        if (res.ok && json.success) {
+                            void loadOrder();
+                        } else {
+                            Alert.alert('Error', json.error ?? 'Failed to mark as sent.');
+                        }
+                    } catch { Alert.alert('Error', 'Network error.'); }
+                    setMarkingSent(false);
+                },
+            },
+        ]);
+    };
+
     const confirmDelivery = async () => {
         const code = pinInput.trim();
         if (code.length !== 6 || confirmingPin) return;
@@ -264,6 +290,17 @@ export default function OrderDetailScreen({ orderId, session, onBack }: Props) {
                     <Text style={styles.codeValue}>{deliveryCode}</Text>
                     <Text style={styles.codeHint}>Show this to the seller only after you have inspected the item and are satisfied.</Text>
                 </View>
+            )}
+
+            {/* Seller: mark as sent */}
+            {role === 'Seller' && order.status === 'pending_meetup' && (
+                <TouchableOpacity
+                    style={[styles.markSentBtn, markingSent && styles.pinBtnDisabled]}
+                    onPress={markAsSent}
+                    disabled={markingSent}
+                >
+                    <Text style={styles.markSentText}>{markingSent ? 'Updating…' : '📦  Mark as Sent'}</Text>
+                </TouchableOpacity>
             )}
 
             {/* Seller: PIN entry to confirm delivery */}
@@ -420,4 +457,6 @@ const styles = StyleSheet.create({
     pinBtn: { backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 12 },
     pinBtnDisabled: { opacity: 0.4 },
     pinBtnText: { color: '#fff', fontSize: 13, fontWeight: '900' },
+    markSentBtn: { marginHorizontal: 12, marginTop: 10, backgroundColor: '#1d4ed8', paddingVertical: 13, alignItems: 'center' },
+    markSentText: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
 });
