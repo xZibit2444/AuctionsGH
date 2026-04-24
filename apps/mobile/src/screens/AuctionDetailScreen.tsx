@@ -124,6 +124,7 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
 
     const isSeller = detail.seller_id === userId;
     const isActive = detail.status === 'active';
+    const isPermanent = new Date(detail.ends_at).getFullYear() >= 2090;
     const seller = detail.profiles;
 
     return (
@@ -143,10 +144,16 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                         <Text style={styles.meta}>{[detail.brand, detail.model].filter(Boolean).join(' ')}</Text>
                     )}
                     <Text style={styles.price}>GHS {Number(detail.current_price).toLocaleString()}</Text>
-                    <View style={styles.row}>
-                        <Text style={styles.meta}>{detail.bid_count} bid{detail.bid_count !== 1 ? 's' : ''}</Text>
-                        <Text style={styles.meta}>Ends {new Date(detail.ends_at).toLocaleString()}</Text>
-                    </View>
+                    {isPermanent ? (
+                        <View style={styles.row}>
+                            <Text style={[styles.meta, { color: '#16a34a', fontWeight: '700' }]}>Fixed Price Listing</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.row}>
+                            <Text style={styles.meta}>{detail.bid_count} bid{detail.bid_count !== 1 ? 's' : ''}</Text>
+                            <Text style={styles.meta}>Ends {new Date(detail.ends_at).toLocaleString()}</Text>
+                        </View>
+                    )}
                     {seller && (
                         <TouchableOpacity onPress={() => onOpenSellerProfile?.(detail.seller_id)} disabled={!onOpenSellerProfile}>
                             <Text style={[styles.meta, onOpenSellerProfile && styles.sellerLink]}>
@@ -164,8 +171,8 @@ export default function AuctionDetailScreen({ session, auctionId, onBack, onOpen
                         <Image key={i} source={{ uri: img.url }} style={styles.image} resizeMode="cover" />
                     ))}
 
-                    {/* Bid panel — buyers only, active only */}
-                    {!isSeller && isActive && (
+                    {/* Bid panel — buyers only, active timed auctions only */}
+                    {!isSeller && isActive && !isPermanent && (
                         <View style={styles.panel}>
                             <Text style={styles.panelLabel}>Place a Bid</Text>
                             <Text style={styles.meta}>Min increment: GHS {Number(detail.min_increment).toLocaleString()}</Text>
