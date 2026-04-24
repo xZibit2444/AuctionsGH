@@ -1,37 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { formatCurrency, formatAuctionLocation } from '@/lib/utils';
-import { CONDITION_LABELS } from '@/lib/constants';
-import { getListingType, getListingTypeLabel } from '@/lib/listings';
-import AuctionStatusBadge from './AuctionStatusBadge';
-import { Package, Heart } from 'lucide-react';
-import { useSavedAuctionsContext } from '@/contexts/SavedAuctionsContext';
+import { formatCurrency } from '@/lib/utils';
+import { Package } from 'lucide-react';
 import type { Auction } from '@/types/auction';
-import ShareButton from '@/components/ui/ShareButton';
 
 interface AuctionCardProps {
     auction: Auction & { auction_images?: { url: string; position: number }[] };
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
-    const listingType = getListingType(auction);
     const thumbnail = auction.auction_images?.sort(
         (a, b) => a.position - b.position
     )[0];
-    const { savedIds, toggleSave } = useSavedAuctionsContext();
-    const isSaved = savedIds.has(auction.id);
-    const [savePending, setSavePending] = useState(false);
-
-    const handleSave = async (e: React.MouseEvent) => {
-        e.preventDefault(); // Don't navigate to auction
-        e.stopPropagation();
-        if (savePending) return;
-        setSavePending(true);
-        await toggleSave(auction.id);
-        setSavePending(false);
-    };
 
     return (
         <Link href={`/auctions/${auction.id}`} className="block">
@@ -50,69 +31,16 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                             <Package className="h-10 w-10" strokeWidth={1} />
                         </div>
                     )}
-
-                    {/* Status Badge */}
-                    <div className="absolute top-3 left-3">
-                        <div className="flex flex-col items-start gap-2">
-                            <AuctionStatusBadge status={auction.status} />
-                            <span className="bg-white/95 border border-gray-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">
-                                {getListingTypeLabel(listingType)}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="absolute top-3 right-3 flex items-center gap-2">
-                        <ShareButton
-                            title={auction.title}
-                            url={`/auctions/${auction.id}`}
-                            compact
-                            className="bg-white"
-                        />
-                        <button
-                            onClick={handleSave}
-                            className={`p-1.5 bg-white border transition-colors ${isSaved ? 'border-black text-black' : 'border-gray-200 text-gray-400 hover:border-black hover:text-black'} ${savePending ? 'opacity-50' : ''}`}
-                            aria-label={isSaved ? 'Remove from saved' : 'Save auction'}
-                        >
-                            <Heart
-                                className="h-3.5 w-3.5"
-                                fill={isSaved ? 'currentColor' : 'none'}
-                                strokeWidth={2}
-                            />
-                        </button>
-                    </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
-                    <h3 className="font-bold text-black text-sm leading-snug line-clamp-2 min-h-[2.75rem]">
+                <div className="p-4">
+                    <h3 className="font-bold text-black text-sm leading-snug line-clamp-2 mb-3">
                         {auction.title}
                     </h3>
-
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
-                        <span className="border border-gray-200 px-2 py-0.5">{auction.brand}</span>
-                        <span className="border border-gray-200 px-2 py-0.5">{CONDITION_LABELS[auction.condition] ?? auction.condition}</span>
-                    </div>
-
-                    <p className="text-xs text-gray-500">
-                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
+                    <p className="text-lg font-black text-black tracking-tight">
+                        {formatCurrency(auction.current_price)}
                     </p>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
-                        <div>
-                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">
-                                {listingType === 'permanent' ? 'Listing Price' : 'Current Bid'}
-                            </p>
-                            <p className="text-lg font-black text-black tracking-tight">
-                                {formatCurrency(auction.current_price)}
-                            </p>
-                        </div>
-
-                        {auction.status === 'active' && (
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                                {listingType === 'permanent' ? 'Open Listing' : 'Open Auction'}
-                            </span>
-                        )}
-                    </div>
                 </div>
             </article>
         </Link>
