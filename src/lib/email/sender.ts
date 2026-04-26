@@ -388,6 +388,54 @@ export async function sendSellerApprovedEmail(
     }
 }
 
+export async function sendNewSellerApplicationAdminEmail(
+    to: string,
+    applicant: { fullName: string; email: string; location: string; itemsToSell: string }
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Admin notification not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    const reviewUrl = `${SITE_URL}/admin/seller-applications`;
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `New seller application — ${applicant.fullName}`,
+            html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;max-width:560px;margin:40px auto;color:#111;">
+  <h2 style="margin:0 0 16px;">New Seller Application</h2>
+  <p>A new seller application has been submitted and is awaiting your review.</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;width:130px;">Name</td><td style="font-weight:700;">${applicant.fullName}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;">Email</td><td>${applicant.email}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;">Location</td><td>${applicant.location}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;">Items to sell</td><td>${applicant.itemsToSell}</td></tr>
+  </table>
+  <a href="${reviewUrl}" style="display:inline-block;margin:8px 0 24px;padding:12px 24px;background:#000;color:#fff;text-decoration:none;font-weight:700;border-radius:4px;">
+    Review Application
+  </a>
+  <p style="color:#9ca3af;font-size:12px;">AuctionsGH Admin</p>
+</body>
+</html>`,
+        });
+
+        if (error) {
+            console.error('Failed to send admin seller application email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending admin seller application email:', error);
+        return { success: false, error };
+    }
+}
+
 export async function sendThankYouEmail(to: string) {
     const resend = getResend();
     if (!resend) {

@@ -2,7 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { sendSellerApprovedEmail } from '@/lib/email/sender';
+import { sendSellerApprovedEmail, sendNewSellerApplicationAdminEmail } from '@/lib/email/sender';
 
 function getAdminClient() {
     return createAdminClient(
@@ -55,6 +55,29 @@ export async function submitSellerApplication(data: SellerApplicationData) {
     });
 
     if (error) return { success: false, error: error.message };
+
+    // Notify super admins
+    const { data: superAdmins } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('is_super_admin', true) as { data: { id: string }[] | null };
+
+    if (superAdmins?.length) {
+        const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
+        const superAdminIds = new Set(superAdmins.map(a => a.id));
+        const applicantAuthUser = authUsers?.users.find(u => u.id === user.id);
+
+        for (const authUser of (authUsers?.users ?? [])) {
+            if (!superAdminIds.has(authUser.id) || !authUser.email) continue;
+            void sendNewSellerApplicationAdminEmail(authUser.email, {
+                fullName: data.full_name,
+                email: applicantAuthUser?.email ?? '(unknown)',
+                location: data.location,
+                itemsToSell: data.items_to_sell,
+            });
+        }
+    }
+
     return { success: true };
 }
 
