@@ -108,6 +108,23 @@ export default function OrderPage({ params }: OrderPageProps) {
     const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>('pending');
     const [loading, setLoading] = useState(true);
     const [hasReviewed, setHasReviewed] = useState(false);
+    const [sellerListings, setSellerListings] = useState<{ id: string; title: string; current_price: number; condition: string | null; auction_images: { url: string }[] | null }[]>([]);
+
+    useEffect(() => {
+        if (!order?.seller_id || !order?.auction_id) return;
+        const supabase = createClient();
+        supabase
+            .from('auctions')
+            .select('id, title, current_price, condition, auction_images(url)')
+            .eq('seller_id', order.seller_id)
+            .eq('status', 'active')
+            .neq('id', order.auction_id)
+            .order('created_at', { ascending: false })
+            .limit(6)
+            .then(({ data }) => {
+                if (data) setSellerListings(data as any);
+            });
+    }, [order?.seller_id, order?.auction_id]);
 
     useEffect(() => {
         let isMounted = true;
@@ -538,6 +555,49 @@ export default function OrderPage({ params }: OrderPageProps) {
                     )}
                 </div>
             </div>
+
+            {sellerListings.length > 0 && (
+                <div className="mt-10 pt-8 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-black">
+                            More from {(order.seller?.full_name ?? 'Seller').split(' ')[0]}
+                        </h2>
+                        <Link href={`/users/${order.seller_id}`} className="text-xs font-bold text-gray-500 hover:text-black underline underline-offset-2">
+                            View all
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {sellerListings.map((listing) => (
+                            <Link
+                                key={listing.id}
+                                href={`/auctions/${listing.id}`}
+                                className="group block border border-gray-200 bg-white hover:border-black transition-colors overflow-hidden"
+                            >
+                                <div className="aspect-square bg-gray-100 overflow-hidden">
+                                    {listing.auction_images?.[0] ? (
+                                        <img
+                                            src={listing.auction_images[0].url}
+                                            alt={listing.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Package className="w-8 h-8 text-gray-300" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3">
+                                    <p className="text-xs font-bold text-black line-clamp-2 leading-snug mb-1">{listing.title}</p>
+                                    {listing.condition && (
+                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{listing.condition}</p>
+                                    )}
+                                    <p className="font-mono font-black text-sm text-black">{formatCurrency(listing.current_price)}</p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
