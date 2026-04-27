@@ -113,7 +113,7 @@ export async function GET(
                 recipientEmail,
                 otherPartyName: isBuyer ? sellerName : buyerName,
                 auctionTitle: o.auction?.title ?? 'Order item',
-                amountLabel: formatCurrency(o.amount),
+                amountLabel: formatCurrency(o.amount).replace('₵', 'GHC '),
                 fulfillmentLabel: getFulfillmentLabel(o.fulfillment_type),
                 meetupLocation: o.meetup_location?.trim() || 'Not specified',
                 paymentMethod: 'Cash on Delivery (COD)',
