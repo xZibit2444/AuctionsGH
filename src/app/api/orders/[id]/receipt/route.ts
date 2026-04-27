@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
-import React from 'react';
+import React, { type ReactElement } from 'react';
+import type { DocumentProps } from '@react-pdf/renderer';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/utils';
@@ -120,12 +121,12 @@ export async function GET(
                 status: o.status,
                 transcript: transcriptRows,
             },
-        })
+        }) as ReactElement<DocumentProps>
     );
 
     const filename = `AuctionsGH-Receipt-${receiptNumber}.pdf`;
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
         status: 200,
         headers: {
             'Content-Type': 'application/pdf',
