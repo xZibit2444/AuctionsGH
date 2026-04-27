@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
+import NewsletterEmail from '@/emails/NewsletterEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
@@ -10,6 +11,7 @@ import OutbidEmail from '@/emails/OutbidEmail';
 import SellerApprovedEmail from '@/emails/SellerApprovedEmail';
 import SignupVerificationEmail from '@/emails/SignupVerificationEmail';
 import ThankYouEmail from '@/emails/ThankYouEmail';
+import ReceiptEmail, { type ReceiptEmailProps } from '@/emails/ReceiptEmail';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -432,6 +434,35 @@ export async function sendNewSellerApplicationAdminEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending admin seller application email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendReceiptEmail(
+    to: string,
+    props: Omit<ReceiptEmailProps, 'siteUrl'>
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Receipt not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+    const subject = props.role === 'buyer'
+        ? `Purchase Receipt #${props.receiptNumber} — ${props.auctionTitle}`
+        : `Sale Receipt #${props.receiptNumber} — ${props.auctionTitle}`;
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject,
+            react: ReceiptEmail({ ...props, siteUrl: SITE_URL }),
+        });
+        if (error) {
+            console.error('Failed to send receipt email:', error);
+            return { success: false, error };
+        }
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending receipt email:', error);
         return { success: false, error };
     }
 }

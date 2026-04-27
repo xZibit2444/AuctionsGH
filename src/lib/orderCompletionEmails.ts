@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency } from '@/lib/utils';
-import { sendOrderCompletedSummaryEmail } from '@/lib/email/sender';
+import { sendOrderCompletedSummaryEmail, sendReceiptEmail } from '@/lib/email/sender';
 
 type OrderCompletionRow = {
     id: string;
@@ -136,9 +136,29 @@ export async function sendOrderCompletionEmails(orderId: string) {
         transcript: transcriptPayload,
     };
 
+    const receiptBase = {
+        receiptNumber: orderNumber,
+        auctionTitle: orderData.auction?.title ?? 'Order item',
+        issuedDate: formatDateLabel(orderData.updated_at),
+        amountLabel: formatCurrency(orderData.amount),
+        fulfillmentLabel: getFulfillmentLabel(orderData.fulfillment_type),
+        meetupLocation: orderData.meetup_location?.trim() || 'Not specified',
+        paymentMethod: 'Cash on Delivery (COD)',
+    };
+
     if (buyerAuthResult.data.user?.email) {
+        const buyerEmail = buyerAuthResult.data.user.email;
+
+        void sendReceiptEmail(buyerEmail, {
+            ...receiptBase,
+            role: 'buyer',
+            recipientName: buyerName,
+            recipientEmail: buyerEmail,
+            otherPartyName: sellerName,
+        });
+
         const buyerEmailResult = await sendOrderCompletedSummaryEmail(
-            buyerAuthResult.data.user.email,
+            buyerEmail,
             {
                 ...sharedPayload,
                 recipientName: buyerName,
@@ -152,8 +172,18 @@ export async function sendOrderCompletionEmails(orderId: string) {
     }
 
     if (sellerAuthResult.data.user?.email) {
+        const sellerEmail = sellerAuthResult.data.user.email;
+
+        void sendReceiptEmail(sellerEmail, {
+            ...receiptBase,
+            role: 'seller',
+            recipientName: sellerName,
+            recipientEmail: sellerEmail,
+            otherPartyName: buyerName,
+        });
+
         const sellerEmailResult = await sendOrderCompletedSummaryEmail(
-            sellerAuthResult.data.user.email,
+            sellerEmail,
             {
                 ...sharedPayload,
                 recipientName: sellerName,
