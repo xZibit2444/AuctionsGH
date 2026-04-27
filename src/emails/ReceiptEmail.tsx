@@ -14,6 +14,13 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
+export interface ReceiptTranscriptMessage {
+    id: string;
+    senderName: string;
+    sentAtLabel: string;
+    body: string;
+}
+
 export interface ReceiptEmailProps {
     role: 'buyer' | 'seller';
     recipientName: string;
@@ -26,6 +33,7 @@ export interface ReceiptEmailProps {
     fulfillmentLabel: string;
     meetupLocation: string;
     paymentMethod: string;
+    transcript?: ReceiptTranscriptMessage[];
     siteUrl?: string;
 }
 
@@ -41,6 +49,7 @@ export default function ReceiptEmail({
     fulfillmentLabel,
     meetupLocation,
     paymentMethod,
+    transcript = [],
     siteUrl = 'https://auctionsgh.com',
 }: ReceiptEmailProps) {
     const isBuyer = role === 'buyer';
@@ -170,6 +179,23 @@ export default function ReceiptEmail({
                                 <Text style={detailValue}>{meetupLocation}</Text>
                             </Column>
                         </Row>
+                    </Section>
+
+                    <Hr style={divider} />
+
+                    {/* Chat transcript */}
+                    <Section style={detailsSection}>
+                        <Text style={detailsHeading}>Chat Transcript</Text>
+                        {transcript.length === 0 ? (
+                            <Text style={detailLabel}>No messages were exchanged for this order.</Text>
+                        ) : (
+                            transcript.map((msg) => (
+                                <Section key={msg.id} style={transcriptMsg}>
+                                    <Text style={transcriptMeta}>{msg.senderName} &bull; {msg.sentAtLabel}</Text>
+                                    <Text style={transcriptBody}>{msg.body}</Text>
+                                </Section>
+                            ))
+                        )}
                     </Section>
 
                     <Hr style={divider} />
@@ -399,4 +425,26 @@ const footerMuted = {
     color: '#d1d5db',
     fontSize: '10px',
     margin: 0,
+};
+
+const transcriptMsg = {
+    borderTop: '1px solid #f3f4f6',
+    paddingTop: '12px',
+    marginTop: '12px',
+};
+
+const transcriptMeta = {
+    color: '#9ca3af',
+    fontSize: '11px',
+    fontWeight: '700',
+    letterSpacing: '0.05em',
+    margin: '0 0 4px',
+};
+
+const transcriptBody = {
+    color: '#374151',
+    fontSize: '13px',
+    lineHeight: '1.5',
+    margin: 0,
+    whiteSpace: 'pre-wrap' as const,
 };

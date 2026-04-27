@@ -155,6 +155,7 @@ export async function sendOrderCompletionEmails(orderId: string) {
             recipientName: buyerName,
             recipientEmail: buyerEmail,
             otherPartyName: sellerName,
+            transcript: transcriptPayload,
         });
 
         const buyerEmailResult = await sendOrderCompletedSummaryEmail(
@@ -180,6 +181,7 @@ export async function sendOrderCompletionEmails(orderId: string) {
             recipientName: sellerName,
             recipientEmail: sellerEmail,
             otherPartyName: buyerName,
+            transcript: transcriptPayload,
         });
 
         const sellerEmailResult = await sendOrderCompletedSummaryEmail(
