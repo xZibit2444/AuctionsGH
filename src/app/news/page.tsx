@@ -20,7 +20,7 @@ const fallbackNews = [
 
     {
         id: 'apr27-1',
-        title: '[EQUIPMENT] Auction Sale — Few Unserviceable Vehicles (Ministry of Local Government)',
+        title: '[EQUIPMENT] Auction Sale - Few Unserviceable Vehicles (Ministry of Local Government)',
         content: 'Owner: Ministry of Local Government, Chieftaincy and Religious Affairs\nDate: Thu 30 Apr 2026, 8:30am\nLocation: Ministry of Local Government, Chieftaincy and Religious Affairs premises\nAuctioneer: Shargaw Ventures | 0243572105\nSource: Daily Graphic, Monday 27 April 2026',
         created_at: new Date('2026-04-27T08:00:00.000Z').toISOString(),
     },
@@ -28,27 +28,27 @@ const fallbackNews = [
     {
         id: 'apr27-2',
         title: '[EQUIPMENT] Fairly Used Excavators + John Deere Tractor + Daewoo Tipper Trucks',
-        content: 'Locations: Accra, Tamale and Takoradi\nDate: Mon 27 Apr 2026 — TODAY\nAuctioneer: Benjyl Auction Mart | 0244710168\nSource: Daily Graphic, Monday 27 April 2026',
+        content: 'Locations: Accra, Tamale and Takoradi\nDate: Mon 27 Apr 2026 - TODAY\nAuctioneer: Benjyl Auction Mart | 0244710168\nSource: Daily Graphic, Monday 27 April 2026',
         created_at: new Date('2026-04-27T07:00:00.000Z').toISOString(),
     },
 
     {
         id: 'apr27-3',
-        title: '[PROPERTY] Residential Property HR2 — Teiko Akotia Street, Kaneshie, Accra (Repeat Notice)',
-        content: 'Owner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong of Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nNote: Repeat listing — previously advertised in earlier papers',
+        title: '[PROPERTY] Residential Property HR2 - Teiko Akotia Street, Kaneshie, Accra (Repeat Notice)',
+        content: 'Owner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong of Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nNote: Repeat listing - previously advertised in earlier papers',
         created_at: new Date('2026-04-27T06:00:00.000Z').toISOString(),
     },
 
     {
         id: 'apr27-4',
-        title: '[PROPERTY] Warehouse + 1 Old Foton Truck — Achiaman',
+        title: '[PROPERTY] Warehouse + 1 Old Foton Truck - Achiaman',
         content: 'Owner: Beijing Royal Furniture Company & Another\nDate: Sun 4 May 2026, 10:00am\nLocation: Achiaman yard\nAuctioneer: Mr. Nii Aflah Sackey of NAS Auctions | 0277126000\nOrdered by: D/Sheriff High Court, Commercial Division, Accra',
         created_at: new Date('2026-04-27T05:00:00.000Z').toISOString(),
     },
 
     {
         id: 'apr20-1',
-        title: '[PROPERTY] Residential property with container — GPS BS-0149-4684',
+        title: '[PROPERTY] Residential property with container - GPS BS-0149-4684',
         content: 'Location: Abesim, Bono Region\nNotes: Dodge Ram & metal container included\nOwner: Chief Director, Ministry of Agriculture & Another\nDate: Wed 22 Apr 2026, 10:00am\nAuctioneer: Eric Boahen of Kenyansi No. 1 | 0204918887 / 0244732778\nOrdered by: D/J/D Sheriff High Court Sunyani',
         created_at: new Date('2026-04-20T06:00:00.000Z').toISOString(),
     },
@@ -62,14 +62,14 @@ const fallbackNews = [
 
     {
         id: 'apr20-3',
-        title: '[PROPERTY] Residential property HR2 — Teiko Akotia Street, Kaneshie',
-        content: 'Location: Kaneshie, Accra\nOwner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong, Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nReserved Price: Yes\nNote: Repeat listing — re-advertised in Daily Graphic 27 April 2026',
+        title: '[PROPERTY] Residential property HR2 - Teiko Akotia Street, Kaneshie',
+        content: 'Location: Kaneshie, Accra\nOwner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong, Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nReserved Price: Yes\nNote: Repeat listing - re-advertised in Daily Graphic 27 April 2026',
         created_at: new Date('2026-04-20T04:00:00.000Z').toISOString(),
     },
 
     {
         id: 'apr20-4',
-        title: '[PROPERTY] Two-storey residential property — No. OSB/E2, Koforidua Mile 50',
+        title: '[PROPERTY] Two-storey residential property - No. OSB/E2, Koforidua Mile 50',
         content: 'Location: EN-250-2579, Eastern Region\nOwner: Mr. Kwame Boamah\nDate: Thu 30 Apr 2026, 11:00am\nAuctioneer: Giant Mart | 0243226094 / 0504349898 / 0302250084\nOrdered by: DWIRA Management\nNotes: Banker\'s draft required',
         created_at: new Date('2026-04-20T03:00:00.000Z').toISOString(),
     },
@@ -80,7 +80,7 @@ const fallbackNews = [
 
         id: '1',
 
-        title: '[VEHICLE] Motorbike — Supreme Start CG150',
+        title: '[VEHICLE] Motorbike - Supreme Start CG150',
 
         content: 'Owner: Paul Sakyi\nDate: Thu 16 Apr 2026, 9:00am\nLocation: Donkorkrom (D/Sheriff District Court)\nAuctioneer: Dabbey Mart | Tel: 0244238484 / 0208165278\nAuthority: D/Sheriff District Court\nNotes: Reg not specified',
 
@@ -92,7 +92,7 @@ const fallbackNews = [
 
         id: '2',
 
-        title: '[VEHICLE] Motorbike — Reg. M-20-EN46',
+        title: '[VEHICLE] Motorbike - Reg. M-20-EN46',
 
         content: 'Owner: Alex Zinyo\nDate: Thu 16 Apr 2026, 9:00am\nLocation: Donkorkrom (D/Sheriff District Court)\nAuctioneer: Dabbey Mart | Tel: 0244238484 / 0208165278\nAuthority: D/Sheriff District Court',
 
@@ -116,7 +116,7 @@ const fallbackNews = [
 
         id: '4',
 
-        title: '[VEHICLE] Dodge Ram — Reg. GE 7812-14',
+        title: '[VEHICLE] Dodge Ram - Reg. GE 7812-14',
 
         content: 'Owner: ED Oak Farms Per CEO, Dennis Ansah Acquah\nDate: Thu 16 Apr 2026, 9:00am\nLocation: Donkorkrom (D/Sheriff District Court)\nAuctioneer: Dabbey Mart | Tel: 0244238484 / 0208165278\nAuthority: D/Sheriff District Court',
 
@@ -164,9 +164,9 @@ const fallbackNews = [
 
         id: '8',
 
-        title: '[VEHICLE] Sinotruk Howo 420HP Tractor Head — Reg. GT 6404-19',
+        title: '[VEHICLE] Sinotruk Howo 420HP Tractor Head - Reg. GT 6404-19',
 
-        content: 'Owner: ABSAID LIMITED (Def/Judgment Debtor)\nDate: Fri 17 Apr 2026, 10:00am\nLocation: Tema off Aflao Road, before Traffic Light — Plaintiff Judgment Creditor premises\nAuctioneer: Giant Mart | Tel: 0243226094 / 0504349898 / 0302250084\nAuthority: D/Sheriff Commercial Court, Accra',
+        content: 'Owner: ABSAID LIMITED (Def/Judgment Debtor)\nDate: Fri 17 Apr 2026, 10:00am\nLocation: Tema off Aflao Road, before Traffic Light - Plaintiff Judgment Creditor premises\nAuctioneer: Giant Mart | Tel: 0243226094 / 0504349898 / 0302250084\nAuthority: D/Sheriff Commercial Court, Accra',
 
         created_at: new Date('2026-04-16T02:00:00.000Z').toISOString(),
 
@@ -176,7 +176,7 @@ const fallbackNews = [
 
         id: '9',
 
-        title: '[PROPERTY] Three-storey commercial property — GPS G6-002-5845',
+        title: '[PROPERTY] Three-storey commercial property - GPS G6-002-5845',
 
         content: 'Owner: ZEKIEL HOMES LTD & 5 ORS (Defendant/Judgment Debtor)\nDate: Thu 23 Apr 2026, 10:00am\nLocation: Nungua, Accra\nAuctioneer: Benjamin Kofi Sarfo of Big Crown Auctions | Tel: 0243938802 / 0547273774\nAuthority: Deputy Sheriff, High Court (Commercial Division), Accra\nReserved Price: Yes\nNotes: Reserved price applies',
 
@@ -188,7 +188,7 @@ const fallbackNews = [
 
         id: '10',
 
-        title: '[PROPERTY] Two-storey 4-bedroom house — Parcel No. 14866 Block 2, Section 157',
+        title: '[PROPERTY] Two-storey 4-bedroom house - Parcel No. 14866 Block 2, Section 157',
 
         content: 'Owner: Dr. Dennis Emmanuel Addo\nDate: Thu 16 Apr 2026, 10:00am\nLocation: No. 4A, Philip Quarcoo Drive, Linsay Enclave, Golf Hills-Achimota, Accra\nAuctioneer: Mr. Nii Aflah Sackey of NAS Auction | Tel: 0277126000\nAuthority: Lenders and Borrowers Act\nReserved Price: Yes\nNotes: Reserved price applies',
 
