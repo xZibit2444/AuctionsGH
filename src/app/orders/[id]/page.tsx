@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
-import { ShieldCheck, Package, Truck, CheckCircle2, ArrowUpRight, MapPin } from 'lucide-react';
+import { ShieldCheck, Package, Truck, CheckCircle2, ArrowUpRight, MapPin, Download } from 'lucide-react';
 import Link from 'next/link';
 import DeliveryCodeDisplay from '@/components/delivery/DeliveryCodeDisplay';
 import DeliveryConfirmationForm from '@/components/delivery/DeliveryConfirmationForm';
@@ -296,6 +296,14 @@ export default function OrderPage({ params }: OrderPageProps) {
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
+                    <a
+                        href={`/api/orders/${order.id}/receipt`}
+                        download
+                        className="inline-flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:border-black hover:text-black transition-colors"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        Download Receipt
+                    </a>
                     <ShareButton
                         title={`Order ${order.id.split('-')[0].toUpperCase()}`}
                         url={`/orders/${order.id}`}
