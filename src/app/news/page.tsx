@@ -19,6 +19,34 @@ export const metadata: Metadata = {
 const fallbackNews = [
 
     {
+        id: 'apr27-1',
+        title: '[EQUIPMENT] Auction Sale — Few Unserviceable Vehicles (Ministry of Local Government)',
+        content: 'Owner: Ministry of Local Government, Chieftaincy and Religious Affairs\nDate: Thu 30 Apr 2026, 8:30am\nLocation: Ministry of Local Government, Chieftaincy and Religious Affairs premises\nAuctioneer: Shargaw Ventures | 0243572105\nSource: Daily Graphic, Monday 27 April 2026',
+        created_at: new Date('2026-04-27T08:00:00.000Z').toISOString(),
+    },
+
+    {
+        id: 'apr27-2',
+        title: '[EQUIPMENT] Fairly Used Excavators + John Deere Tractor + Daewoo Tipper Trucks',
+        content: 'Locations: Accra, Tamale and Takoradi\nDate: Mon 27 Apr 2026 — TODAY\nAuctioneer: Benjyl Auction Mart | 0244710168\nSource: Daily Graphic, Monday 27 April 2026',
+        created_at: new Date('2026-04-27T07:00:00.000Z').toISOString(),
+    },
+
+    {
+        id: 'apr27-3',
+        title: '[PROPERTY] Residential Property HR2 — Teiko Akotia Street, Kaneshie, Accra (Repeat Notice)',
+        content: 'Owner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong of Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nNote: Repeat listing — previously advertised in earlier papers',
+        created_at: new Date('2026-04-27T06:00:00.000Z').toISOString(),
+    },
+
+    {
+        id: 'apr27-4',
+        title: '[PROPERTY] Warehouse + 1 Old Foton Truck — Achiaman',
+        content: 'Owner: Beijing Royal Furniture Company & Another\nDate: Sun 4 May 2026, 10:00am\nLocation: Achiaman yard\nAuctioneer: Mr. Nii Aflah Sackey of NAS Auctions | 0277126000\nOrdered by: D/Sheriff High Court, Commercial Division, Accra',
+        created_at: new Date('2026-04-27T05:00:00.000Z').toISOString(),
+    },
+
+    {
         id: 'apr20-1',
         title: '[PROPERTY] Residential property with container — GPS BS-0149-4684',
         content: 'Location: Abesim, Bono Region\nNotes: Dodge Ram & metal container included\nOwner: Chief Director, Ministry of Agriculture & Another\nDate: Wed 22 Apr 2026, 10:00am\nAuctioneer: Eric Boahen of Kenyansi No. 1 | 0204918887 / 0244732778\nOrdered by: D/J/D Sheriff High Court Sunyani',
@@ -35,7 +63,7 @@ const fallbackNews = [
     {
         id: 'apr20-3',
         title: '[PROPERTY] Residential property HR2 — Teiko Akotia Street, Kaneshie',
-        content: 'Location: Kaneshie, Accra\nOwner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong, Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nReserved Price: Yes',
+        content: 'Location: Kaneshie, Accra\nOwner: Beatrice Agyapomaa Amporful & Anor\nDate: Thu 7 May 2026, 10:00am\nAuctioneer: Akwasi Poku Acheampong, Asanteman Auctions | 0544163292 / 0265046551\nOrdered by: D/Sheriff High Court, General Jurisdiction, Accra\nReserved Price: Yes\nNote: Repeat listing — re-advertised in Daily Graphic 27 April 2026',
         created_at: new Date('2026-04-20T04:00:00.000Z').toISOString(),
     },
 
