@@ -302,7 +302,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         className="inline-flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:border-black hover:text-black transition-colors"
                     >
                         <Download className="w-3.5 h-3.5" />
-                        Download Receipt
+                        Download Order
                     </a>
                     <ShareButton
                         title={`Order ${order.id.split('-')[0].toUpperCase()}`}
