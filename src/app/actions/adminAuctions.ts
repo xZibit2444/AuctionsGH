@@ -1,7 +1,10 @@
 'use server';
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createAdminClient = () => _createAdminClient() as any;
 
 async function requireSuperAdmin() {
     const supabase = await createServerClient();
@@ -27,7 +30,7 @@ export async function adminUnpublishAuction(
     const now = new Date().toISOString();
     const { error } = await admin
         .from('auctions')
-        .update({ status: 'cancelled', updated_at: now } as any)
+        .update({ status: 'cancelled', updated_at: now })
         .eq('id', auctionId);
 
     if (error) return { success: false, error: error.message };
@@ -44,7 +47,7 @@ export async function adminForceEndAuction(
     const now = new Date().toISOString();
     const { error } = await admin
         .from('auctions')
-        .update({ status: 'ended', ends_at: now, updated_at: now } as any)
+        .update({ status: 'ended', ends_at: now, updated_at: now })
         .eq('id', auctionId);
 
     if (error) return { success: false, error: error.message };
@@ -73,7 +76,7 @@ export async function adminExtendAuction(
 
     const { error } = await admin
         .from('auctions')
-        .update({ ends_at: newEnd.toISOString(), updated_at: now } as any)
+        .update({ ends_at: newEnd.toISOString(), updated_at: now })
         .eq('id', auctionId);
 
     if (error) return { success: false, error: error.message };
@@ -93,7 +96,7 @@ export async function adminEditAuctionTitle(
     const admin = createAdminClient();
     const { error } = await admin
         .from('auctions')
-        .update({ title: trimmed, updated_at: new Date().toISOString() } as any)
+        .update({ title: trimmed, updated_at: new Date().toISOString() })
         .eq('id', auctionId);
 
     if (error) return { success: false, error: error.message };
@@ -111,7 +114,7 @@ export async function adminReactivateAuction(
     const newEnd = new Date(Date.now() + extendHours * 60 * 60 * 1000).toISOString();
     const { error } = await admin
         .from('auctions')
-        .update({ status: 'active', ends_at: newEnd, updated_at: new Date().toISOString() } as any)
+        .update({ status: 'active', ends_at: newEnd, updated_at: new Date().toISOString() })
         .eq('id', auctionId);
 
     if (error) return { success: false, error: error.message };
