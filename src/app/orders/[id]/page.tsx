@@ -109,6 +109,29 @@ export default function OrderPage({ params }: OrderPageProps) {
     const [loading, setLoading] = useState(true);
     const [hasReviewed, setHasReviewed] = useState(false);
     const [sellerListings, setSellerListings] = useState<{ id: string; title: string; current_price: number; condition: string | null; auction_images: { url: string }[] | null }[]>([]);
+    const [downloading, setDownloading] = useState(false);
+
+    const handleDownload = async () => {
+        if (!order || downloading) return;
+        setDownloading(true);
+        try {
+            const res = await fetch(`/api/orders/${order.id}/receipt`);
+            if (!res.ok) throw new Error('Failed');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AuctionsGH-Receipt-${order.id.split('-')[0].toUpperCase()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            alert('Could not generate receipt. Please try again.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     useEffect(() => {
         if (!order?.seller_id || !order?.auction_id) return;
@@ -299,14 +322,15 @@ export default function OrderPage({ params }: OrderPageProps) {
     return (
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
 
-            <a
-                href={`/api/orders/${order.id}/receipt`}
-                download
-                className="absolute top-0 right-4 sm:right-6 lg:right-8 inline-flex items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:border-black hover:text-black transition-colors shadow-sm"
+            <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="absolute top-0 right-4 sm:right-6 lg:right-8 inline-flex items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:border-black hover:text-black transition-colors shadow-sm disabled:opacity-50"
             >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Download Order</span>
-            </a>
+                <Download className={`w-3.5 h-3.5 ${downloading ? 'animate-bounce' : ''}`} />
+                <span className="hidden sm:inline">{downloading ? 'Generating...' : 'Download Order'}</span>
+            </button>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-gray-200 mb-8">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
