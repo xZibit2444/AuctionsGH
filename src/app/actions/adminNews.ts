@@ -1,7 +1,10 @@
 'use server';
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createAdminClient = () => _createAdminClient() as any;
 
 async function requireSuperAdmin() {
     const supabase = await createServerClient();
