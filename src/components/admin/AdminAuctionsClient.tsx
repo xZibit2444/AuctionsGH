@@ -6,6 +6,7 @@ import {
     Search, Ban, Clock, Pencil, Trash2, RefreshCw, TimerReset,
     ChevronDown, ChevronUp, Check, X, AlertTriangle, Package,
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 import {
     adminUnpublishAuction,
     adminForceEndAuction,
@@ -81,11 +82,9 @@ function ConfirmButton({
 
 function AuctionRow({
     auction,
-    formatCurrency,
     onMutated,
 }: {
     auction: AdminAuctionRow;
-    formatCurrency: (n: number) => string;
     onMutated: (id: string, updates: Partial<AdminAuctionRow> | null) => void;
 }) {
     const [expanded, setExpanded] = useState(false);
@@ -328,10 +327,8 @@ function AuctionRow({
 
 export default function AdminAuctionsClient({
     auctions,
-    formatCurrency,
 }: {
     auctions: AdminAuctionRow[];
-    formatCurrency: (n: number) => string;
 }) {
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -401,7 +398,6 @@ export default function AdminAuctionsClient({
                         <AuctionRow
                             key={auction.id}
                             auction={auction}
-                            formatCurrency={formatCurrency}
                             onMutated={onMutated}
                         />
                     ))}

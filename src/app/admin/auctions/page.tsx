@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { formatCurrency } from '@/lib/utils';
 import AdminAuctionsClient from '@/components/admin/AdminAuctionsClient';
 import { ShieldCheck, Gavel } from 'lucide-react';
 import Link from 'next/link';
@@ -103,7 +102,7 @@ export default async function AdminAuctionsPage() {
                     Failed to load auctions.
                 </div>
             ) : (
-                <AdminAuctionsClient auctions={auctions} formatCurrency={formatCurrency} />
+                <AdminAuctionsClient auctions={auctions} />
             )}
         </div>
     );
