@@ -182,6 +182,12 @@ export default async function AdminOrdersPage() {
                     </p>
                 </div>
                 <Link
+                    href="/admin/auctions"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-gray-700 hover:border-black hover:text-black transition-colors"
+                >
+                    Auctions
+                </Link>
+                <Link
                     href="/admin/applications"
                     className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-gray-700 hover:border-black hover:text-black transition-colors"
                 >
