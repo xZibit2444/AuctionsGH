@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ClipboardList, Package, ShieldCheck, Truck, User, CheckCircle2, Circle } from 'lucide-react';
+import AdminOrderSearch from '@/components/admin/AdminOrderSearch';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPrimaryDelivery } from '@/lib/delivery';
@@ -188,6 +189,8 @@ export default async function AdminOrdersPage() {
                     Seller Applications
                 </Link>
             </div>
+
+            <AdminOrderSearch />
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 <div className="border border-gray-200 bg-white p-5">
