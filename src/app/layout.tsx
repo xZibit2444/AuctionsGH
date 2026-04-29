@@ -91,7 +91,6 @@ export default function RootLayout({
       </head>
       <body className={`${jakarta.variable} ${jakarta.className} antialiased`}>
         <Providers>
-          <PushNotificationsInit />
           <ConditionalNav />
           <MainContent>
             <FloatingChatToast />
