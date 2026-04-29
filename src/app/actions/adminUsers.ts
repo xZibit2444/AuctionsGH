@@ -2,6 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendBanNotificationEmail } from '@/lib/email/sender';
 import type { Profile } from '@/types/profile';
 import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 
@@ -35,10 +36,10 @@ export async function banUserAction(
 
     const { data: targetProfile, error: targetError } = await admin
         .from('profiles')
-        .select('id, is_super_admin, is_banned')
+        .select('id, is_super_admin, is_banned, full_name')
         .eq('id', userId)
         .maybeSingle() as {
-            data: Pick<Profile, 'id' | 'is_super_admin' | 'is_banned'> | null;
+            data: Pick<Profile, 'id' | 'is_super_admin' | 'is_banned' | 'full_name'> | null;
             error: unknown;
         };
 
@@ -79,6 +80,14 @@ export async function banUserAction(
             return { success: false, error: 'Ban columns are missing in the database. Run migration 041_user_bans.sql first.' };
         }
         return { success: false, error: error.message };
+    }
+
+    // Fetch user email from auth.users and send notification
+    const { data: authUser } = await admin.auth.admin.getUserById(userId);
+    const userEmail = authUser.user?.email;
+
+    if (userEmail) {
+        await sendBanNotificationEmail(userEmail, targetProfile.full_name, reason?.trim() || null);
     }
 
     return { success: true };

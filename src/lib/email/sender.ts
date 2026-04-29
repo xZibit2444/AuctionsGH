@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
+import BanNotificationEmail from '@/emails/BanNotificationEmail';
 import NewsletterEmail from '@/emails/NewsletterEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
@@ -490,6 +491,41 @@ export async function sendThankYouEmail(to: string) {
         return { success: true, data };
     } catch (error) {
         console.error('Error sending thank you email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendBanNotificationEmail(
+    to: string,
+    fullName?: string | null,
+    reason?: string | null
+) {
+    const resend = getResend();
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: 'Your AuctionsGH account has been permanently banned',
+            react: BanNotificationEmail({
+                fullName: fullName ?? undefined,
+                reason: reason ?? undefined,
+                siteUrl: SITE_URL,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send ban notification email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending ban notification email:', error);
         return { success: false, error };
     }
 }
