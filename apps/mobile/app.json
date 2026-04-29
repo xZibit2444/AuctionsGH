@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.auctionsgh.app"
+      "bundleIdentifier": "com.auctionsgh.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.auctionsgh.app",
@@ -28,7 +31,8 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -56,6 +60,12 @@
         "projectId": "5b96ddd1-9559-4004-98a3-56d58f5e5567"
       }
     },
-    "owner": "jnytieku"
+    "owner": "jnytieku",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5b96ddd1-9559-4004-98a3-56d58f5e5567"
+    }
   }
 }
