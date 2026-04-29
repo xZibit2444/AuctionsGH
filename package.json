@@ -20,27 +20,11 @@
 
     "test:watch": "vitest",
 
-    "test:ui": "vitest --ui",
-
-    "android": "npx cap open android",
-
-    "android:sync": "npx cap sync android",
-
-    "android:build": "npx cap sync android && cd android && ./gradlew assembleRelease"
+    "test:ui": "vitest --ui"
 
   },
 
   "dependencies": {
-
-    "@capacitor/android": "^8.2.0",
-
-    "@capacitor/cli": "^8.2.0",
-
-    "@capacitor/core": "^8.2.0",
-
-    "@capacitor/local-notifications": "^8.0.2",
-
-    "@capacitor/push-notifications": "^8.0.2",
 
     "@react-email/components": "^1.0.8",
 
