@@ -7,7 +7,7 @@ import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
 import BuyerStats from '@/components/dashboard/BuyerStats';
 import Link from 'next/link';
-import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper } from 'lucide-react';
+import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper, Mail } from 'lucide-react';
 
 type Tab = 'buyer' | 'seller';
 
@@ -162,6 +162,22 @@ export default function DashboardPage() {
                                 <div>
                                     <p className="text-sm font-black text-black">News &amp; Announcements</p>
                                     <p className="text-xs text-gray-400">Post and manage news items shown on /news.</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
+                        </Link>
+
+                        <Link
+                            href="/admin/newsletter"
+                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
+                                    <Mail className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-black">Send Newsletter</p>
+                                    <p className="text-xs text-gray-400">Email news updates to all subscribers.</p>
                                 </div>
                             </div>
                             <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
