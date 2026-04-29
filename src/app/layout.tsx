@@ -7,7 +7,6 @@ import Footer from '@/components/layout/Footer';
 import Providers from '@/components/layout/Providers';
 import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
-import PushNotificationsInit from '@/components/layout/PushNotificationsInit';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script';
 
