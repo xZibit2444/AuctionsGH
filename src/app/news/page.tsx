@@ -19,6 +19,20 @@ export const metadata: Metadata = {
 const fallbackNews = [
 
     {
+        id: 'apr29-1',
+        title: '[PROPERTY] Two-unit Townhouses — 3-bedroom + 2-bedroom apartment, Abafum Crescent, Labone, Accra (Plot No. C76)',
+        content: 'Owner: Nahid\'s Properties Limited\nDate: Wednesday, 29 April 2026 at 10:00am — TODAY\nLocation: Abafum Crescent, Labone, Accra (Plot No. C76)\nAuctioneer: Andy Mensah of Tish Mart | 0245964948\nSource: Ghanaian Times, Tuesday 29 April 2026',
+        created_at: new Date('2026-04-29T07:00:00.000Z').toISOString(),
+    },
+
+    {
+        id: 'apr29-2',
+        title: '[PROPERTY] One-storey Residential Property — GPS EG-014-7071, Opare Krom, Nsawam',
+        content: 'Owner: Prince Bennet Enterprise Ltd (Judgment Debtor)\nDate: Thursday, 30 April 2026 at 10:00am\nLocation: Opare Krom, Nsawam (GPS EG-014-7071)\nAuctioneer: David Okine of Ideal Mart | 0242831141 / 0207545584\nOrdered by: D/Sheriff Commercial Court, Accra\nSource: Ghanaian Times, Tuesday 29 April 2026',
+        created_at: new Date('2026-04-29T06:00:00.000Z').toISOString(),
+    },
+
+    {
         id: 'apr27-1',
         title: '[EQUIPMENT] Auction Sale - Few Unserviceable Vehicles (Ministry of Local Government)',
         content: 'Owner: Ministry of Local Government, Chieftaincy and Religious Affairs\nDate: Thu 30 Apr 2026, 8:30am\nLocation: Ministry of Local Government, Chieftaincy and Religious Affairs premises\nAuctioneer: Shargaw Ventures | 0243572105\nSource: Daily Graphic, Monday 27 April 2026',
