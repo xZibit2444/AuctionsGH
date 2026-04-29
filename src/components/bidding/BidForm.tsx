@@ -59,7 +59,7 @@ export default function BidForm({
             setSuccess(true);
             setAmount((numAmount + minIncrement).toFixed(2));
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
+        } catch {
             setError('An unexpected error occurred. Please try again.');
         } finally {
             setLoading(false);

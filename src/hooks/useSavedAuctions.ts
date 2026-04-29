@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, startTransition } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -11,8 +11,10 @@ export function useSavedAuctions() {
 
     useEffect(() => {
         if (!user) {
-            setSavedIds(new Set());
-            setLoading(false);
+            startTransition(() => {
+                setSavedIds(new Set());
+                setLoading(false);
+            });
             return;
         }
 
@@ -23,7 +25,7 @@ export function useSavedAuctions() {
             .select('auction_id')
             .eq('user_id', user.id)
             .then(({ data }: { data: { auction_id: string }[] | null }) => {
-                if (isMounted) setSavedIds(new Set((data ?? []).map((r) => r.auction_id)));
+                if (isMounted) startTransition(() => setSavedIds(new Set((data ?? []).map((r) => r.auction_id))));
             })
             .catch(() => {
                 // silently fall through — savedIds stays empty Set

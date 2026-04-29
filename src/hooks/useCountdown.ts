@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, startTransition } from 'react';
 import { getTimeRemaining } from '@/lib/utils';
 
 export function useCountdown(endTime: string | Date) {
     const [timeLeft, setTimeLeft] = useState(() => getTimeRemaining(endTime));
 
     const update = useCallback(() => {
-        setTimeLeft(getTimeRemaining(endTime));
+        startTransition(() => setTimeLeft(getTimeRemaining(endTime)));
     }, [endTime]);
 
     useEffect(() => {

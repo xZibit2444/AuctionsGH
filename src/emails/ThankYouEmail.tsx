@@ -72,13 +72,13 @@ export default function ThankYouEmail() {
 
                         <Text style={text}>
 
-                            We're excited to let you know that exciting updates are coming soon! Stay tuned for new features and improvements that will enhance your auction experience.
+                            We&apos;re excited to let you know that exciting updates are coming soon! Stay tuned for new features and improvements that will enhance your auction experience.
 
                         </Text>
 
                         <Text style={text}>
 
-                            If you have any feedback or suggestions, please don't hesitate to reach out to us.
+                            If you have any feedback or suggestions, please don&apos;t hesitate to reach out to us.
 
                         </Text>
 
@@ -96,7 +96,7 @@ export default function ThankYouEmail() {
 
                         <Text style={footerText}>
 
-                            You're receiving this email because you're a registered user of AuctionsGH.
+                            You&apos;re receiving this email because you&apos;re a registered user of AuctionsGH.
 
                         </Text>
 

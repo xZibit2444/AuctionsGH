@@ -5,7 +5,6 @@ import {
     Heading,
     Html,
     Preview,
-    Section,
     Text,
 } from '@react-email/components';
 import * as React from 'react';
@@ -13,13 +12,11 @@ import * as React from 'react';
 interface BanNotificationEmailProps {
     fullName?: string;
     reason?: string;
-    siteUrl: string;
 }
 
 export default function BanNotificationEmail({
     fullName,
     reason,
-    siteUrl,
 }: BanNotificationEmailProps) {
     const greetingName = fullName?.trim() || 'there';
 

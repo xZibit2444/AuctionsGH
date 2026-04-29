@@ -3,7 +3,6 @@ import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
-import NewsletterEmail from '@/emails/NewsletterEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
@@ -514,7 +513,6 @@ export async function sendBanNotificationEmail(
             react: BanNotificationEmail({
                 fullName: fullName ?? undefined,
                 reason: reason ?? undefined,
-                siteUrl: SITE_URL,
             }),
         });
 

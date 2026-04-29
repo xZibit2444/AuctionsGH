@@ -54,7 +54,7 @@ export const OutbidEmail = ({
 
         <Head />
 
-        <Preview>You've been outbid on {auctionTitle}!</Preview>
+        <Preview>You&apos;ve been outbid on {auctionTitle}!</Preview>
 
         <Body style={main}>
 
@@ -68,7 +68,7 @@ export const OutbidEmail = ({
 
 
 
-                <Heading style={h1}>You've been outbid!</Heading>
+                <Heading style={h1}>You&apos;ve been outbid!</Heading>
 
 
 
@@ -82,7 +82,7 @@ export const OutbidEmail = ({
 
                 <Text style={text}>
 
-                    Don't lose it! There's still time to place a counter-bid before the auction ends.
+                    Don&apos;t lose it! There&apos;s still time to place a counter-bid before the auction ends.
 
                 </Text>
 

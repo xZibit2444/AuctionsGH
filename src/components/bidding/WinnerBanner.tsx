@@ -21,7 +21,7 @@ export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId 
                 </div>
                 <p className="text-gray-300">
                     {orderId ? (
-                        <>You've successfully secured <strong>&quot;{auctionTitle}&quot;</strong>. Track your delivery or pickup status.</>
+                        <>You&apos;ve successfully secured <strong>&quot;{auctionTitle}&quot;</strong>. Track your delivery or pickup status.</>
                     ) : (
                         <>You won <strong>&quot;{auctionTitle}&quot;</strong> for{' '}
                             <strong>{formatCurrency(amount)}</strong>. You have 30 minutes to confirm your order.</>
