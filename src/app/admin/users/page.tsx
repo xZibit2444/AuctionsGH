@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 import { createClient } from '@/lib/supabase/client';
-import { banUserAction } from '@/app/actions/adminUsers';
+import { banUserAction, unbanUserAction } from '@/app/actions/adminUsers';
 import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
-import { Ban, Search, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { Ban, Search, ShieldCheck, User as UserIcon, Check } from 'lucide-react';
 
 interface AdminUser {
     id: string;
@@ -83,6 +83,20 @@ function UsersContent() {
             setError(result.error ?? 'Failed to ban user');
         } else {
             setBanReason((current) => ({ ...current, [userId]: '' }));
+            await loadUsers();
+        }
+
+        setPendingId(null);
+    };
+
+    const handleUnban = async (userId: string) => {
+        setPendingId(userId);
+        setError(null);
+
+        const result = await unbanUserAction(userId);
+        if (!result.success) {
+            setError(result.error ?? 'Failed to unban user');
+        } else {
             await loadUsers();
         }
 
@@ -252,14 +266,19 @@ function UsersContent() {
                                                     {pendingId === user.id ? 'Banning...' : 'Permanent Ban'}
                                                 </button>
                                             </>
+                                        ) : user.is_banned ? (
+                                            <button
+                                                onClick={() => void handleUnban(user.id)}
+                                                disabled={pendingId === user.id}
+                                                className="inline-flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-3 text-sm font-black uppercase tracking-widest text-white hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                            >
+                                                <Check className="h-4 w-4" />
+                                                {pendingId === user.id ? 'Unbanning...' : 'Unban User'}
+                                            </button>
                                         ) : (
                                             <div className="flex items-start gap-2 text-sm text-gray-600">
                                                 <UserIcon className="h-4 w-4 shrink-0 mt-0.5" />
-                                                <p>
-                                                    {user.is_super_admin
-                                                        ? 'Super admin accounts cannot be banned from this screen.'
-                                                        : 'This account is already permanently banned.'}
-                                                </p>
+                                                <p>Super admin accounts cannot be banned from this screen.</p>
                                             </div>
                                         )}
                                     </div>

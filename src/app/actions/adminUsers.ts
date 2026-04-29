@@ -83,3 +83,65 @@ export async function banUserAction(
 
     return { success: true };
 }
+
+export async function unbanUserAction(
+    userId: string
+): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { data: callerProfile } = await admin
+        .from('profiles')
+        .select('is_super_admin')
+        .eq('id', user.id)
+        .maybeSingle() as {
+            data: Pick<Profile, 'is_super_admin'> | null;
+            error: unknown;
+        };
+
+    if (!callerProfile?.is_super_admin) {
+        return { success: false, error: 'Forbidden' };
+    }
+
+    const { data: targetProfile, error: targetError } = await admin
+        .from('profiles')
+        .select('id, is_banned')
+        .eq('id', userId)
+        .maybeSingle() as {
+            data: Pick<Profile, 'id' | 'is_banned'> | null;
+            error: unknown;
+        };
+
+    if (targetError || !targetProfile) {
+        return { success: false, error: 'User not found' };
+    }
+
+    if (!targetProfile.is_banned) {
+        return { success: false, error: 'This user is not banned' };
+    }
+
+    const updates: Partial<Profile> = {
+        is_banned: false,
+        banned_at: null,
+        banned_reason: null,
+        banned_by: null,
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await ((admin
+        .from('profiles')) as unknown as {
+            update: (values: Partial<Profile>) => {
+                eq: (column: 'id', value: string) => Promise<{ error: { message: string } | null }>;
+            };
+        })
+        .update(updates)
+        .eq('id', userId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    return { success: true };
+}
