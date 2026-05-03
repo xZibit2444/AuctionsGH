@@ -6,6 +6,7 @@ import { insertNotificationIfEnabled } from '@/lib/notifications';
 import {
     sendAuctionSoldEmail,
     sendAuctionWonEmail,
+    sendNewOfferEmail,
     sendOfferDeclinedEmail,
 } from '@/lib/email/sender';
 
@@ -76,6 +77,38 @@ export async function makeOfferAction(
         body: `${buyerLabel} is asking: "Will you accept GHS ${Number(amount).toLocaleString()} for ${auction.title}?"`,
         auction_id: auctionId,
     });
+
+    // Email the seller about the new offer
+    try {
+        const [sellerAuthResult, { data: sellerProfile }] = await Promise.all([
+            supabaseAdmin.auth.admin.getUserById(auction.seller_id),
+            supabaseAdmin
+                .from('profiles')
+                .select('full_name, username')
+                .eq('id', auction.seller_id)
+                .maybeSingle(),
+        ]);
+        const sellerEmail = sellerAuthResult.data.user?.email;
+        if (sellerEmail) {
+            const sellerName = getDisplayName(
+                sellerProfile as { full_name?: string | null; username?: string | null } | null,
+                'Seller'
+            );
+            const result = await sendNewOfferEmail(
+                sellerEmail,
+                sellerName,
+                buyerLabel,
+                auction.title,
+                Number(amount),
+                auctionId
+            );
+            if (!result.success) {
+                console.error('Failed to send new offer email:', result.error);
+            }
+        }
+    } catch (err) {
+        console.error('Error sending new offer email (non-fatal):', err);
+    }
 
     return { success: true, offerId: offer.id };
 }

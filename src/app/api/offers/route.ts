@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { sendNewOfferEmail } from '@/lib/email/sender';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -97,6 +98,30 @@ export async function POST(request: Request) {
         body: `${buyerLabel} offered GHS ${Number(amount).toLocaleString()} for "${auction.title}"`,
         auction_id,
     });
+
+    // Email the seller about the new offer
+    try {
+        const sellerAuth = await supabaseAdmin.auth.admin.getUserById(auction.seller_id);
+        const sellerEmail = sellerAuth.data.user?.email;
+        if (sellerEmail) {
+            const { data: sp } = await supabaseAdmin
+                .from('profiles').select('full_name, username').eq('id', auction.seller_id).maybeSingle();
+            const sellerLabel =
+                (sp as { full_name?: string | null; username?: string | null } | null)?.full_name?.trim() ||
+                (sp as { full_name?: string | null; username?: string | null } | null)?.username?.trim() ||
+                'Seller';
+            await sendNewOfferEmail(
+                sellerEmail,
+                sellerLabel,
+                buyerLabel,
+                auction.title,
+                Number(amount),
+                auction_id
+            );
+        }
+    } catch (err) {
+        console.error('Failed to send new offer email (non-fatal):', err);
+    }
 
     return NextResponse.json({ success: true, offer_id: offer.id }, { status: 201 });
 }

@@ -3,6 +3,7 @@ import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
+import NewOfferEmail from '@/emails/NewOfferEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
@@ -185,6 +186,46 @@ export async function sendAuctionEndedNoBidsEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending no-bids email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendNewOfferEmail(
+    to: string,
+    sellerName: string,
+    buyerName: string,
+    auctionTitle: string,
+    amount: number,
+    auctionId: string
+) {
+    const resendClient = getResend();
+    if (!resendClient) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resendClient.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `New offer of GHS ${amount.toLocaleString()} on ${auctionTitle}`,
+            react: NewOfferEmail({
+                sellerName,
+                buyerName,
+                auctionTitle,
+                amount,
+                auctionUrl: `${SITE_URL}/auctions/${auctionId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send new offer email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending new offer email:', error);
         return { success: false, error };
     }
 }
