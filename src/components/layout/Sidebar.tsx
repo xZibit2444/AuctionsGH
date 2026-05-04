@@ -14,6 +14,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils';
 import { markAllReadAction } from '@/app/actions/notifications';
+import ThemeToggle from './ThemeToggle';
 
 interface Notification {
     id: string;
@@ -334,6 +335,7 @@ export default function Sidebar() {
                                     profile?.username?.[0]?.toUpperCase() ||
                                     user.email?.[0]?.toUpperCase() || 'U'}
                             </Link>
+                            <ThemeToggle collapsed />
                             <button
                                 onClick={() => signOut()}
                                 title="Sign out"
@@ -368,6 +370,7 @@ export default function Sidebar() {
                                 <Settings className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" strokeWidth={1.5} />
                                 Settings
                             </Link>
+                            <ThemeToggle />
                             <button
                                 onClick={() => signOut()}
                                 className="group w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all rounded-[3px] dark:text-gray-400 dark:hover:text-white dark:hover:bg-zinc-900"
