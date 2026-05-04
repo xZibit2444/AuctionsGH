@@ -23,7 +23,6 @@ import {
     Newspaper,
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
-import ThemeToggle from './ThemeToggle';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
@@ -240,7 +239,6 @@ export default function MobileNav() {
                                     <Settings className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                                     Settings
                                 </Link>
-                                <ThemeToggle variant="drawer" />
                                 <button
                                     onClick={() => {
                                         setMenuOpen(false);
@@ -269,7 +267,6 @@ export default function MobileNav() {
                                 >
                                     Sign up
                                 </Link>
-                                <ThemeToggle variant="drawer" />
                             </div>
                         ) : null}
                     </div>
