@@ -190,7 +190,7 @@ export default function MobileNav() {
                                 })}
                         </div>
 
-                        {profile?.is_admin && (
+                        {user && !profile?.is_banned && (
                             <div className="mt-4">
                                 <Link
                                     href="/auctions/create"
@@ -277,7 +277,7 @@ export default function MobileNav() {
             <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface)] border-t border-[var(--border-color)] sm:hidden">
                 <div className="flex items-center justify-around h-16 px-2">
                     {tabs.map((tab) => {
-                        if (tab.href === '/auctions/create' && !profile?.is_admin) return null;
+                        if (tab.href === '/auctions/create' && (!user || profile?.is_banned)) return null;
 
                         const isActive =
                             tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href);

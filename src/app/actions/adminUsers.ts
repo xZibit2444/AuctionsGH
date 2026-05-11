@@ -154,3 +154,46 @@ export async function unbanUserAction(
 
     return { success: true };
 }
+
+export async function setUserVerifiedAction(
+    userId: string,
+    verified: boolean
+): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { data: callerProfile } = await admin
+        .from('profiles')
+        .select('is_super_admin')
+        .eq('id', user.id)
+        .maybeSingle() as {
+            data: Pick<Profile, 'is_super_admin'> | null;
+            error: unknown;
+        };
+
+    if (!callerProfile?.is_super_admin) {
+        return { success: false, error: 'Forbidden' };
+    }
+
+    const updates: Partial<Profile> = {
+        is_verified: verified,
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await ((admin
+        .from('profiles')) as unknown as {
+            update: (values: Partial<Profile>) => {
+                eq: (column: 'id', value: string) => Promise<{ error: { message: string } | null }>;
+            };
+        })
+        .update(updates)
+        .eq('id', userId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    return { success: true };
+}

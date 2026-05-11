@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 import { createClient } from '@/lib/supabase/client';
-import { banUserAction, unbanUserAction } from '@/app/actions/adminUsers';
+import { banUserAction, unbanUserAction, setUserVerifiedAction } from '@/app/actions/adminUsers';
 import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
-import { Ban, Search, ShieldCheck, User as UserIcon, Check } from 'lucide-react';
+import { Ban, Search, ShieldCheck, User as UserIcon, Check, BadgeCheck, BadgeX } from 'lucide-react';
 
 interface AdminUser {
     id: string;
@@ -96,6 +96,20 @@ function UsersContent() {
         const result = await unbanUserAction(userId);
         if (!result.success) {
             setError(result.error ?? 'Failed to unban user');
+        } else {
+            await loadUsers();
+        }
+
+        setPendingId(null);
+    };
+
+    const handleToggleVerified = async (userId: string, nextVerified: boolean) => {
+        setPendingId(userId);
+        setError(null);
+
+        const result = await setUserVerifiedAction(userId, nextVerified);
+        if (!result.success) {
+            setError(result.error ?? 'Failed to update verification');
         } else {
             await loadUsers();
         }
@@ -246,7 +260,31 @@ function UsersContent() {
                                         )}
                                     </div>
 
-                                    <div className="w-full lg:w-[320px] border border-gray-200 bg-gray-50 p-4">
+                                    <div className="w-full lg:w-[320px] border border-gray-200 bg-gray-50 p-4 space-y-3">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Verification</p>
+                                            <button
+                                                onClick={() => void handleToggleVerified(user.id, !user.is_verified)}
+                                                disabled={pendingId === user.id}
+                                                className={
+                                                    user.is_verified
+                                                        ? 'inline-flex w-full items-center justify-center gap-2 border border-gray-300 bg-white px-4 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 hover:border-black hover:text-black transition-colors disabled:opacity-50'
+                                                        : 'inline-flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white hover:bg-emerald-700 transition-colors disabled:opacity-50'
+                                                }
+                                            >
+                                                {user.is_verified ? (
+                                                    <>
+                                                        <BadgeX className="h-4 w-4" />
+                                                        {pendingId === user.id ? 'Updating...' : 'Remove Verification'}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <BadgeCheck className="h-4 w-4" />
+                                                        {pendingId === user.id ? 'Updating...' : 'Mark Verified'}
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Moderation</p>
                                         {canBan ? (
                                             <>

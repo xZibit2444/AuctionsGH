@@ -8,13 +8,15 @@ export default function SellerGuard({ children }: { children: React.ReactNode })
     const { user, profile, loading } = useAuth();
     const router = useRouter();
 
-    useEffect(() => {
-        if (!loading && (!user || !profile?.is_admin)) {
-            router.push('/');
-        }
-    }, [user, profile, loading, router]);
+    const blocked = !loading && (!user || profile?.is_banned);
 
-    if (loading || !user || !profile?.is_admin) {
+    useEffect(() => {
+        if (blocked) {
+            router.push(user ? '/' : '/login');
+        }
+    }, [blocked, user, router]);
+
+    if (loading || !user || profile?.is_banned) {
         return (
             <div className="flex min-h-[50vh] items-center justify-center">
                 <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" />

@@ -299,7 +299,7 @@ export default function Sidebar() {
             </nav>
 
             {/* Create listing CTA */}
-            {profile?.is_admin && (
+            {user && !profile?.is_banned && (
                 <div className="px-2 pb-2">
                     {collapsed ? (
                         <Link
