@@ -23,5 +23,17 @@ CREATE POLICY "Sellers can update own auctions"
   ON public.auctions
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() = seller_id)
-  WITH CHECK (auth.uid() = seller_id);
+  USING (
+    auth.uid() = seller_id
+    AND NOT EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_banned = true
+    )
+  )
+  WITH CHECK (
+    auth.uid() = seller_id
+    AND NOT EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND is_banned = true
+    )
+  );
