@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
+
+# supabase local dev temp files (contain project ref and connection URLs)
+supabase/.temp/
 
 # VS Code MCP config (may contain secrets)
 .vscode/mcp.json
