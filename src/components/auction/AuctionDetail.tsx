@@ -8,6 +8,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
+
+const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
+const NETWORK_LOCK_LABELS: Record<string, string> = Object.fromEntries(NETWORK_LOCK_OPTIONS.map((o) => [o.value, o.label]));
 import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
@@ -20,7 +24,7 @@ import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import ShareButton from '@/components/ui/ShareButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
-import { Heart, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
+import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X } from 'lucide-react';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -283,6 +287,15 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 </button>
                             </div>
                         </div>
+                        {(isSeller || profile?.is_super_admin === true) && auction.status !== 'sold' && (
+                            <Link
+                                href={`/auctions/${auction.id}/edit`}
+                                className="mb-3 inline-flex w-full items-center justify-center gap-2 bg-black px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors"
+                            >
+                                <Pencil className="h-3.5 w-3.5" />
+                                Edit listing
+                            </Link>
+                        )}
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {auction.title}
                         </h1>
@@ -330,6 +343,10 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
                             { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },
+                            ...(auction.battery_health != null ? [{ label: 'Battery Health', value: `${auction.battery_health}%` }] : []),
+                            ...(auction.sim_type ? [{ label: 'SIM Type', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
+                            ...(auction.network_lock ? [{ label: 'Network Lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
+                            ...(auction.faults ? [{ label: 'Known Faults', value: auction.faults }] : []),
                             { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
                             { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
                             { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
