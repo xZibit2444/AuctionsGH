@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
+import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 
 const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
@@ -295,6 +296,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 <Pencil className="h-3.5 w-3.5" />
                                 Edit listing
                             </Link>
+                        )}
+                        {isSeller && (
+                            <OwnerStatusControls
+                                auctionId={auction.id}
+                                status={auction.status}
+                                isPermanent={isPermanent}
+                                bidCount={auction.bid_count ?? 0}
+                            />
                         )}
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {auction.title}
