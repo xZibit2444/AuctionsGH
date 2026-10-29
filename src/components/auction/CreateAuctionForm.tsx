@@ -19,6 +19,7 @@ import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity
 } from 'lucide-react';
 import Link from 'next/link';
+import { prepareImage } from '@/lib/prepareImage';
 
 const STEPS = ['Item Details', 'Photos', 'Pricing'];
 
@@ -91,12 +92,12 @@ export default function CreateAuctionForm() {
     const update = <K extends keyof CreateAuctionInput>(field: K, value: CreateAuctionInput[K]) =>
         setFormData((prev) => ({ ...prev, [field]: value }));
 
-    const handleImageAdd = (files: FileList | File[]) => {
+    const handleImageAdd = async (files: FileList | File[]) => {
         const arr = Array.from(files);
         const remaining = MAX_IMAGES_PER_AUCTION - images.length;
-        const toAdd = arr.slice(0, remaining);
-        setImages([...images, ...toAdd]);
-        setPreviews([...previews, ...toAdd.map((f) => URL.createObjectURL(f))]);
+        const toAdd = await Promise.all(arr.slice(0, remaining).map(prepareImage));
+        setImages((prev) => [...prev, ...toAdd]);
+        setPreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
     };
 
     const removeImage = (index: number) => {
@@ -532,14 +533,14 @@ export default function CreateAuctionForm() {
                             {dragOver ? 'Drop to upload' : 'Click or drag photos here'}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                            {images.length}/{MAX_IMAGES_PER_AUCTION} photos · JPG, PNG or WebP · Max 5 MB each
+                            {images.length}/{MAX_IMAGES_PER_AUCTION} photos · JPG, PNG, WebP or iPhone HEIC · Large photos are shrunk for you
                         </p>
                     </div>
 
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                         multiple
                         className="hidden"
                         onChange={(e) => handleImageAdd(e.target.files!)}
