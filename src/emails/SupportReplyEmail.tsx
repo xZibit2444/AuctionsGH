@@ -21,7 +21,7 @@ export default function SupportReplyEmail({ name, body, topic, originalMessage }
                 <Container style={container}>
                     <Section style={header}>
                         <Link href={SITE}>
-                            <Img src={`${SITE}/logo-dark.png`} alt="AuctionsGH" width="180" style={logo} />
+                            <Img src="cid:auctionsgh-logo" alt="AuctionsGH" width="180" style={logo} />
                         </Link>
                     </Section>
                     <Section style={content}>

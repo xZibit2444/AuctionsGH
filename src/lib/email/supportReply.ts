@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { LOGO_PNG_BASE64 } from '@/emails/logoData';
 import SupportReplyEmail from '@/emails/SupportReplyEmail';
 
 // Support replies use their own sender (approved by the owner), separate from the order-email sender.
@@ -25,6 +26,7 @@ export async function sendSupportReplyEmail(args: {
         const { data, error } = await resend.emails.send({
             from: SUPPORT_SENDER,
             replyTo: SUPPORT_REPLY_TO,
+            attachments: [{ filename: 'auctionsgh-logo.png', content: LOGO_PNG_BASE64, contentType: 'image/png', contentId: 'auctionsgh-logo' }],
             to: args.to,
             subject: args.subject,
             react: SupportReplyEmail({ name: args.name, body: args.text, topic: args.topic, originalMessage: args.originalMessage }),
