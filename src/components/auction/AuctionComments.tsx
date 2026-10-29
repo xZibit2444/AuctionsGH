@@ -129,9 +129,9 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                 created_at: new Date().toISOString(),
                 profile: {
                     id: currentUserId,
-                    full_name: 'You',
-                    username: 'you',
-                    avatar_url: null,
+                    full_name: profile?.full_name ?? null,
+                    username: profile?.username ?? '',
+                    avatar_url: profile?.avatar_url ?? null,
                 },
             },
         ]);
@@ -142,11 +142,21 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
             setBody(trimmed);
             setError(result.error ?? 'Failed to post comment.');
         } else if (result.commentId) {
-            setComments((prev) =>
-                prev.map((comment) => (
-                    comment.id === optimisticId ? { ...comment, id: result.commentId! } : comment
-                ))
-            );
+            const commentId = result.commentId;
+            // Replace the placeholder with the saved row so the name and photo come from the profile table.
+            const supabase = createClient();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: saved } = await (supabase.from('auction_comments') as any)
+                .select('id, auction_id, user_id, body, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
+                .eq('id', commentId)
+                .maybeSingle();
+            setComments((prev) => {
+                const withoutDuplicate = saved ? prev.filter((c) => c.id !== commentId || c.id === optimisticId) : prev;
+                return withoutDuplicate.map((comment) => {
+                    if (comment.id !== optimisticId) return comment;
+                    return saved ? (saved as AuctionComment) : { ...comment, id: commentId };
+                });
+            });
         }
 
         setSending(false);
