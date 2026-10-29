@@ -28,8 +28,8 @@ const contactOptions = [
     {
         title: 'General Support',
         description: 'Questions about your account, auctions, orders, or notifications.',
-        value: 'support@auctionsgh.com',
-        href: 'mailto:support@auctionsgh.com',
+        value: 'Send a support request',
+        href: '/support',
         icon: Mail,
     },
     {
