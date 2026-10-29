@@ -98,6 +98,10 @@ export interface Database {
                     model: string;
                     storage_gb: number | null;
                     ram_gb: number | null;
+                    battery_health: number | null;
+                    sim_type: string | null;
+                    network_lock: string | null;
+                    faults: string | null;
                     condition: PhoneCondition;
                     listing_city: string;
                     meetup_area: string;
@@ -123,6 +127,10 @@ export interface Database {
                     model: string;
                     storage_gb?: number | null;
                     ram_gb?: number | null;
+                    battery_health?: number | null;
+                    sim_type?: string | null;
+                    network_lock?: string | null;
+                    faults?: string | null;
                     condition: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;
@@ -146,6 +154,10 @@ export interface Database {
                     model?: string;
                     storage_gb?: number | null;
                     ram_gb?: number | null;
+                    battery_health?: number | null;
+                    sim_type?: string | null;
+                    network_lock?: string | null;
+                    faults?: string | null;
                     condition?: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;

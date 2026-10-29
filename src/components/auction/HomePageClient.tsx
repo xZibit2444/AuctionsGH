@@ -82,6 +82,21 @@ export default function HomePageClient() {
                 </section>
             ) : (
                 <>
+                    <section>
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
+                                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-100">
+                                    <Flame className="h-3.5 w-3.5 text-orange-500" />
+                                </span>
+                                Live Listings
+                            </h2>
+                            <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                                {loading ? '...' : `${auctions.length} active`}
+                            </span>
+                        </div>
+                        <AuctionGrid auctions={auctions} loading={loading} />
+                    </section>
+
                     <AuctionCarousel
                         title="Ending Soon"
                         auctions={endingSoon}
@@ -105,21 +120,6 @@ export default function HomePageClient() {
                         viewAllHref="/auctions"
                         icon={<Zap className="h-4 w-4 text-blue-500" />}
                     />
-
-                    <section>
-                        <div className="flex items-center justify-between mb-5">
-                            <h2 className="flex items-center gap-2 text-lg font-black text-gray-900">
-                                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange-100">
-                                    <Flame className="h-3.5 w-3.5 text-orange-500" />
-                                </span>
-                                Live Listings
-                            </h2>
-                            <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                                {loading ? '...' : `${auctions.length} active`}
-                            </span>
-                        </div>
-                        <AuctionGrid auctions={auctions} loading={loading} />
-                    </section>
                 </>
             )}
         </div>
