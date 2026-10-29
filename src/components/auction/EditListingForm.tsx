@@ -13,6 +13,7 @@ import {
     ITEM_CATEGORIES,
     getLocationsForRegion,
 } from '@/lib/constants';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 
 type Condition = 'new' | 'like_new' | 'good' | 'fair' | 'poor';
 
@@ -22,6 +23,10 @@ type FormState = {
     brand: string;
     model: string;
     storage_gb: string;
+    battery_health: string;
+    sim_type: string;
+    network_lock: string;
+    faults: string;
     condition: Condition;
     price: string;
     listing_city: string;
@@ -86,6 +91,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 brand: data.brand ?? 'Other',
                 model: data.model ?? '',
                 storage_gb: data.storage_gb ? String(data.storage_gb) : '',
+                battery_health: data.battery_health != null ? String(data.battery_health) : '',
+                sim_type: data.sim_type ?? '',
+                network_lock: data.network_lock ?? '',
+                faults: data.faults ?? '',
                 condition: (data.condition ?? 'good') as Condition,
                 price: String(data.starting_price ?? data.current_price ?? ''),
                 listing_city: data.listing_city ?? 'Greater Accra',
@@ -138,6 +147,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             brand: form.brand,
             model: form.model,
             storage_gb: form.storage_gb ? Number(form.storage_gb) : null,
+            battery_health: form.battery_health,
+            sim_type: form.sim_type,
+            network_lock: form.network_lock,
+            faults: form.faults,
             condition: form.condition,
             price: priceLocked ? undefined : Number(form.price),
             listing_city: form.listing_city,
@@ -244,6 +257,56 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                     {err('price')}
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label optional>Battery health (%)</Label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={form.battery_health}
+                            onChange={(e) => set('battery_health', e.target.value)}
+                            className={inputClass}
+                        />
+                        {err('battery_health')}
+                    </div>
+                    <div>
+                        <Label optional>SIM type</Label>
+                        <select value={form.sim_type} onChange={(e) => set('sim_type', e.target.value)} className={inputClass}>
+                            <option value="">Not specified</option>
+                            {SIM_TYPE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+                        {err('sim_type')}
+                    </div>
+                </div>
+
+                <div>
+                    <Label optional>Network lock</Label>
+                    <select value={form.network_lock} onChange={(e) => set('network_lock', e.target.value)} className={inputClass}>
+                        <option value="">Not specified</option>
+                        {NETWORK_LOCK_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                    </select>
+                    {err('network_lock')}
+                </div>
+
+                <div>
+                    <Label optional>Known faults</Label>
+                    <textarea
+                        rows={3}
+                        maxLength={500}
+                        value={form.faults}
+                        onChange={(e) => set('faults', e.target.value)}
+                        placeholder="Cracks, Face ID not working, battery service, etc. Leave empty if none."
+                        className={inputClass}
+                    />
+                    {err('faults')}
+                </div>
+
                 <div>
                     <Label optional>Description</Label>
                     <textarea
@@ -316,4 +379,4 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             </fieldset>
         </form>
     );
-}
+        }
