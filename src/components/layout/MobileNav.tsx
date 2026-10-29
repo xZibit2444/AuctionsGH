@@ -23,6 +23,7 @@ import {
     Newspaper,
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import ProfileShortcut from './ProfileShortcut';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
@@ -110,6 +111,7 @@ export default function MobileNav() {
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationBell />
+                    <ProfileShortcut />
                 </div>
             </header>
 

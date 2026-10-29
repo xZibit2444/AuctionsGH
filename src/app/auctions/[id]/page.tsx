@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import AuctionDetail from '@/components/auction/AuctionDetail';
 import { createClient } from '@/lib/supabase/server';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
 
 interface AuctionPageProps {
     params: Promise<{ id: string }>;
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
         const supabase = await createClient();
         const { data } = await supabase
             .from('auctions')
-            .select('title, description, brand, model, condition, current_price, status')
+            .select('title, description, brand, model, condition, current_price, status, auction_images(url, position)')
             .eq('id', id)
             .single();
 
@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
             condition: string;
             current_price: number;
             status: string;
+            auction_images: { url: string; position: number | null }[] | null;
         } | null;
 
         if (!auction) {
@@ -37,7 +38,12 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
             auction.description ||
             `Bid on a ${auction.condition} ${auction.brand} ${auction.model} — current price GH₵${auction.current_price}. Live auction on AuctionsGH.`;
         const pageUrl = `${SITE_URL}/auctions/${id}`;
-        const imageUrl = `${pageUrl}/opengraph-image`;
+        const photo = auction.auction_images
+            ?.slice()
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))[0]?.url;
+        const hasPhoto = typeof photo === 'string' && /^https:\/\//.test(photo);
+        const imageUrl = hasPhoto ? photo : `${pageUrl}/opengraph-image`;
+        const imageDims = hasPhoto ? {} : { width: 1200, height: 630 };
 
         return {
             title,
@@ -49,7 +55,7 @@ export async function generateMetadata({ params }: AuctionPageProps): Promise<Me
                 url: pageUrl,
                 type: 'website',
                 siteName: 'AuctionsGH',
-                images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
+                images: [{ url: imageUrl, ...imageDims, alt: title }],
             },
             twitter: {
                 card: 'summary_large_image',
