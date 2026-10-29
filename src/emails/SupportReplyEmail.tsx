@@ -21,7 +21,7 @@ export default function SupportReplyEmail({ name, body, topic, originalMessage }
                 <Container style={container}>
                     <Section style={header}>
                         <Link href={SITE}>
-                            <Img src="cid:auctionsgh-logo" alt="AuctionsGH" width="180" style={logo} />
+                            <Img src="cid:auctionsgh-logo" alt="AuctionsGH" width="600" style={logo} />
                         </Link>
                     </Section>
                     <Section style={content}>
@@ -52,8 +52,8 @@ export default function SupportReplyEmail({ name, body, topic, originalMessage }
 const font = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
 const main = { backgroundColor: '#f4f4f5', fontFamily: font, margin: 0, padding: '24px 0' };
 const container = { maxWidth: '600px', width: '100%', margin: '0 auto', backgroundColor: '#ffffff' };
-const header = { backgroundColor: '#0d0d0d', padding: '20px 24px', textAlign: 'center' as const };
-const logo = { margin: '0 auto', display: 'block', height: 'auto', maxWidth: '100%' };
+const header = { backgroundColor: '#0d0d0d', padding: 0, textAlign: 'center' as const };
+const logo = { margin: '0', display: 'block', width: '100%', maxWidth: '600px', height: 'auto' };
 const content = { padding: '28px 24px 8px' };
 const label = { fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: '#b8902a', fontWeight: 700, margin: '0 0 16px' };
 const para = { fontSize: '16px', lineHeight: '24px', color: '#111111', margin: '0 0 16px' };
