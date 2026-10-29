@@ -689,7 +689,7 @@ export default function CreateAuctionForm() {
                     </div>
                     {/* Starting price */}
                     <div>
-                        <FieldLabel>Starting Price</FieldLabel>
+                        <FieldLabel>{isPermanent ? 'Price' : 'Starting Price'}</FieldLabel>
                         <div className={`flex border focus-within:border-black transition-colors ${errors.starting_price ? 'border-red-400' : 'border-gray-200'}`}>
                             <div className="flex items-center px-4 bg-gray-50 border-r border-gray-200 shrink-0">
                                 <span className="text-sm font-semibold text-gray-500">GHS</span>
@@ -702,6 +702,7 @@ export default function CreateAuctionForm() {
                                 className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
                             />
                         </div>
+                        {isPermanent && <p className="text-[11px] text-gray-500 mt-1">Buyers see this as the listing price and can send you offers.</p>}
                         {errors.starting_price && <p className="text-[11px] text-red-500 mt-1">{errors.starting_price}</p>}
                     </div>
 
