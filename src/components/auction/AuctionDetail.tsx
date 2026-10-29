@@ -351,7 +351,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Brand / Model', value: auction.model || '—' },
                             { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
-                            { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },
                             ...(auction.battery_health != null ? [{ label: 'Battery Health', value: `${auction.battery_health}%` }] : []),
                             ...(auction.sim_type ? [{ label: 'SIM Type', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
                             ...(auction.network_lock ? [{ label: 'Network Lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
