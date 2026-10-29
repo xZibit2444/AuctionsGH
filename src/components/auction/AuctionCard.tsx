@@ -16,9 +16,9 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
     return (
         <Link href={`/auctions/${auction.id}`} className="block">
-            <article className="group bg-white border border-gray-200 overflow-hidden hover:border-black transition-colors duration-200">
+            <article className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
                 {/* Image */}
-                <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
+                <div className="relative aspect-square bg-gray-50 overflow-hidden m-2 rounded-xl">
                     {thumbnail ? (
                         <img
                             src={thumbnail.url}
@@ -34,13 +34,15 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                    <h3 className="font-bold text-black text-sm leading-snug line-clamp-2 mb-3">
+                <div className="px-4 pb-4 pt-2">
+                    <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
                         {auction.title}
                     </h3>
-                    <p className="text-lg font-black text-black tracking-tight">
-                        {formatCurrency(auction.current_price)}
-                    </p>
+                    <div className="mt-3 flex items-center justify-between">
+                        <p className="text-lg font-black text-black tracking-tight">
+                            {formatCurrency(auction.current_price)}
+                        </p>
+                    </div>
                 </div>
             </article>
         </Link>
