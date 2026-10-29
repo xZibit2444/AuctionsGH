@@ -228,6 +228,9 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                                             ) : (
                                                 <p className="text-sm font-semibold text-black">{name || 'User'}</p>
                                             )}
+                                            {comment.profile?.username && (
+                                                <span className="text-xs text-gray-500">@{comment.profile.username}</span>
+                                            )}
                                             {isMine && (
                                                 <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-black text-white">
                                                     You
