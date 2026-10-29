@@ -1,11 +1,12 @@
 import { Resend } from 'resend';
 
-// Same configured sender the site already uses for its order and auction emails.
-// No fallback address: if it is not configured, sending is refused.
-export const SUPPORT_SENDER = process.env.RESEND_FROM_EMAIL || '';
+// Support replies use their own sender (approved by the owner), separate from the order-email sender.
+// Customer answers go to the Reply-To inbox, not the dashboard.
+export const SUPPORT_SENDER = process.env.SUPPORT_REPLY_FROM || 'AuctionsGH Support <support@auctionsgh.com>';
+export const SUPPORT_REPLY_TO = process.env.SUPPORT_REPLY_TO || 'tiekujason@gmail.com';
 
-// Sending stays off until the owner confirms the sender and turns it on.
-export const SUPPORT_REPLIES_ENABLED = process.env.SUPPORT_REPLIES_ENABLED === 'true' && SUPPORT_SENDER !== '';
+// Sending stays off until the owner turns it on.
+export const SUPPORT_REPLIES_ENABLED = process.env.SUPPORT_REPLIES_ENABLED === 'true';
 
 export async function sendSupportReplyEmail(args: {
     to: string;
@@ -19,6 +20,7 @@ export async function sendSupportReplyEmail(args: {
         const resend = new Resend(key);
         const { data, error } = await resend.emails.send({
             from: SUPPORT_SENDER,
+            replyTo: SUPPORT_REPLY_TO,
             to: args.to,
             subject: args.subject,
             text: args.text,
