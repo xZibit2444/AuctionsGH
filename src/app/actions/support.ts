@@ -100,13 +100,13 @@ export async function adminSendSupportReply(
     const admin = createAdminClient();
     const { data: req } = await admin
         .from('support_requests')
-        .select('id, email, topic, status')
+        .select('id, email, topic, status, name, message')
         .eq('id', requestId)
-        .single() as { data: { id: string; email: string; topic: string; status: string } | null };
+        .single() as { data: { id: string; email: string; topic: string; status: string; name: string; message: string } | null };
     if (!req) return { success: false, error: 'Request not found' };
 
     const subject = `Re: ${req.topic} - AuctionsGH support`;
-    const sent = await sendSupportReplyEmail({ to: req.email, subject, text });
+    const sent = await sendSupportReplyEmail({ to: req.email, subject, text, name: req.name, topic: req.topic, originalMessage: req.message });
     if (!sent.ok) return { success: false, error: sent.error };
 
     const { data: row } = await admin
