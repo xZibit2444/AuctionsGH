@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { submitSupportRequest, SUPPORT_TOPICS } from '@/app/actions/support';
+import { submitSupportRequest } from '@/app/actions/support';
+import { SUPPORT_TOPICS } from '@/lib/supportTopics';
 
 const inputClass =
     'w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors';
