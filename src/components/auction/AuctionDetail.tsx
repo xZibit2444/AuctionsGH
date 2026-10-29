@@ -288,6 +288,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 </button>
                             </div>
                         </div>
+                        <h1 className="mb-3 text-2xl font-black tracking-tight text-black sm:text-3xl">
+                            {auction.title}
+                        </h1>
                         {(isSeller || profile?.is_super_admin === true) && auction.status !== 'sold' && (
                             <Link
                                 href={`/auctions/${auction.id}/edit`}
@@ -305,9 +308,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 bidCount={auction.bid_count ?? 0}
                             />
                         )}
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {auction.title}
-                        </h1>
                     </div>
 
                     {/* Seller */}
