@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
 import { SUPPORT_TOPICS } from '@/lib/supportTopics';
+import { sendSupportReplyEmail, SUPPORT_SENDER } from '@/lib/email/supportReply';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createAdminClient = () => _createAdminClient() as any;
@@ -83,4 +84,48 @@ export async function adminSetSupportStatus(
     const { error } = await admin.from('support_requests').update({ status }).eq('id', id);
     if (error) return { success: false, error: 'Could not update the request' };
     return { success: true };
+}
+
+export async function adminSendSupportReply(
+    requestId: string,
+    body: string
+): Promise<{ success: boolean; error?: string; reply?: { id: string; created_at: string; to_email: string; subject: string; body: string; from_address: string } }> {
+    const user = await requireSuperAdmin();
+    if (!user) return { success: false, error: 'Access denied' };
+
+    const text = (body ?? '').trim();
+    if (text.length < 2) return { success: false, error: 'Write a reply first.' };
+    if (text.length > 5000) return { success: false, error: 'Reply is too long (5000 characters max).' };
+
+    const admin = createAdminClient();
+    const { data: req } = await admin
+        .from('support_requests')
+        .select('id, email, topic, status')
+        .eq('id', requestId)
+        .single() as { data: { id: string; email: string; topic: string; status: string } | null };
+    if (!req) return { success: false, error: 'Request not found' };
+
+    const subject = `Re: ${req.topic} - AuctionsGH support`;
+    const sent = await sendSupportReplyEmail({ to: req.email, subject, text });
+    if (!sent.ok) return { success: false, error: sent.error };
+
+    const { data: row } = await admin
+        .from('support_replies')
+        .insert({
+            request_id: req.id,
+            sent_by: user.id,
+            to_email: req.email,
+            from_address: SUPPORT_SENDER,
+            subject,
+            body: text,
+            provider_message_id: sent.id,
+        })
+        .select('id, created_at, to_email, subject, body, from_address')
+        .single();
+
+    if (req.status === 'new') {
+        await admin.from('support_requests').update({ status: 'in_progress' }).eq('id', req.id);
+    }
+    // The email already went out; if only the history write failed, still report success.
+    return { success: true, reply: row ?? undefined };
 }
