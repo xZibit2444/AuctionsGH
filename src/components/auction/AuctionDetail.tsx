@@ -358,7 +358,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
                             { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
                             { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
-                            { label: 'Inspect First', value: auction.inspection_available ? 'Yes' : 'No' },
                         ].map(({ label, value }, index, items) => {
                             const isLastOddCard = items.length % 2 === 1 && index === items.length - 1;
 
