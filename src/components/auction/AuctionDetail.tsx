@@ -212,7 +212,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {/* Left — Images */}
-                <div className="space-y-4">
+                <div className="space-y-4 md:sticky md:top-6 md:self-start">
                     <div className="aspect-square bg-gray-50 border border-gray-200">
                         {images.length > 0 ? (
                             <img
@@ -410,6 +410,53 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         </div>
                     )}
 
+                </div>
+            </div>
+
+            <div className="mt-8 space-y-6 border-t border-gray-200 pt-8">
+                    {/* Specs */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
+                        {[
+                            { label: 'Category', value: auction.brand },
+                            { label: 'Brand / Model', value: auction.model || '—' },
+                            { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
+                            { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
+                            ...(auction.battery_health != null ? [{ label: 'Battery Health', value: `${auction.battery_health}%` }] : []),
+                            ...(auction.sim_type ? [{ label: 'SIM Type', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
+                            ...(auction.network_lock ? [{ label: 'Network Lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
+                            ...(auction.faults ? [{ label: 'Known Faults', value: auction.faults }] : []),
+                            { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
+                            { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
+                            { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
+                        ].map(({ label, value }, index, items) => {
+                            const isLastOddCard = items.length % 2 === 1 && index === items.length - 1;
+
+                            return (
+                                <div
+                                    key={label}
+                                    className={`bg-white border border-gray-200 px-4 py-3 min-h-[88px] flex flex-col justify-between ${isLastOddCard ? 'col-span-2 sm:col-span-1' : ''}`}
+                                >
+                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{label}</p>
+                                    <p className="text-sm font-bold text-black">{value}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
+                    </p>
+                    {/* Description */}
+                    {auction.description && (
+                        <div className="bg-gray-50 p-5 mt-2 border border-gray-200">
+                            <h2 className="text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                                Description
+                            </h2>
+                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                                {auction.description}
+                            </p>
+                        </div>
+                    )}
+
                     {/* Incoming offers panel for the seller — always show so history is visible */}
                     {isSeller && (
                         <>
@@ -456,53 +503,6 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                     Cancel
                                 </button>
                             )}
-                        </div>
-                    )}
-
-                </div>
-            </div>
-
-            <div className="mt-8 space-y-6 border-t border-gray-200 pt-8">
-                    {/* Specs */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
-                        {[
-                            { label: 'Category', value: auction.brand },
-                            { label: 'Brand / Model', value: auction.model || '—' },
-                            { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
-                            { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
-                            ...(auction.battery_health != null ? [{ label: 'Battery Health', value: `${auction.battery_health}%` }] : []),
-                            ...(auction.sim_type ? [{ label: 'SIM Type', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
-                            ...(auction.network_lock ? [{ label: 'Network Lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
-                            ...(auction.faults ? [{ label: 'Known Faults', value: auction.faults }] : []),
-                            { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
-                            { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
-                            { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
-                        ].map(({ label, value }, index, items) => {
-                            const isLastOddCard = items.length % 2 === 1 && index === items.length - 1;
-
-                            return (
-                                <div
-                                    key={label}
-                                    className={`bg-white border border-gray-200 px-4 py-3 min-h-[88px] flex flex-col justify-between ${isLastOddCard ? 'col-span-2 sm:col-span-1' : ''}`}
-                                >
-                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{label}</p>
-                                    <p className="text-sm font-bold text-black">{value}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
-                    </p>
-                    {/* Description */}
-                    {auction.description && (
-                        <div className="bg-gray-50 p-5 mt-2 border border-gray-200">
-                            <h2 className="text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                                Description
-                            </h2>
-                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                                {auction.description}
-                            </p>
                         </div>
                     )}
 
