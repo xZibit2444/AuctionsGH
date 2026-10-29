@@ -92,7 +92,7 @@ export default function AdminSupportClient({ initial, replies: initialReplies, s
                         <div className="mt-4 border border-gray-200 p-3">
                             <p className="text-[11px] text-gray-500 mb-2">To: {r.email} · From: {sender}</p>
                             <textarea rows={5} maxLength={5000} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write your reply" className="w-full border border-gray-200 px-3 py-2 text-sm text-black focus:outline-none focus:border-black resize-none" />
-                            <p className="text-[11px] text-gray-500 mt-2">The customer&apos;s answer will not appear here. Their reply goes to {replyTo}, so watch that inbox.</p>
+                            <p className="text-[11px] text-gray-500 mt-2">&quot;Hi {r.name.trim().split(/\s+/)[0] || 'there'},&quot; and your sign-off are added for you, so start with your message. The customer&apos;s answer will not appear here. Their reply goes to {replyTo}, so watch that inbox.</p>
                             <div className="flex gap-2 mt-3">
                                 <button disabled={sending} onClick={() => sendReply(r)} className="px-4 py-2 bg-black text-white text-xs font-semibold hover:bg-gray-900 disabled:opacity-50">{sending ? 'Sending...' : 'Send reply'}</button>
                                 <button disabled={sending} onClick={() => { setComposing(null); setDraft(''); }} className="px-4 py-2 border border-gray-200 text-xs font-semibold text-black hover:border-black">Cancel</button>
