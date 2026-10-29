@@ -39,4 +39,26 @@ describe('locations', () => {
         expect(getLocationsForRegion('Greater Accra')).toContain('Circle');
         expect(getLocationsForRegion('Accra')).toContain('Circle');
     });
+
+    it('accepts phone spec fields and treats empty strings as null', () => {
+        const r = updateListingSchema.safeParse({ ...base, battery_health: '', sim_type: '', network_lock: '', faults: '' });
+        expect(r.success).toBe(true);
+        if (r.success) {
+            expect(r.data.battery_health).toBeNull();
+            expect(r.data.sim_type).toBeNull();
+            expect(r.data.network_lock).toBeNull();
+        }
+        const ok = updateListingSchema.safeParse({ ...base, battery_health: '87', sim_type: 'esim', network_lock: 'unlocked', faults: 'Cracked back' });
+        expect(ok.success).toBe(true);
+        if (ok.success) expect(ok.data.battery_health).toBe(87);
+    });
+
+    it('rejects out of range battery health, unknown sim or lock values, and long faults', () => {
+        expect(updateListingSchema.safeParse({ ...base, battery_health: 101 }).success).toBe(false);
+        expect(updateListingSchema.safeParse({ ...base, battery_health: -1 }).success).toBe(false);
+        expect(updateListingSchema.safeParse({ ...base, battery_health: 80.5 }).success).toBe(false);
+        expect(updateListingSchema.safeParse({ ...base, sim_type: 'robot' }).success).toBe(false);
+        expect(updateListingSchema.safeParse({ ...base, network_lock: 'maybe' }).success).toBe(false);
+        expect(updateListingSchema.safeParse({ ...base, faults: 'x'.repeat(501) }).success).toBe(false);
+    });
 });
