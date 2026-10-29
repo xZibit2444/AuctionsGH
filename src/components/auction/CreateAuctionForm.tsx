@@ -14,6 +14,7 @@ import {
     getLocationsForRegion,
 } from '@/lib/constants';
 import { formatAuctionLocation } from '@/lib/utils';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity
 } from 'lucide-react';
@@ -75,6 +76,7 @@ export default function CreateAuctionForm() {
         inspection_available: true,
         winner_note: '',
     });
+    const [specs, setSpecs] = useState({ storage: '', battery: '', sim: '', lock: '', faults: '' });
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -158,7 +160,11 @@ export default function CreateAuctionForm() {
                     description: formData.description || null,
                     brand: formData.brand,
                     model: formData.model,
-                    storage_gb: formData.storage_gb || null,
+                    storage_gb: formData.storage_gb || (Number(specs.storage) > 0 ? Math.round(Number(specs.storage)) : null),
+                    battery_health: specs.battery !== '' && Number(specs.battery) >= 0 && Number(specs.battery) <= 100 ? Math.round(Number(specs.battery)) : null,
+                    sim_type: specs.sim || null,
+                    network_lock: specs.lock || null,
+                    faults: specs.faults.trim() || null,
                     condition: formData.condition,
                     starting_price: formData.starting_price,
                     current_price: formData.starting_price,
@@ -319,11 +325,11 @@ export default function CreateAuctionForm() {
                             </SelectInput>
                         </div>
                         <div>
-                            <FieldLabel optional>Brand / Variant</FieldLabel>
+                            <FieldLabel optional>Brand / Model</FieldLabel>
                             <input
                                 value={formData.model ?? ''}
                                 onChange={(e) => update('model', e.target.value)}
-                                placeholder="e.g. Samsung, Nike, Toyota…"
+                                placeholder="e.g. Apple iPhone 15 Pro, Samsung Galaxy S24…"
                                 className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
                             />
                         </div>
@@ -347,6 +353,36 @@ export default function CreateAuctionForm() {
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Optional specs */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <FieldLabel optional>Storage (GB)</FieldLabel>
+                            <input type="number" min={1} max={8192} value={specs.storage} onChange={(e) => setSpecs((p) => ({ ...p, storage: e.target.value }))} placeholder="e.g. 256" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                        </div>
+                        <div>
+                            <FieldLabel optional>Battery health (%)</FieldLabel>
+                            <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                        </div>
+                        <div>
+                            <FieldLabel optional>SIM type</FieldLabel>
+                            <SelectInput value={specs.sim} onChange={(e) => setSpecs((p) => ({ ...p, sim: e.target.value }))}>
+                                <option value="">Not specified</option>
+                                {SIM_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </SelectInput>
+                        </div>
+                        <div>
+                            <FieldLabel optional>Network lock</FieldLabel>
+                            <SelectInput value={specs.lock} onChange={(e) => setSpecs((p) => ({ ...p, lock: e.target.value }))}>
+                                <option value="">Not specified</option>
+                                {NETWORK_LOCK_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </SelectInput>
+                        </div>
+                    </div>
+                    <div>
+                        <FieldLabel optional>Known faults</FieldLabel>
+                        <textarea rows={2} maxLength={500} value={specs.faults} onChange={(e) => setSpecs((p) => ({ ...p, faults: e.target.value }))} placeholder="Cracks, Face ID not working, etc. Leave empty if none." className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none" />
                     </div>
 
                     {/* Description */}
@@ -742,4 +778,4 @@ export default function CreateAuctionForm() {
             )}
         </div>
     );
-}
+                    }
