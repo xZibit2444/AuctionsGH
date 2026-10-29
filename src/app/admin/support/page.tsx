@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import AdminSupportClient, { type SupportRow } from '@/components/admin/AdminSupportClient';
+import AdminSupportClient, { type SupportRow, type SupportReply } from '@/components/admin/AdminSupportClient';
+import { SUPPORT_SENDER, SUPPORT_REPLIES_ENABLED } from '@/lib/email/supportReply';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +26,18 @@ export default async function AdminSupportPage() {
         .order('created_at', { ascending: false })
         .limit(200) as { data: SupportRow[] | null };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: replies } = await (admin as any)
+        .from('support_replies')
+        .select('id, request_id, created_at, to_email, subject, body, from_address')
+        .order('created_at', { ascending: true })
+        .limit(1000) as { data: SupportReply[] | null };
+
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
             <h1 className="text-2xl font-black text-black">Support requests</h1>
             <p className="text-sm text-gray-500 mt-1 mb-6">Sent from the Contact Support page. Only super admins can see this.</p>
-            <AdminSupportClient initial={data ?? []} />
+            <AdminSupportClient initial={data ?? []} replies={replies ?? []} sender={SUPPORT_SENDER} enabled={SUPPORT_REPLIES_ENABLED} />
         </div>
     );
 }
