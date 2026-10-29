@@ -149,6 +149,22 @@ export default function DashboardPage() {
                         </Link>
 
                         <Link
+                            href="/admin/support"
+                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
+                                    <Mail className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-black">Support Requests</p>
+                                    <p className="text-xs text-gray-400">Read and resolve issues sent from Contact Support.</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
+                        </Link>
+
+                        <Link
                             href="/admin/newsletter"
                             className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
                         >

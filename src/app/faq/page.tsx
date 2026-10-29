@@ -335,12 +335,12 @@ export default function FAQPage() {
                     Can&apos;t find what you&apos;re looking for? Our support team is here to help.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                        href="mailto:support@auctionsgh.com"
+                    <Link
+                        href="/support"
                         className="inline-flex items-center justify-center px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
                     >
                         Contact Support
-                    </a>
+                    </Link>
                     <Link
                         href="/auctions"
                         className="inline-flex items-center justify-center px-5 py-2.5 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors"
