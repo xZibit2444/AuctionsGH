@@ -109,16 +109,26 @@ export default function CreateAuctionForm() {
         setErrors({});
         const result = createAuctionSchema.safeParse(formData);
 
+        const specErrors: Record<string, string> = {};
+        if (specs.storage !== '' && !(Number.isInteger(Number(specs.storage)) && Number(specs.storage) >= 1 && Number(specs.storage) <= 8192)) {
+            specErrors.spec_storage = 'Storage must be a whole number of GB between 1 and 8192.';
+        }
+        if (specs.battery !== '' && !(Number.isInteger(Number(specs.battery)) && Number(specs.battery) >= 0 && Number(specs.battery) <= 100)) {
+            specErrors.spec_battery = 'Battery health must be a whole number from 0 to 100.';
+        }
+
         // Zod Validation Check
-        if (!result.success) {
-            const fieldErrors: Record<string, string> = {};
-            result.error.issues.forEach((issue) => {
-                fieldErrors[issue.path[0] as string] = issue.message;
-            });
+        if (!result.success || Object.keys(specErrors).length > 0) {
+            const fieldErrors: Record<string, string> = { ...specErrors };
+            if (!result.success) {
+                result.error.issues.forEach((issue) => {
+                    fieldErrors[issue.path[0] as string] = issue.message;
+                });
+            }
             setErrors(fieldErrors);
 
             // If validation fails on step 3 but the error is on step 1/2, jump back to it
-            if (fieldErrors.title || fieldErrors.brand || fieldErrors.listing_city || fieldErrors.meetup_area) setStep(1);
+            if (fieldErrors.spec_storage || fieldErrors.spec_battery || fieldErrors.title || fieldErrors.brand || fieldErrors.listing_city || fieldErrors.meetup_area) setStep(1);
             else if (fieldErrors.images) setStep(2);
 
             return;
@@ -160,8 +170,8 @@ export default function CreateAuctionForm() {
                     description: formData.description || null,
                     brand: formData.brand,
                     model: formData.model,
-                    storage_gb: formData.storage_gb || (Number(specs.storage) > 0 ? Math.round(Number(specs.storage)) : null),
-                    battery_health: specs.battery !== '' && Number(specs.battery) >= 0 && Number(specs.battery) <= 100 ? Math.round(Number(specs.battery)) : null,
+                    storage_gb: formData.storage_gb || (specs.storage !== '' ? Number(specs.storage) : null),
+                    battery_health: specs.battery !== '' ? Number(specs.battery) : null,
                     sim_type: specs.sim || null,
                     network_lock: specs.lock || null,
                     faults: specs.faults.trim() || null,
@@ -360,10 +370,12 @@ export default function CreateAuctionForm() {
                         <div>
                             <FieldLabel optional>Storage (GB)</FieldLabel>
                             <input type="number" min={1} max={8192} value={specs.storage} onChange={(e) => setSpecs((p) => ({ ...p, storage: e.target.value }))} placeholder="e.g. 256" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                            {errors.spec_storage && <p className="text-[11px] text-red-500 mt-1">{errors.spec_storage}</p>}
                         </div>
                         <div>
                             <FieldLabel optional>Battery health (%)</FieldLabel>
                             <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                            {errors.spec_battery && <p className="text-[11px] text-red-500 mt-1">{errors.spec_battery}</p>}
                         </div>
                         <div>
                             <FieldLabel optional>SIM type</FieldLabel>
