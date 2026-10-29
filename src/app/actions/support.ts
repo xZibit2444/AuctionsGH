@@ -2,18 +2,10 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
+import { SUPPORT_TOPICS } from '@/lib/supportTopics';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createAdminClient = () => _createAdminClient() as any;
-
-export const SUPPORT_TOPICS = [
-    'Order or delivery',
-    'Listing or auction',
-    'Account or login',
-    'Report a user or listing',
-    'Becoming a seller',
-    'Something else',
-] as const;
 
 export interface SupportInput {
     name: string;
