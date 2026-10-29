@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import SupportReplyEmail from '@/emails/SupportReplyEmail';
 
 // Support replies use their own sender (approved by the owner), separate from the order-email sender.
 // Customer answers go to the Reply-To inbox, not the dashboard.
@@ -12,6 +13,9 @@ export async function sendSupportReplyEmail(args: {
     to: string;
     subject: string;
     text: string;
+    name: string;
+    topic: string;
+    originalMessage: string;
 }): Promise<{ ok: true; id: string | null } | { ok: false; error: string }> {
     if (!SUPPORT_REPLIES_ENABLED) return { ok: false, error: 'Email replies are not turned on yet.' };
     const key = process.env.RESEND_API_KEY;
@@ -23,7 +27,8 @@ export async function sendSupportReplyEmail(args: {
             replyTo: SUPPORT_REPLY_TO,
             to: args.to,
             subject: args.subject,
-            text: args.text,
+            react: SupportReplyEmail({ name: args.name, body: args.text, topic: args.topic, originalMessage: args.originalMessage }),
+            text: `Hi ${(args.name || '').trim().split(/\s+/)[0] || 'there'},\n\n${args.text}\n\nKind regards,\nAuctionsGH Support\nhttps://auctionsgh.com\n\n---\nYour message (${args.topic}):\n${args.originalMessage}\n`,
         });
         if (error) return { ok: false, error: error.message || 'The email provider rejected the message.' };
         return { ok: true, id: data?.id ?? null };
