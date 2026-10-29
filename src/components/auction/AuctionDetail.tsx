@@ -325,8 +325,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     {/* Specs */}
                     <div className="grid grid-cols-2 gap-3 auto-rows-fr mt-6">
                         {[
-                            { label: 'Brand', value: auction.brand },
-                            { label: 'Model', value: auction.model },
+                            { label: 'Category', value: auction.brand },
+                            { label: 'Brand / Model', value: auction.model || '—' },
                             { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
                             { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
                             { label: 'RAM', value: auction.ram_gb ? `${auction.ram_gb} GB` : '—' },

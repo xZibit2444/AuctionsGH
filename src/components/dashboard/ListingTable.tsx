@@ -13,6 +13,7 @@ import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
 import { deleteAuctionAction } from '@/app/actions/deleteAuction';
 import { relistAuctionAction } from '@/app/actions/relistAuction';
+import { setListingStatusAction, type ListingStatusChange } from '@/app/actions/updateListing';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 import { useRouter } from 'next/navigation';
@@ -72,6 +73,8 @@ export default function ListingTable({
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [statusBusyId, setStatusBusyId] = useState<string | null>(null);
+    const [statusOverrides, setStatusOverrides] = useState<Record<string, AuctionStatus>>({});
     const [renderTimestamp] = useState(() => Date.now());
 
     const effectiveStatus = adminMode ? (status === 'all' ? 'active' : status) : status;
@@ -99,6 +102,19 @@ export default function ListingTable({
         }
         setDeletingId(null);
         setDeleteConfirmId(null);
+    };
+
+    const handleStatusChange = async (auctionId: string, change: ListingStatusChange) => {
+        setDeleteError(null);
+        setStatusBusyId(auctionId);
+        const result = await setListingStatusAction(auctionId, change);
+        if (result.success) {
+            const next: AuctionStatus = change === 'pause' ? 'draft' : change === 'resume' ? 'active' : 'ended';
+            setStatusOverrides((prev) => ({ ...prev, [auctionId]: next }));
+        } else {
+            setDeleteError(result.error ?? 'Could not update this listing.');
+        }
+        setStatusBusyId(null);
     };
 
     const handleMarkSent = async (orderId: string) => {
@@ -176,7 +192,10 @@ export default function ListingTable({
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                    {visibleAuctions.map((auction) => {
+                    {visibleAuctions.map((rawAuction) => {
+                        const auction = statusOverrides[rawAuction.id]
+                            ? { ...rawAuction, status: statusOverrides[rawAuction.id] }
+                            : rawAuction;
                         const listingType = getListingType(auction);
                         const order = getAuctionOrder(auction);
                         const delivery = order ? getPrimaryDelivery(order.deliveries) : null;
@@ -291,6 +310,47 @@ export default function ListingTable({
                                                 </button>
                                             )
                                         )}
+                                        {!adminMode && !activeAcceptedOffer && auction.status !== 'sold' && (
+                                            <>
+                                                <Link
+                                                    href={`/auctions/${auction.id}/edit`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                >
+                                                    Edit
+                                                </Link>
+                                                {listingType === 'permanent' && (auction.bid_count ?? 0) === 0 && (
+                                                    <>
+                                                        {auction.status === 'active' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'pause')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Pause
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Mark sold
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {(auction.status === 'draft' || auction.status === 'ended') && (
+                                                            <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'resume')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Resume
+                                                                </button>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </>
+                                        )}
                                         {canRelist && (
                                             <button
                                                 onClick={() => void handleRelist(auction.id)}
@@ -371,6 +431,47 @@ export default function ListingTable({
                                         <Link href={`/auctions/${auction.id}`}>
                                             <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-black transition-colors" />
                                         </Link>
+                                        {!adminMode && !activeAcceptedOffer && auction.status !== 'sold' && (
+                                            <>
+                                                <Link
+                                                    href={`/auctions/${auction.id}/edit`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                >
+                                                    Edit
+                                                </Link>
+                                                {listingType === 'permanent' && (auction.bid_count ?? 0) === 0 && (
+                                                    <>
+                                                        {auction.status === 'active' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'pause')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Pause
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Mark sold
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {(auction.status === 'draft' || auction.status === 'ended') && (
+                                                            <button
+                                                                    onClick={() => void handleStatusChange(auction.id, 'resume')}
+                                                                    disabled={statusBusyId === auction.id}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                >
+                                                                    Resume
+                                                                </button>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </>
+                                        )}
                                         {canRelist && (
                                             <button
                                                 onClick={() => void handleRelist(auction.id)}
