@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import ProfileShortcut from './ProfileShortcut';
+import NotificationBell from './NotificationBell';
 
 const AUTH_ROUTES = ['/login', '/signup'];
 
@@ -11,7 +12,8 @@ export default function MainContent({ children }: { children: React.ReactNode })
     return (
         <div className={isAuth ? '' : 'sidebar-offset'}>
             {!isAuth && (
-                <div className="hidden sm:flex justify-end px-6 pt-4 -mb-2">
+                <div className="hidden sm:flex justify-end items-center gap-1 px-6 pt-1.5 -mb-1 relative z-30">
+                    <NotificationBell />
                     <ProfileShortcut />
                 </div>
             )}
