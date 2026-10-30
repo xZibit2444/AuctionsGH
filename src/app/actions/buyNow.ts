@@ -21,7 +21,7 @@ function displayName(p: { full_name?: string | null; username?: string | null } 
  * The price is read from the database, never from the client. The listing is
  * claimed with one conditional update (status must still be 'active'), so only
  * one buyer can win. The buyer then completes the normal pay-on-meetup
- * checkout at /checkout/[id] within its 30-minute window.
+ * checkout at /checkout/[id] (fixed-price listings have no checkout deadline).
  */
 export async function buyNowAction(
     auctionId: string
@@ -66,14 +66,14 @@ export async function buyNowAction(
         user_id: user.id,
         type: 'auction_won',
         title: 'Item Reserved For You',
-        body: `You bought "${listing.title}" at ${amountText}. You have 30 minutes to complete your order.`,
+        body: `You bought "${listing.title}" at ${amountText}. Confirm your order, then agree with the seller how to pay and collect.`,
         auction_id: auctionId,
     });
     await insertNotificationIfEnabled(supabaseAdmin as never, {
         user_id: listing.seller_id,
         type: 'new_offer',
         title: 'Item Bought At Listed Price',
-        body: `A buyer bought "${listing.title}" at ${amountText}. They have 30 minutes to complete the order.`,
+        body: `A buyer bought "${listing.title}" at ${amountText}. They will confirm the order and contact you to arrange payment and collection.`,
         auction_id: auctionId,
     });
 
