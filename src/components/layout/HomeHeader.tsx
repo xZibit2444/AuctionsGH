@@ -47,7 +47,7 @@ export default function HomeHeader({ search, setSearch }: HomeHeaderProps) {
                         router.push(q ? `/listings?q=${encodeURIComponent(q)}` : '/listings');
                     }
                 }}
-                className="flex h-11 max-w-[520px] flex-1 items-center gap-2 rounded-full border border-[#E9E6E0] bg-[#F5F4F0] px-4"
+                className={`flex ${controlled ? 'h-11' : 'h-9'} max-w-[520px] flex-1 items-center gap-2 rounded-full border border-[#E9E6E0] bg-[#F5F4F0] px-4`}
             >
                 <Search className="h-4 w-4 shrink-0 text-[#6E675E]" strokeWidth={2} />
                 <input
