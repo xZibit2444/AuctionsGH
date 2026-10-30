@@ -54,14 +54,14 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
                 {/* Body */}
                 <div className="px-3.5 pb-3.5 pt-3">
-                    <h3 className="line-clamp-2 text-[15px] font-bold leading-snug tracking-tight text-[#191612]">
+                    <h3 className="line-clamp-2 text-[15px] font-bold leading-[1.3] tracking-tight text-[#191612]">
                         {auction.title}
                     </h3>
-                    <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-[#6E675E]">
+                    <p className="mt-[5px] flex items-center gap-1 text-[12.5px] leading-[1.2] text-[#6E675E]">
                         <MapPin className="h-3 w-3 shrink-0" strokeWidth={2} />
                         {auction.listing_city ?? 'Greater Accra'} · {priceLabel}
                     </p>
-                    <p className="mt-2 text-[17px] font-extrabold tracking-tight text-black">
+                    <p className="mt-[9px] text-[17px] font-extrabold leading-[1.2] tracking-tight text-black">
                         {formatCurrency(auction.current_price)}
                     </p>
                 </div>
