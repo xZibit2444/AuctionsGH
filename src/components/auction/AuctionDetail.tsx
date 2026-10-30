@@ -254,7 +254,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
     const metaPills = (
         <div className="flex flex-wrap items-center gap-2">
-            {statusPill}
+            <span className="hidden sm:inline-flex">{statusPill}</span>
             <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
                 {getListingTypeLabel(listingType)}
             </span>
@@ -337,7 +337,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
     const buyerCtas = showBuyerCtas && (
         <div className="space-y-3">
-            <div className="flex gap-2.5">
+            <div className="hidden gap-2.5 sm:flex">
                 <button
                     type="button"
                     onClick={scrollToOffer}
