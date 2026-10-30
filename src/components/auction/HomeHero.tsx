@@ -43,13 +43,13 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                     <div className="mt-6 flex gap-3">
                         <Link
                             href="/listings"
-                            className="rounded-[10px] bg-amber-400 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-300"
+                            className="rounded-[10px] bg-amber-400 px-6 py-[13px] text-[15px] font-bold leading-[1.2] text-black transition-colors hover:bg-amber-300"
                         >
                             Browse listings
                         </Link>
                         <Link
                             href="/auctions/create"
-                            className="rounded-[10px] border-[1.5px] border-white/85 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                            className="rounded-[10px] border-[1.5px] border-white/85 px-[18px] py-[10px] text-sm font-bold leading-[1.2] text-white transition-colors hover:bg-white/10"
                         >
                             Sell an item
                         </Link>
