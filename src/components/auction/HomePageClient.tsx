@@ -7,6 +7,7 @@ import { getListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 import AuctionCarousel from '@/components/auction/AuctionCarousel';
 import AuctionFilters from '@/components/auction/AuctionFilters';
+import HomeHero from '@/components/auction/HomeHero';
 import CategoryBar from '@/components/layout/CategoryBar';
 
 export default function HomePageClient() {
@@ -44,6 +45,8 @@ export default function HomePageClient() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8">
+            <HomeHero auctions={auctions} loading={loading} />
+
             {error && (
                 <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     {error}
