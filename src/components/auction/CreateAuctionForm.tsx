@@ -140,7 +140,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         const arr = Array.from(files);
         const remaining = MAX_IMAGES_PER_AUCTION - images.length;
         const prepared = await Promise.all(arr.slice(0, remaining).map(prepareImage));
-        // A HEIC that is still HEIC here could not be converted. Don't add a photo nobody can see.
+        // A HEIC that is still HEIC here could not be converted. Do not add a photo nobody can see.
         const toAdd = prepared.filter((f) => !/^image\/hei[cf]$/i.test(f.type) && !/\.hei[cf]$/i.test(f.name));
         if (toAdd.length < prepared.length) {
             setErrors({ submit: "We couldn't convert an iPhone HEIC photo in this browser. Check your connection and try again, or choose it as JPG/PNG (on iPhone: Settings > Camera > Formats > Most Compatible)." });
