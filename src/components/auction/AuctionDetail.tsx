@@ -273,7 +273,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         : `${auction.bid_count} bid${auction.bid_count !== 1 ? 's' : ''} · auction ends when the timer runs out`;
 
     const sellerCard = (
-        <div className="flex items-center gap-3 border-t border-stone-200 pt-4">
+        <div className="flex items-center gap-3 border-t border-stone-200 pt-4 sm:mt-[18px]">
             <Link href={`/users/${auction.seller_id}`} className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80">
                 <Avatar
                     src={auctionData.profiles?.avatar_url}
@@ -325,9 +325,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     ];
 
     const factsRows = (
-        <div className="border-t border-stone-200">
+        <div className="border-t border-stone-200 sm:mt-[14px]">
             {facts.map(({ label, value }) => (
-                <div key={label} className="flex items-baseline justify-between gap-4 border-b border-stone-100 py-2.5 text-[13.5px] last:border-b-0">
+                <div key={label} className="flex items-baseline justify-between gap-4 border-b border-stone-200 py-[9px] leading-[1.2] text-[13.5px] last:border-b-0">
                     <span className="text-stone-500">{label}</span>
                     <span className="text-right font-semibold text-stone-900">{value}</span>
                 </div>
@@ -336,12 +336,12 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     );
 
     const buyerCtas = showBuyerCtas && (
-        <div className="space-y-3">
+        <div className={`space-y-3 sm:mt-[18px] ${isPermanent && !buyNowEnabled ? '' : 'hidden sm:block'}`}>
             <div className="hidden gap-2.5 sm:flex">
                 <button
                     type="button"
                     onClick={scrollToOffer}
-                    className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold text-black transition-colors hover:bg-amber-300"
+                    className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:bg-amber-300"
                 >
                     Make an offer
                 </button>
@@ -349,7 +349,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <button
                         type="button"
                         onClick={clickBuyNow}
-                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold sm:text-[15px] text-white transition-colors hover:bg-stone-800"
                     >
                         Buy now
                     </button>
@@ -358,7 +358,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <button
                         type="button"
                         onClick={scrollToBid}
-                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold sm:text-[15px] text-white transition-colors hover:bg-stone-800"
                     >
                         Place a bid
                     </button>
@@ -373,7 +373,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     );
 
     const manageCard = (isSeller || isAdmin) && (
-        <div className="space-y-3 rounded-2xl border border-dashed border-stone-300 bg-white p-4">
+        <div className="space-y-3 sm:mt-4 rounded-2xl border border-dashed border-stone-300 bg-white p-4">
             <div className="flex items-center justify-between gap-2">
                 <p className="text-[13px] font-semibold text-stone-500">
                     {isSeller ? 'You listed this item' : 'Admin controls'}
@@ -430,21 +430,21 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     );
 
     const purchasePanel = (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4 sm:gap-0">
             {metaPills}
-            <div>
-                <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-black sm:text-[26px]">
+            <div className="sm:mt-[10px]">
+                <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-black sm:text-[26px] sm:leading-[1.15]">
                     {auction.title}
                 </h1>
-                <p className="mt-1 text-[13px] text-stone-500">
+                <p className="mt-1 text-[13px] leading-[1.2] text-stone-500">
                     {auction.listing_city ?? 'Greater Accra'}
                 </p>
             </div>
-            <div>
-                <p className="text-[26px] font-extrabold tracking-tight text-black sm:text-3xl">
+            <div className="sm:mt-[14px]">
+                <p className="text-[26px] font-extrabold leading-[1.2] tracking-tight text-black sm:text-[30px]">
                     {formatCurrency(auction.current_price)}
                 </p>
-                <p className="mt-1 text-[12.5px] text-stone-500">{priceSubline}</p>
+                <p className="mt-1 text-[12.5px] text-stone-500 sm:mt-[3px] sm:text-[13px] sm:leading-[1.2]">{priceSubline}</p>
             </div>
 
             {!isPermanent && isActive && (
@@ -503,7 +503,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             </div>
 
             {/* Desktop: gallery left, purchase panel right */}
-            <div className="hidden sm:grid sm:grid-cols-[1.15fr_1fr] sm:items-start sm:gap-8 lg:gap-10">
+            <div className="hidden sm:grid sm:grid-cols-[1.35fr_1fr] sm:items-start sm:gap-7">
                 <div className="sm:sticky sm:top-6 sm:self-start">
                     <ListingGallery
                         auctionId={auction.id}
@@ -515,7 +515,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         rounded
                     />
                 </div>
-                <div className="rounded-2xl border border-stone-200 bg-white p-6 sm:sticky sm:top-6">
+                <div className="rounded-2xl border border-stone-200 bg-white px-6 py-[22px] sm:sticky sm:top-5">
                     {purchasePanel}
                 </div>
             </div>
