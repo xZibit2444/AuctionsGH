@@ -33,7 +33,7 @@ interface AuctionWonEmailProps {
     winningBidAmount: number;
 
     checkoutUrl: string;
-
+    buyNow?: boolean;
 }
 
 
@@ -47,14 +47,14 @@ export const AuctionWonEmail = ({
     winningBidAmount,
 
     checkoutUrl,
-
+    buyNow = false,
 }: AuctionWonEmailProps) => (
 
     <Html>
 
         <Head />
 
-        <Preview>You won {auctionTitle}!</Preview>
+        <Preview>{buyNow ? `Confirm your order for ${auctionTitle}` : `You won ${auctionTitle}!`}</Preview>
 
         <Body style={main}>
 
@@ -68,7 +68,7 @@ export const AuctionWonEmail = ({
 
 
 
-                <Heading style={h1}>Congratulations, you won!</Heading>
+                <Heading style={h1}>{buyNow ? 'Confirm your order' : 'Congratulations, you won!'}</Heading>
 
 
 
@@ -76,7 +76,7 @@ export const AuctionWonEmail = ({
 
                 <Text style={text}>
 
-                    You are the winning bidder for <strong>{auctionTitle}</strong> with your bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.
+                    {buyNow ? <>You bought <strong>{auctionTitle}</strong> at the listed price of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</> : <>You are the winning bidder for <strong>{auctionTitle}</strong> with your bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
 
                 </Text>
 
@@ -102,7 +102,7 @@ export const AuctionWonEmail = ({
 
                 <Text style={footer}>
 
-                    This link will expire in 48 hours. If you do not check out in time, the item may be offered to the next highest bidder.
+                    {buyNow ? 'You have 30 minutes to confirm your order. You and the seller then agree how to pay and collect the item.' : 'This link will expire in 48 hours. If you do not check out in time, the item may be offered to the next highest bidder.'}
 
                 </Text>
 
@@ -251,4 +251,3 @@ const footer = {
 
 
 export default AuctionWonEmail;
-
