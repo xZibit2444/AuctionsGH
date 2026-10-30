@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isPermanentListing } from '@/lib/listings';
+import { AUCTION_VIDEOS_BUCKET } from '@/lib/constants';
 import type { Auction, AuctionImage } from '@/types/auction';
 import type { Profile } from '@/types/profile';
 
@@ -136,6 +137,7 @@ export async function relistAuctionAction(
 
     const endsAt = getRelistEndsAt(auction);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: relistedAuction, error: insertError } = await (supabaseAdmin.from('auctions') as any)
         .insert({
             seller_id: auction.seller_id,
@@ -177,10 +179,41 @@ export async function relistAuctionAction(
         }));
 
     if (imageRows.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: imageError } = await (supabaseAdmin.from('auction_images') as any).insert(imageRows);
         if (imageError) {
             await supabaseAdmin.from('auctions').delete().eq('id', nextAuctionId);
             return { success: false, error: imageError.message };
+        }
+    }
+
+    // Carry over the validated listing video: copy the stored file so the relisted
+    // video is independent of the original listing (deleting one never breaks the other).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sourceVideo } = await (supabaseAdmin.from('listing_videos') as any)
+        .select('storage_path, content_type, size_bytes, duration_seconds')
+        .eq('auction_id', auctionId)
+        .maybeSingle();
+
+    if (sourceVideo) {
+        const videoExt = sourceVideo.content_type === 'video/webm' ? 'webm' : 'mp4';
+        const nextVideoPath = `${auction.seller_id}/${nextAuctionId}/${Date.now()}-video.${videoExt}`;
+        const { error: videoCopyError } = await supabaseAdmin.storage
+            .from(AUCTION_VIDEOS_BUCKET)
+            .copy(sourceVideo.storage_path, nextVideoPath);
+        if (videoCopyError) {
+            console.error('Failed to copy listing video on relist:', videoCopyError.message);
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error: videoInsertError } = await (supabaseAdmin.from('listing_videos') as any).insert({
+                auction_id: nextAuctionId,
+                seller_id: auction.seller_id,
+                storage_path: nextVideoPath,
+                content_type: sourceVideo.content_type,
+                size_bytes: sourceVideo.size_bytes,
+                duration_seconds: sourceVideo.duration_seconds,
+            });
+            if (videoInsertError) console.error('Failed to save relisted video record:', videoInsertError.message);
         }
     }
 
@@ -194,6 +227,7 @@ export async function relistAuctionAction(
         };
 
     if (winnerNoteRow?.note) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabaseAdmin.from('auction_winner_notes') as any).insert({
             auction_id: nextAuctionId,
             seller_id: auction.seller_id,

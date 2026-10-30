@@ -22,6 +22,7 @@ export function useAuction(auctionId: string) {
                     `
           *,
           auction_images (url, position),
+          listing_videos (id, content_type, duration_seconds),
           profiles!auctions_seller_id_fkey (
             id, username, full_name, avatar_url, location, is_verified
           ),

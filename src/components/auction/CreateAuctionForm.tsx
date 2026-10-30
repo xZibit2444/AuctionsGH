@@ -5,18 +5,23 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useVideoUpload } from '@/hooks/useVideoUpload';
+import { finalizeListingVideo } from '@/app/actions/listingVideo';
 import { createAuctionSchema, type CreateAuctionInput } from '@/lib/validators';
 import {
     ITEM_CATEGORIES,
     CONDITION_LABELS,
     MAX_IMAGES_PER_AUCTION,
+    MAX_VIDEO_SIZE,
+    MAX_VIDEO_DURATION_SECONDS,
+    ALLOWED_VIDEO_TYPES,
     GHANA_REGIONS,
     getLocationsForRegion,
 } from '@/lib/constants';
 import { formatAuctionLocation } from '@/lib/utils';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 import {
-    Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity
+    Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity, Video
 } from 'lucide-react';
 import Link from 'next/link';
 import { prepareImage } from '@/lib/prepareImage';
@@ -59,6 +64,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const supabase = createClient();
     const { user } = useAuth();
     const { uploadImage, uploading } = useImageUpload();
+    const { uploadVideo } = useVideoUpload();
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<CreateAuctionInput>({
@@ -89,6 +95,12 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const [allowBuyNow, setAllowBuyNow] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const [videoDuration, setVideoDuration] = useState<number | null>(null);
+    const [videoError, setVideoError] = useState<string | null>(null);
+    const [videoWarning, setVideoWarning] = useState<string | null>(null);
     const [copiedFrom, setCopiedFrom] = useState<string | null>(null);
 
     // Duplicate: prefill the form from one of the seller's own listings. Nothing is published
@@ -154,6 +166,48 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         URL.revokeObjectURL(previews[index]);
         setImages(images.filter((_, i) => i !== index));
         setPreviews(previews.filter((_, i) => i !== index));
+    };
+
+    const readVideoDuration = (file: File): Promise<number | null> =>
+        new Promise((resolve) => {
+            const url = URL.createObjectURL(file);
+            const el = document.createElement('video');
+            el.preload = 'metadata';
+            el.onloadedmetadata = () => { const d = el.duration; URL.revokeObjectURL(url); resolve(Number.isFinite(d) ? d : null); };
+            el.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+            el.src = url;
+        });
+
+    const handleVideoAdd = async (files: FileList | File[]) => {
+        const file = Array.from(files)[0];
+        if (!file) return;
+        setVideoError(null);
+        if (!(ALLOWED_VIDEO_TYPES as readonly string[]).includes(file.type)) {
+            setVideoError('Videos must be MP4 or WebM. If your video is a .mov or iPhone HEVC file, convert it to MP4 first.');
+            return;
+        }
+        if (file.size > MAX_VIDEO_SIZE) {
+            setVideoError('The video is over 20MB. Please use a shorter or smaller video.');
+            return;
+        }
+        const duration = await readVideoDuration(file);
+        if (duration !== null && duration > MAX_VIDEO_DURATION_SECONDS) {
+            setVideoError(`Please keep the video under ${MAX_VIDEO_DURATION_SECONDS} seconds.`);
+            return;
+        }
+        if (videoPreview) URL.revokeObjectURL(videoPreview);
+        setVideoFile(file);
+        setVideoDuration(duration);
+        setVideoPreview(URL.createObjectURL(file));
+    };
+
+    const removeVideo = () => {
+        if (videoPreview) URL.revokeObjectURL(videoPreview);
+        setVideoFile(null);
+        setVideoPreview(null);
+        setVideoDuration(null);
+        setVideoError(null);
+        if (videoInputRef.current) videoInputRef.current.value = '';
     };
 
     const handleSubmit = async () => {
@@ -287,6 +341,22 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 if (imgError) console.error('Failed to save image records:', imgError.message);
             }
 
+            if (videoFile) {
+                try {
+                    const uploaded = await withTimeout(uploadVideo(videoFile, user.id, auctionId), 90000);
+                    if (!uploaded) {
+                        setVideoWarning('Your listing is live, but the video upload failed. Edit the listing or delete and relist to add it again.');
+                    } else {
+                        const fin = await finalizeListingVideo(auctionId, uploaded.path, videoDuration ?? undefined);
+                        if (!fin.success) {
+                            setVideoWarning(`Your listing is live, but the video was not added: ${fin.error}`);
+                        }
+                    }
+                } catch {
+                    setVideoWarning('Your listing is live, but the video upload failed. You can delete and relist to try again.');
+                }
+            }
+
             setPublishedAuctionId(auctionId);
         } catch (err) {
             setErrors({ submit: 'An unexpected error occurred during publishing. Please try again.' });
@@ -312,6 +382,11 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         ? 'Your listing is now live and ready to receive offers.'
                         : 'Your listing is now live and accepting bids.'}
                 </p>
+                {videoWarning && (
+                    <p className="text-sm text-red-600 border border-red-200 bg-red-50 px-4 py-3 mb-6 text-left">
+                        {videoWarning}
+                    </p>
+                )}
 
                 <div className="space-y-3">
                     <Link
@@ -634,6 +709,45 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             )}
                         </div>
                     )}
+
+                    {/* Optional video */}
+                    <div>
+                        <FieldLabel optional>Video</FieldLabel>
+                        {videoPreview ? (
+                            <div className="relative border border-gray-200 bg-black">
+                                <video
+                                    src={videoPreview}
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    className="w-full max-h-64 object-contain"
+                                />
+                                <button
+                                    onClick={removeVideo}
+                                    className="absolute top-2 right-2 h-6 w-6 bg-black/70 text-white flex items-center justify-center"
+                                    aria-label="Remove video"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => videoInputRef.current?.click()}
+                                className="w-full border-2 border-dashed border-gray-200 px-4 py-5 text-center text-xs text-gray-400 hover:border-black hover:text-black transition-colors duration-200 flex items-center justify-center gap-2"
+                            >
+                                <Video className="h-4 w-4" strokeWidth={1.5} />
+                                Add a video - MP4 or WebM, up to 20MB and {MAX_VIDEO_DURATION_SECONDS} seconds
+                            </button>
+                        )}
+                        <input
+                            ref={videoInputRef}
+                            type="file"
+                            accept="video/mp4,video/webm"
+                            className="hidden"
+                            onChange={(e) => { if (e.target.files) handleVideoAdd(e.target.files); e.target.value = ''; }}
+                        />
+                        {videoError && <p className="text-[11px] text-red-500 mt-1">{videoError}</p>}
+                    </div>
 
                     <div className="flex gap-3">
                         <button

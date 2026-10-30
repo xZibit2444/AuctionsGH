@@ -2,10 +2,27 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { AUCTION_VIDEOS_BUCKET } from '@/lib/constants';
 import type { Profile } from '@/types/profile';
 import type { Auction } from '@/types/auction';
 
 const supabaseAdmin = createAdminClient();
+
+// Listing videos live in storage; unlike images (legacy behavior), deleting a listing
+// also removes its video file so it is not orphaned.
+async function removeListingVideoFiles(auctionId: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: videos } = await (supabaseAdmin.from('listing_videos') as any)
+        .select('storage_path')
+        .eq('auction_id', auctionId);
+    const paths = ((videos ?? []) as { storage_path: string }[])
+        .map((v) => v.storage_path)
+        .filter(Boolean);
+    if (paths.length > 0) {
+        const { error } = await supabaseAdmin.storage.from(AUCTION_VIDEOS_BUCKET).remove(paths);
+        if (error) console.error('Failed to remove listing video files:', error.message);
+    }
+}
 type OrderStatusRow = { status: string };
 
 export async function deleteAuctionAction(
@@ -44,6 +61,7 @@ export async function deleteAuctionAction(
     }
 
     if (isSuperAdmin) {
+        await removeListingVideoFiles(auctionId);
         const { error } = await supabaseAdmin
             .from('auctions')
             .delete()
@@ -88,6 +106,7 @@ export async function deleteAuctionAction(
         }
     }
 
+    await removeListingVideoFiles(auctionId);
     const { error } = await supabaseAdmin
         .from('auctions')
         .delete()
