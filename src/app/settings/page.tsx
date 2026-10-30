@@ -42,7 +42,7 @@ function InfoRow({ label, value, placeholder }: { label: string; value: string; 
     return (
         <div className="flex items-start justify-between py-4 border-b border-gray-100 last:border-0 gap-5">
             <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest shrink-0 pt-0.5 w-28">{label}</span>
-            <span className={`text-sm font-semibold text-right flex-1 truncate ${value ? 'text-black' : 'text-gray-300'}`}>
+            <span className={`text-sm font-semibold text-right flex-1 min-w-0 break-words [overflow-wrap:anywhere] ${value ? 'text-black' : 'text-gray-300'}`}>
                 {value || placeholder || '—'}
             </span>
         </div>
@@ -185,11 +185,11 @@ function SectionIntro({ eyebrow, title, subtitle }: { eyebrow: string; title: st
 
 function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'strong' }) {
     return (
-        <div className={`min-w-0 min-h-[132px] border px-5 py-5 flex flex-col justify-between ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
+        <div className={`min-w-0 min-h-[96px] border px-5 py-5 flex flex-col justify-between gap-3 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
             <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
             <p
                 title={value}
-                className="overflow-hidden text-ellipsis whitespace-nowrap text-[15px] sm:text-base font-black tracking-tight leading-tight"
+                className="min-w-0 break-words [overflow-wrap:anywhere] text-[15px] sm:text-base font-black tracking-tight leading-snug"
             >
                 {value}
             </p>
@@ -476,7 +476,7 @@ export default function SettingsPage() {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
                 {/* Header */}
                 <div className="mb-6 sm:mb-8 border border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#f3f4f6_100%)] p-6 sm:p-8 lg:p-10">
-                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="flex flex-col gap-8">
                         <div className="max-w-2xl">
                             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-400">Account Center</p>
                             <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-black">Settings</h1>
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                                 Update your public profile, control notifications, and manage device access from one place.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full lg:max-w-[36rem] items-stretch">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full items-stretch">
                             <SummaryStat label="Profile" value={profileDisplayName} tone="strong" />
                             <SummaryStat label="Privacy" value={publicProfileSummary} />
                             <SummaryStat label="Signed In" value={user?.email ?? 'No email'} />
@@ -495,19 +495,19 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] gap-6 lg:gap-8">
                     {/* Tab Nav */}
                     <nav className="border border-gray-200 bg-white p-3 sm:p-4 h-fit">
-                        <div className="flex lg:flex-col gap-2.5 overflow-x-auto scrollbar-hide pb-1 lg:pb-0">
+                        <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-col lg:gap-2.5">
                         {tabs.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
                                 onClick={() => { setActiveTab(id); setEditing(false); }}
-                                className={`group flex items-center gap-3 px-4 py-3.5 text-sm font-semibold whitespace-nowrap transition-all shrink-0 text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
+                                className={`group flex min-w-0 items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3 lg:py-3.5 text-sm font-semibold transition-all text-center lg:text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
                             >
-                                <span className={`flex h-9 w-9 items-center justify-center border ${activeTab === id ? 'border-white/20 bg-white/10' : 'border-gray-200 bg-white text-gray-400 group-hover:text-black'}`}>
+                                <span className={`hidden sm:flex h-9 w-9 shrink-0 items-center justify-center border ${activeTab === id ? 'border-white/20 bg-white/10' : 'border-gray-200 bg-white text-gray-400 group-hover:text-black'}`}>
                                     <Icon className="h-4 w-4" strokeWidth={1.8} />
                                 </span>
                                 <span>
                                     <span className="block">{label}</span>
-                                    <span className={`block text-[10px] font-bold uppercase tracking-[0.2em] ${activeTab === id ? 'text-white/60' : 'text-gray-300 group-hover:text-gray-400'}`}>
+                                    <span className={`hidden sm:block text-[10px] font-bold uppercase tracking-[0.2em] ${activeTab === id ? 'text-white/60' : 'text-gray-300 group-hover:text-gray-400'}`}>
                                         {id === 'profile' ? 'Identity' : id === 'notifications' ? 'Alerts' : 'Access'}
                                     </span>
                                 </span>
@@ -574,12 +574,12 @@ export default function SettingsPage() {
                                     />
                                     <div className="min-w-0 flex-1 space-y-1">
                                         <div className="flex items-center gap-1.5">
-                                            <p className="text-sm font-black text-black truncate">
+                                            <p className="text-sm font-black text-black break-words">
                                                 {profile?.full_name || profile?.username || 'No name set'}
                                             </p>
                                             {profile?.is_verified && <BadgeCheck className="h-4 w-4 text-black shrink-0" />}
                                         </div>
-                                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                                        <p className="text-xs text-gray-400 break-words [overflow-wrap:anywhere]">{user?.email}</p>
                                         <p className="text-[11px] text-gray-400 mt-0.5">
                                             Member since {new Date(profile?.created_at ?? Date.now()).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                                         </p>
@@ -896,4 +896,4 @@ export default function SettingsPage() {
             </div>
         </AuthGuard>
     );
-}
+                                        }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { prepareImage } from '@/lib/prepareImage';
+import { isPermanentListing } from '@/lib/listings';
 
 const STEPS = ['Item Details', 'Photos', 'Pricing'];
 
@@ -53,7 +54,7 @@ function SelectInput({ value, onChange, children }: {
     );
 }
 
-export default function CreateAuctionForm() {
+export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string }) {
     const router = useRouter();
     const supabase = createClient();
     const { user } = useAuth();
@@ -87,6 +88,48 @@ export default function CreateAuctionForm() {
     const [isPermanent, setIsPermanent] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [copiedFrom, setCopiedFrom] = useState<string | null>(null);
+
+    // Duplicate: prefill the form from one of the seller's own listings. Nothing is published
+    // and photos are not copied, so the seller reviews everything and adds photos first.
+    useEffect(() => {
+        if (!copyFromId || !user) return;
+        let cancelled = false;
+        (async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data } = await (supabase.from('auctions') as any)
+                .select('title, description, brand, model, storage_gb, battery_health, sim_type, network_lock, faults, condition, starting_price, min_increment, ends_at, listing_city, meetup_area, delivery_available, inspection_available, seller_id')
+                .eq('id', copyFromId)
+                .eq('seller_id', user.id)
+                .maybeSingle();
+            if (cancelled || !data) return;
+            setFormData((prev) => ({
+                ...prev,
+                title: data.title ?? '',
+                description: data.description ?? '',
+                brand: data.brand ?? prev.brand,
+                model: data.model ?? '',
+                condition: data.condition ?? prev.condition,
+                starting_price: Number(data.starting_price) || 0,
+                min_increment: Number(data.min_increment) || prev.min_increment,
+                listing_city: data.listing_city ?? prev.listing_city,
+                meetup_area: data.meetup_area ?? prev.meetup_area,
+                delivery_available: data.delivery_available ?? prev.delivery_available,
+                inspection_available: data.inspection_available ?? prev.inspection_available,
+            }));
+            setSpecs({
+                storage: data.storage_gb != null ? String(data.storage_gb) : '',
+                battery: data.battery_health != null ? String(data.battery_health) : '',
+                sim: data.sim_type ?? '',
+                lock: data.network_lock ?? '',
+                faults: data.faults ?? '',
+            });
+            setIsPermanent(isPermanentListing(data.ends_at));
+            setCopiedFrom(data.title ?? 'your listing');
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [copyFromId, user?.id]);
     const locationOptions = getLocationsForRegion(formData.listing_city);
 
     const update = <K extends keyof CreateAuctionInput>(field: K, value: CreateAuctionInput[K]) =>
@@ -282,6 +325,11 @@ export default function CreateAuctionForm() {
 
     return (
         <div className="max-w-2xl mx-auto">
+            {copiedFrom && (
+                <div className="mb-6 border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-black">
+                    Copied from &quot;{copiedFrom}&quot;. Nothing is published yet. Add your photos and check the details and price before you publish.
+                </div>
+            )}
             {/* Step indicator */}
             <div className="flex items-center mb-10">
                 {STEPS.map((label, i) => (
@@ -792,4 +840,4 @@ export default function CreateAuctionForm() {
             )}
         </div>
     );
-                    }
+                                }

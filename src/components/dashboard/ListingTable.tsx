@@ -318,6 +318,12 @@ export default function ListingTable({
                                                 >
                                                     Edit
                                                 </Link>
+                                                <Link
+                                                    href={`/auctions/create?from=${auction.id}`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                >
+                                                    Duplicate
+                                                </Link>
                                                 {listingType === 'permanent' && (auction.bid_count ?? 0) === 0 && (
                                                     <>
                                                         {auction.status === 'active' && (
@@ -438,6 +444,12 @@ export default function ListingTable({
                                                     className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
                                                 >
                                                     Edit
+                                                </Link>
+                                                <Link
+                                                    href={`/auctions/create?from=${auction.id}`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                >
+                                                    Duplicate
                                                 </Link>
                                                 {listingType === 'permanent' && (auction.bid_count ?? 0) === 0 && (
                                                     <>

@@ -33,7 +33,7 @@ interface AuctionSoldEmailProps {
     winningBidAmount: number;
 
     winnerName: string;
-
+    buyNow?: boolean;
 }
 
 
@@ -47,14 +47,14 @@ export const AuctionSoldEmail = ({
     winningBidAmount,
 
     winnerName,
-
+    buyNow = false,
 }: AuctionSoldEmailProps) => (
 
     <Html>
 
         <Head />
 
-        <Preview>Your auction for {auctionTitle} has sold!</Preview>
+        <Preview>{buyNow ? `${auctionTitle} was bought at your listed price` : `Your auction for ${auctionTitle} has sold!`}</Preview>
 
         <Body style={main}>
 
@@ -76,13 +76,13 @@ export const AuctionSoldEmail = ({
 
                 <Text style={text}>
 
-                    Congratulations! Your auction for <strong>{auctionTitle}</strong> has successfully ended.
+                    {buyNow ? <>Good news! <strong>{auctionTitle}</strong> was bought at your listed price.</> : <>Congratulations! Your auction for <strong>{auctionTitle}</strong> has successfully ended.</>}
 
                 </Text>
 
                 <Text style={text}>
 
-                    The winning bidder, <strong>{winnerName}</strong>, secured the item with a bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.
+                    {buyNow ? <><strong>{winnerName}</strong> bought it for <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</> : <>The winning bidder, <strong>{winnerName}</strong>, secured the item with a bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
 
                 </Text>
 
@@ -100,7 +100,7 @@ export const AuctionSoldEmail = ({
 
                     <Text style={text}>
 
-                        If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.
+                        {buyNow ? 'If the buyer does not confirm within the 30-minute window, the order will not go ahead and you can relist the item.' : 'If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.'}
 
                     </Text>
 
@@ -303,4 +303,3 @@ const footer = {
 
 
 export default AuctionSoldEmail;
-

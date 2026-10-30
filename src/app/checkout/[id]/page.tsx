@@ -118,12 +118,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
     const faqs = [
         {
-            q: "How does Pay on Delivery work?",
-            a: "You confirm the order now, then pay the seller when the item is delivered or at meetup. Always inspect the item before handing over payment."
+            q: "How does payment work?",
+            a: "AuctionsGH does not take payment. You confirm the order now, then you and the seller agree how and where to pay and collect. Always inspect the item before handing over payment."
         },
         {
             q: "What if I miss the 30-minute window?",
-            a: "If the order is not confirmed within 30 minutes, your winning bid is cancelled and may be passed to the next highest bidder. Repeated unconfirmed wins may result in account suspension."
+            a: "If the order is not confirmed within 30 minutes, your order is cancelled and the item may go back on sale. Repeated unconfirmed wins may result in account suspension."
         },
         {
             q: "How do I receive my item?",
@@ -191,7 +191,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-200 mb-8">
                 <div>
                     <h1 className="text-3xl font-black text-black tracking-tight mb-2">Confirm Your Order</h1>
-                    <p className="text-gray-500 text-sm font-medium">Pay on Delivery only. Confirm now to secure the item.</p>
+                    <p className="text-gray-500 text-sm font-medium">No online payment. Confirm now to secure the item, then arrange payment and collection with the seller.</p>
                 </div>
                 <div className="w-full md:w-64 shrink-0">
                     <CheckoutTimer endsAt={auction.ends_at} />
@@ -336,7 +336,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
                             <div className="mb-6 border border-gray-200 p-3 bg-gray-50">
                                 <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Payment Method</h4>
-                                <p className="text-sm font-semibold text-black">Pay on Delivery</p>
+                                <p className="text-sm font-semibold text-black">Paid directly to the seller</p>
                             </div>
 
                             {/* Cost Breakdown */}
@@ -365,11 +365,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 disabled={isProcessing}
                                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
                             >
-                                {isProcessing ? 'Confirming...' : 'Confirm Pay-on-Delivery Order'}
+                                {isProcessing ? 'Confirming...' : 'Confirm Order'}
                             </button>
 
                             <div className="text-center text-[11px] text-gray-400 font-medium">
-                                You will pay the seller directly upon delivery or at meetup after inspection.
+                                You pay the seller directly, as you both agree. Inspect the item first.
                             </div>
                         </div>
                     </div>
@@ -377,4 +377,4 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             </div>
         </div>
     );
-}
+                           }
