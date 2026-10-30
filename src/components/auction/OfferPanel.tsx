@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
+import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
 
@@ -36,9 +37,10 @@ interface OfferPanelProps {
     isSeller: boolean;
     userId?: string | null;
     isActive?: boolean;
+    listingPrice?: number;
 }
 
-export default function OfferPanel({ auctionId, isSeller, userId, isActive = true }: OfferPanelProps) {
+export default function OfferPanel({ auctionId, isSeller, userId, isActive = true, listingPrice }: OfferPanelProps) {
     const isLoggedIn = !!userId;
 
     const router = useRouter();
@@ -52,6 +54,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     const [submitting, setSubmitting] = useState(false);
 
     const [formError, setFormError] = useState('');
+    const [buyError, setBuyError] = useState('');
 
     const [responding, setResponding] = useState<string | null>(null);
 
@@ -104,6 +107,24 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     }, [auctionId, fetchOffers]);
 
 
+
+    const handleBuyNow = async () => {
+        if (!isLoggedIn) {
+            router.push(`/login?redirectTo=/auctions/${auctionId}`);
+            return;
+        }
+        if (!listingPrice || listingPrice <= 0) return;
+        if (!window.confirm(`Buy this item for ${formatCurrency(listingPrice)}? You and the seller then agree how to pay and collect it. You have 30 minutes to confirm your order after this step.`)) return;
+        setSubmitting(true);
+        setBuyError('');
+        const result = await buyNowAction(auctionId);
+        if (!result.success) {
+            setSubmitting(false);
+            setBuyError(result.error ?? 'Could not complete the purchase');
+            return;
+        }
+        router.push(`/checkout/${auctionId}`);
+    };
 
     const handleSendOffer = async (e: React.FormEvent) => {
 
@@ -168,14 +189,30 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
     return (
-
+        <>
+        {!isSeller && isActive && listingPrice ? (
+            <div className="border border-gray-200 bg-white mt-4 p-4">
+                <button
+                    type="button"
+                    onClick={handleBuyNow}
+                    disabled={submitting}
+                    className="w-full bg-black text-white py-3.5 text-sm font-bold uppercase tracking-wider hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                >
+                    Buy now - {formatCurrency(listingPrice)}
+                </button>
+                <p className="mt-2 text-[11px] text-gray-500">
+                    You and the seller agree how to pay and collect the item. You have 30 minutes to confirm your order.
+                </p>
+                {buyError && <p className="mt-2 text-[11px] text-red-500 font-semibold">{buyError}</p>}
+            </div>
+        ) : null}
         <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
 
             {/* Header */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
                 <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                 <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                    {isSeller ? 'Buyer Offers' : 'Make an Offer'}
+                    {isSeller ? 'Buyer Offers' : listingPrice ? 'Or Make an Offer' : 'Make an Offer'}
                 </p>
             </div>
 
@@ -186,7 +223,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                 {offers.length === 0 ? (
 
-                    <div className="py-8 text-center">
+                    <div className={listingPrice && !isSeller ? "py-3 text-center" : "py-8 text-center"}>
 
                         <Tag className="h-6 w-6 text-gray-200 mx-auto mb-2" />
 
@@ -196,7 +233,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                 ? 'No offers yet. Buyers can send you a fixed-price offer.'
 
-                                : 'Send the seller a price offer below.'}
+                                : listingPrice ? 'Want a different price? Send the seller an offer below.' : 'Send the seller a price offer below.'}
 
                         </p>
 
@@ -395,6 +432,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
             {!isSeller && isActive && (
 
                 <form onSubmit={handleSendOffer} className="border-t border-gray-200 bg-white">
+                    
 
                     {formError && (
 
@@ -483,8 +521,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
             )}
 
         </div>
+        </>
 
     );
 
-}
-
+        }
