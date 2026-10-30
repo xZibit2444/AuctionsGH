@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import ConditionalNav from '@/components/layout/ConditionalNav';
 import MainContent from '@/components/layout/MainContent';
-import Footer from '@/components/layout/Footer';
+import ConditionalFooter from '@/components/layout/ConditionalFooter';
 import Providers from '@/components/layout/Providers';
 import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
@@ -97,7 +97,7 @@ export default function RootLayout({
             <FloatingOfferToast />
             <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
             <div className="hidden sm:block">
-              <Footer />
+              <ConditionalFooter />
             </div>
           </MainContent>
         </Providers>
