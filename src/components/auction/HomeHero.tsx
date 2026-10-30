@@ -15,11 +15,11 @@ interface HomeHeroProps {
  */
 export default function HomeHero({ auctions, loading }: HomeHeroProps) {
     const liveCount = auctions.length;
-    const categoryCount = new Set(auctions.map((a) => a.brand).filter(Boolean)).size;
     const hasDelivery = auctions.some((a) => a.delivery_available);
+    const seen = new Set<string>();
     const fanPhotos = auctions
         .map((a) => a.auction_images?.slice().sort((x, y) => (x.position ?? 0) - (y.position ?? 0))[0]?.url)
-        .filter((u): u is string => typeof u === 'string' && u.length > 0)
+        .filter((u): u is string => typeof u === 'string' && u.length > 0 && !seen.has(u) && !!seen.add(u))
         .slice(0, 3);
 
     return (
@@ -53,9 +53,6 @@ export default function HomeHero({ auctions, loading }: HomeHeroProps) {
                     <div className="mt-7 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-stone-400 sm:text-[13px]">
                         <span>
                             <b className="font-bold text-white">{loading ? '…' : liveCount}</b> live listings
-                        </span>
-                        <span>
-                            <b className="font-bold text-white">{loading ? '…' : categoryCount}</b> categories
                         </span>
                         <span>Pickup in Accra{hasDelivery ? ' · delivery on many items' : ''}</span>
                     </div>
