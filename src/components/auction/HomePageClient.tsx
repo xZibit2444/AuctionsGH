@@ -77,12 +77,12 @@ export default function HomePageClient() {
                 <CategoryBar selected={brand} onSelect={setBrand} />
             </div>
 
-            <section className="px-4 pb-10 pt-4 sm:px-7">
-                <div className="mb-3.5 flex items-center gap-2.5">
-                    <h2 className="text-[17px] font-extrabold tracking-tight text-[#191612] sm:text-xl">
+            <section className="px-4 pb-10 pt-4 sm:px-7 sm:pt-[18px]">
+                <div className="mb-3.5 flex items-center gap-2.5 sm:mb-[22px]">
+                    <h2 className="text-[17px] font-extrabold leading-[1.15] tracking-tight text-[#191612] sm:text-xl">
                         {isFiltering ? 'Search results' : 'Live now'}
                     </h2>
-                    <span className="rounded-full border border-[#E9E6E0] bg-white px-2.5 py-0.5 text-xs font-bold text-[#6E675E]">
+                    <span className="rounded-full border border-[#E9E6E0] bg-white px-2.5 py-[3px] text-xs font-bold leading-[1.2] text-[#6E675E]">
                         {loading
                             ? '...'
                             : isFiltering
