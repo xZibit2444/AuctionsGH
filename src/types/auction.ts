@@ -4,6 +4,7 @@ export type Auction = Database['public']['Tables']['auctions']['Row'];
 export type AuctionInsert = Database['public']['Tables']['auctions']['Insert'];
 export type AuctionUpdate = Database['public']['Tables']['auctions']['Update'];
 export type AuctionImage = Database['public']['Tables']['auction_images']['Row'];
+export type ListingVideo = Database['public']['Tables']['listing_videos']['Row'];
 
 export type AuctionWithImages = Auction & {
     auction_images: AuctionImage[];

@@ -39,6 +39,7 @@ interface AuctionDetailProps {
 }
 
 type AuctionDetailData = {
+    listing_videos?: { id: string; content_type: string; duration_seconds: number | null }[] | null;
     orders?: { id: string; status: string }[] | { id: string; status: string } | null;
     auction_offers?: { status: string }[] | null;
     auction_winner_notes?: { note: string }[] | { note: string } | null;
@@ -187,6 +188,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         && !hasAcceptedOffer
         && (auction.status === 'ended' || (auction.status === 'sold' && completedDeal));
     const canDelete = isSeller ? canSellerDelete : profile?.is_super_admin === true;
+    const listingVideo = (auctionData.listing_videos ?? [])[0] ?? null;
     const winnerNoteRaw = auctionData.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
     const sellerDisplayName = auctionData.profiles?.full_name?.trim()
@@ -250,6 +252,19 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                     />
                                 </button>
                             ))}
+                        </div>
+                    )}
+
+                    {/* Optional listing video */}
+                    {listingVideo && (
+                        <div className="aspect-square bg-black border border-gray-200">
+                            <video
+                                controls
+                                playsInline
+                                preload="metadata"
+                                src={`/api/listing-video/${auction.id}`}
+                                className="w-full h-full object-contain"
+                            />
                         </div>
                     )}
                 </div>

@@ -19,6 +19,18 @@ export const AUCTION_IMAGES_BUCKET = 'auction-images';
 /** Supabase Storage bucket for profile images */
 export const PROFILE_IMAGES_BUCKET = 'profile-images';
 
+/** Supabase Storage bucket for listing videos (private; served via /api/listing-video) */
+export const AUCTION_VIDEOS_BUCKET = 'auction-videos';
+
+/** Maximum video upload size in bytes (20 MB, matches the bucket limit) */
+export const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+
+/** Client-side video length cap in seconds (advisory; not enforced server-side) */
+export const MAX_VIDEO_DURATION_SECONDS = 60;
+
+/** Allowed video MIME types for the picker */
+export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm'] as const;
+
 /** Item categories (Jiji-inspired) */
 export const ITEM_CATEGORIES = [
     'Phones & Tablets',

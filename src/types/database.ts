@@ -196,6 +196,34 @@ export interface Database {
                     position?: number;
                 };
             };
+            listing_videos: {
+                Row: {
+                    id: string;
+                    auction_id: string;
+                    seller_id: string;
+                    storage_path: string;
+                    content_type: string;
+                    size_bytes: number;
+                    duration_seconds: number | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    auction_id: string;
+                    seller_id: string;
+                    storage_path: string;
+                    content_type: string;
+                    size_bytes: number;
+                    duration_seconds?: number | null;
+                    created_at?: string;
+                };
+                Update: {
+                    storage_path?: string;
+                    content_type?: string;
+                    size_bytes?: number;
+                    duration_seconds?: number | null;
+                };
+            };
             auction_winner_notes: {
                 Row: {
                     auction_id: string;
