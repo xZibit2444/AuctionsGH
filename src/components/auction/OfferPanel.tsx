@@ -39,9 +39,10 @@ interface OfferPanelProps {
     userId?: string | null;
     isActive?: boolean;
     listingPrice?: number;
+    buyNowEnabled?: boolean;
 }
 
-export default function OfferPanel({ auctionId, isSeller, userId, isActive = true, listingPrice }: OfferPanelProps) {
+export default function OfferPanel({ auctionId, isSeller, userId, isActive = true, listingPrice, buyNowEnabled = true }: OfferPanelProps) {
     const isLoggedIn = !!userId;
 
     const router = useRouter();
@@ -196,7 +197,15 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     return (
         <>
-        {!isSeller && isActive && listingPrice ? (
+        {!isSeller && isActive && listingPrice && !buyNowEnabled ? (
+            <div className="border border-gray-200 bg-white mt-4 p-4">
+                <p className="text-sm font-bold text-black">Availability confirmed on enquiry</p>
+                <p className="mt-1 text-[11px] text-gray-500">
+                    Make an offer below or message us. We confirm the item is still available before any sale.
+                </p>
+            </div>
+        ) : null}
+        {!isSeller && isActive && listingPrice && buyNowEnabled ? (
             <div className="border border-gray-200 bg-white mt-4 p-4">
                 <button
                     type="button"
@@ -540,4 +549,4 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     );
 
-}
+                                }
