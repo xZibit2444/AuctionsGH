@@ -59,7 +59,7 @@ export async function POST(
         title: `New message from ${isBuyer ? 'Buyer' : 'Seller'}`,
         body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
         order_id: orderId,
-    }, { ignorePreference: true });
+    });
 
     return NextResponse.json({ success: true, messageId: (msg as { id: string }).id });
 }
