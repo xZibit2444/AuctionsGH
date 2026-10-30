@@ -62,7 +62,19 @@ export async function insertNotificationIfEnabled(
 
     // Database types in this repo lag behind the live schema for notifications.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from('notifications') as any).insert(notification);
+    let { error } = await (supabase.from('notifications') as any).insert(notification);
+
+    if (error) {
+        console.error('Failed to insert notification:', notification.type, error.message ?? error);
+
+        // The live notification_type enum may not include newer values (for example
+        // 'new_offer'). Retry as a generic 'system' notification so the alert still
+        // shows in the in-app panel instead of being dropped.
+        if (notification.type !== 'system' && /enum|notification_type|invalid input value/i.test(error.message ?? '')) {
+            ({ error } = await (supabase.from('notifications') as any).insert({ ...notification, type: 'system' }));
+            if (error) console.error('Fallback notification insert failed:', error.message ?? error);
+        }
+    }
 
     // Fire-and-forget Expo push to any registered device tokens for this user
     void sendExpoPushIfTokens(supabase, notification).catch(() => {/* non-critical */});
