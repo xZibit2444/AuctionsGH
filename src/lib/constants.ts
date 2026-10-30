@@ -40,6 +40,7 @@ export const PHONE_BRANDS = ITEM_CATEGORIES;
 /** Phone condition labels */
 export const CONDITION_LABELS: Record<string, string> = {
     new: 'Brand New (Sealed)',
+    brand_new: 'Brand New',
     like_new: 'Like New',
     good: 'Good',
     fair: 'Fair',
