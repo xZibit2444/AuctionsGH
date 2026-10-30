@@ -12,7 +12,7 @@ export type Json =
     | Json[];
 
 export type AuctionStatus = 'draft' | 'active' | 'ended' | 'sold' | 'cancelled';
-export type PhoneCondition = 'new' | 'like_new' | 'good' | 'fair' | 'poor';
+export type PhoneCondition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
 export type NotificationType = 'outbid' | 'auction_won' | 'auction_ended' | 'new_bid';
 export type SellerApplicationStatus = 'pending' | 'approved' | 'rejected';
 
