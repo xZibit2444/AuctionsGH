@@ -21,5 +21,8 @@ export default function ConditionalNav() {
     }, []);
 
     if (AUTH_ROUTES.includes(pathname)) return null;
+    // Homepage uses its own horizontal storefront header (approved mockup),
+    // so the desktop sidebar stays off that page only.
+    if (pathname === '/') return isDesktop ? null : <MobileNav />;
     return isDesktop ? <Sidebar /> : <MobileNav />;
 }
