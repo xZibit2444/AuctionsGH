@@ -269,281 +269,639 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     )}
                 </div>
 
-                {/* Right — Details */}
-                <div className="space-y-5">
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <AuctionStatusBadge status={auction.status} />
-                                <span className="border border-gray-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-black">
-                                    {getListingTypeLabel(listingType)}
-                                </span>
-                            </div>
+import { useCallback, useRef, useState } from 'react';
+import { useAuction } from '@/hooks/useAuction';
+import { useBids } from '@/hooks/useBids';
+import { useRealtimeBids } from '@/hooks/useRealtimeBids';
+import { useAuth } from '@/hooks/useAuth';
+import { useSavedAuctions } from '@/hooks/useSavedAuctions';
+import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
+import { CONDITION_LABELS } from '@/lib/constants';
+import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 
-                            <div className="flex items-center gap-2">
-                                <ShareButton
-                                    title={auction.title}
-                                    url={`/auctions/${auction.id}`}
-                                />
-                                <button
-                                    onClick={handleSave}
-                                    className={`flex items-center gap-2 px-3 py-1.5 border transition-colors ${isSaved
-                                        ? 'border-black text-black bg-gray-50'
-                                        : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
-                                        } ${savePending ? 'opacity-50' : ''}`}
-                                >
-                                    <Heart
-                                        className="h-4 w-4"
-                                        fill={isSaved ? 'currentColor' : 'none'}
-                                        strokeWidth={2}
-                                    />
-                                    <span className="text-xs font-bold uppercase tracking-wider">
-                                        {isSaved ? 'Saved' : 'Save'}
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                        <h1 className="mb-3 text-2xl font-black tracking-tight text-black sm:text-3xl">
-                            {auction.title}
-                        </h1>
-                        {(isSeller || profile?.is_super_admin === true) && auction.status !== 'sold' && (
-                            <Link
-                                href={`/auctions/${auction.id}/edit`}
-                                className="mb-3 inline-flex w-full items-center justify-center gap-2 bg-black px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors"
-                            >
-                                <Pencil className="h-3.5 w-3.5" />
-                                Edit listing
-                            </Link>
-                        )}
-                        {isSeller && (
-                            <OwnerStatusControls
-                                auctionId={auction.id}
-                                status={auction.status}
-                                isPermanent={isPermanent}
-                                bidCount={auction.bid_count ?? 0}
-                            />
+const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
+const NETWORK_LOCK_LABELS: Record<string, string> = Object.fromEntries(NETWORK_LOCK_OPTIONS.map((o) => [o.value, o.label]));
+import { getListingType, getListingTypeLabel } from '@/lib/listings';
+import AuctionCountdown from './AuctionCountdown';
+import AuctionStatusBadge from './AuctionStatusBadge';
+import ListingGallery from './ListingGallery';
+import BidForm from '@/components/bidding/BidForm';
+import BidHistory from '@/components/bidding/BidHistory';
+import WinnerBanner from '@/components/bidding/WinnerBanner';
+import Avatar from '@/components/ui/Avatar';
+import SellerRating from '@/components/ui/SellerRating';
+import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
+import ShareButton from '@/components/ui/ShareButton';
+import OfferPanel from './OfferPanel';
+import AuctionComments from './AuctionComments';
+import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X, ChevronRight } from 'lucide-react';
+import type { BidWithBidder } from '@/types/bid';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { AuctionStatus } from '@/types/database';
+import { finalizeAuctionAction } from '@/app/actions/finalizeAuction';
+import { deleteAuctionAction } from '@/app/actions/deleteAuction';
+import { relistAuctionAction } from '@/app/actions/relistAuction';
+
+interface AuctionDetailProps {
+    auctionId: string;
+}
+
+type AuctionDetailData = {
+    listing_videos?: { id: string; content_type: string; duration_seconds: number | null }[] | null;
+    orders?: { id: string; status: string }[] | { id: string; status: string } | null;
+    auction_offers?: { status: string }[] | null;
+    auction_winner_notes?: { note: string }[] | { note: string } | null;
+    profiles?: {
+        id: string;
+        username: string;
+        avatar_url: string | null;
+        location: string | null;
+        is_verified: boolean;
+        full_name?: string | null;
+    } | null;
+};
+
+export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
+    const { auction, loading, setAuction } = useAuction(auctionId);
+    const { bids, setBids, loading: bidsLoading } = useBids(auctionId);
+    const { user, profile } = useAuth();
+    const { savedIds, toggleSave } = useSavedAuctions();
+    const [savePending, setSavePending] = useState(false);
+    const [showCongrats, setShowCongrats] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [relistLoading, setRelistLoading] = useState(false);
+    const finalizeStartedRef = useRef(false);
+    const router = useRouter();
+
+    const handleDelete = async () => {
+        if (!deleteConfirm) { setDeleteConfirm(true); return; }
+        setDeleteLoading(true);
+        const result = await deleteAuctionAction(auctionId);
+        setDeleteLoading(false);
+        if (result.success) {
+            router.push('/dashboard');
+        } else {
+            alert(result.error ?? 'Failed to delete auction');
+            setDeleteConfirm(false);
+        }
+    };
+
+    const handleRelist = async () => {
+        setRelistLoading(true);
+        const result = await relistAuctionAction(auctionId);
+        setRelistLoading(false);
+
+        if (result.success && result.auctionId) {
+            router.push(`/auctions/${result.auctionId}`);
+            return;
+        }
+
+        alert(result.error ?? 'Failed to relist item');
+    };
+
+    const isSaved = savedIds.has(auctionId);
+
+    const handleSave = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (savePending) return;
+        setSavePending(true);
+        await toggleSave(auctionId);
+        setSavePending(false);
+    };
+
+    const handleNewBid = useCallback(
+        (bid: BidWithBidder) => {
+            setBids((prev) => [bid, ...prev]);
+            setAuction((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          current_price: bid.amount,
+                          bid_count: prev.bid_count + 1,
+                      }
+                    : prev
+            );
+        },
+        [setAuction, setBids]
+    );
+
+    const handleAuctionUpdate = useCallback(
+        (payload: Record<string, unknown>) => {
+            const newStatus = payload.status as AuctionStatus;
+            const newWinnerId = payload.winner_id as string | null;
+
+            setAuction((prev) => {
+                if (!prev) return prev;
+                if (prev.status === 'active' && newStatus === 'sold' && newWinnerId === user?.id) {
+                    setShowCongrats(true);
+                }
+                return {
+                    ...prev,
+                    status: newStatus,
+                    winner_id: newWinnerId,
+                };
+            });
+        },
+        [setAuction, user?.id]
+    );
+
+    useRealtimeBids({
+        auctionId,
+        onNewBid: handleNewBid,
+        onAuctionUpdate: handleAuctionUpdate,
+    });
+
+    const handleCountdownEnd = useCallback(async () => {
+        if (auction?.status !== 'active' || finalizeStartedRef.current) return;
+
+        finalizeStartedRef.current = true;
+        const highestBidderId = bids[0]?.bidder_id;
+
+        try {
+            await finalizeAuctionAction(auctionId);
+
+            if (highestBidderId === user?.id) {
+                setShowCongrats(true);
+            }
+
+            setAuction((prev) => prev ? { ...prev, status: highestBidderId ? 'sold' : 'ended' } : prev);
+        } finally {
+            finalizeStartedRef.current = false;
+        }
+    }, [auction, bids, user?.id, setAuction, auctionId]);
+
+    if (loading || !auction) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+            </div>
+        );
+    }
+
+    const auctionData = auction as typeof auction & AuctionDetailData;
+    const listingType = getListingType(auction);
+    const isPermanent = listingType === 'permanent';
+    const images = auction.auction_images?.sort((a, b) => a.position - b.position) ?? [];
+    const isWinner = auction.winner_id === user?.id;
+    const isSeller = auction.seller_id === user?.id;
+    const isAdmin = profile?.is_super_admin === true;
+    const orderRaw = auctionData.orders;
+    const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+    const hasAcceptedOffer = (auctionData.auction_offers ?? []).some((offer) => offer.status === 'accepted');
+    const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
+    const canSellerDelete = !hasAcceptedOffer
+        && (auction.status !== 'sold' || completedDeal);
+    const canRelist = isSeller
+        && !hasAcceptedOffer
+        && (auction.status === 'ended' || (auction.status === 'sold' && completedDeal));
+    const canDelete = isSeller ? canSellerDelete : isAdmin;
+    const listingVideo = (auctionData.listing_videos ?? [])[0] ?? null;
+    const winnerNoteRaw = auctionData.auction_winner_notes;
+    const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
+    const sellerDisplayName = auctionData.profiles?.full_name?.trim()
+        || auctionData.profiles?.username?.trim()
+        || `Seller ${auction.seller_id.slice(0, 6).toUpperCase()}`;
+    const sellerLabel = getUserDisplayLabel({
+        fullName: auctionData.profiles?.full_name,
+        username: auctionData.profiles?.username,
+        fallbackId: auction.seller_id,
+    });
+    const buyNowEnabled = (auction as { allow_buy_now?: boolean }).allow_buy_now !== false;
+    const isActive = auction.status === 'active';
+    const showBuyerCtas = !isSeller && isActive;
+    const canBuyNow = isPermanent && buyNowEnabled && auction.current_price > 0;
+
+    const scrollToOffer = () => {
+        document.getElementById('offer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => {
+            const input = document.getElementById('offer-amount-input') as HTMLInputElement | null;
+            input?.focus({ preventScroll: true });
+        }, 450);
+    };
+
+    const clickBuyNow = () => {
+        document.getElementById('buy-now-button')?.click();
+    };
+
+    const scrollToBid = () => {
+        document.getElementById('bid-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const statusPill = isActive ? (
+        <span className="inline-block rounded-md bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white">
+            Live
+        </span>
+    ) : (
+        <AuctionStatusBadge status={auction.status} />
+    );
+
+    const galleryActions = (
+        <>
+            <ShareButton
+                title={auction.title}
+                url={`/auctions/${auction.id}`}
+                compact
+                label=""
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-stone-700 shadow-sm backdrop-blur transition hover:text-black"
+            />
+            <button
+                type="button"
+                onClick={handleSave}
+                aria-label={isSaved ? 'Remove from saved' : 'Save listing'}
+                className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-sm backdrop-blur transition ${isSaved
+                    ? 'border-amber-400 bg-amber-400 text-black'
+                    : 'border-stone-200 bg-white/95 text-stone-700 hover:text-black'
+                    } ${savePending ? 'opacity-50' : ''}`}
+            >
+                <Heart className="h-4 w-4" fill={isSaved ? 'currentColor' : 'none'} strokeWidth={2} />
+            </button>
+        </>
+    );
+
+    const metaPills = (
+        <div className="flex flex-wrap items-center gap-2">
+            {statusPill}
+            <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+                {getListingTypeLabel(listingType)}
+            </span>
+            {auction.brand && (
+                <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+                    {auction.brand}
+                </span>
+            )}
+        </div>
+    );
+
+    const priceSubline = isPermanent
+        ? buyNowEnabled
+            ? 'Fixed price · or make an offer · stays live until sold'
+            : 'Fixed price · make an offer or message us · stays live until sold'
+        : `${auction.bid_count} bid${auction.bid_count !== 1 ? 's' : ''} · auction ends when the timer runs out`;
+
+    const sellerCard = (
+        <div className="flex items-center gap-3 border-t border-stone-200 pt-4">
+            <Link href={`/users/${auction.seller_id}`} className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80">
+                <Avatar
+                    src={auctionData.profiles?.avatar_url}
+                    name={sellerDisplayName}
+                    size="sm"
+                />
+                <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <p className="truncate text-sm font-bold text-stone-900">
+                            {sellerLabel || 'Seller'}
+                        </p>
+                        {auction.profiles?.is_verified && (
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Verified
+                            </span>
                         )}
                     </div>
-
-                    {/* Seller */}
-                    <div className="flex items-start justify-between gap-3">
-                        <Link href={`/users/${auction.seller_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
-                            <Avatar
-                                src={auctionData.profiles?.avatar_url}
-                                name={sellerDisplayName}
-                                size="sm"
-                            />
-                            <div>
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
-                                        {sellerLabel || 'Seller'}
-                                    </p>
-                                    {auction.profiles?.is_verified && (
-                                        <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            Verified
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-xs text-gray-500">{auction.profiles?.location}</p>
-                                {auction.profiles?.id && (
-                                    <SellerRating sellerId={auction.profiles.id} />
-                                )}
-                            </div>
-                        </Link>
-                        <FavoriteSellerButton
-                            sellerId={auction.seller_id}
-                            sellerName={sellerLabel}
-                            compact
-                            className="shrink-0"
-                        />
-                    </div>
-
-
-
-                    {/* Price + Countdown */}
-                    <div className="border border-gray-200 p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                                    {isPermanent ? 'Listing Price' : 'Current Bid'}
-                                </p>
-                                <p className="text-4xl font-extrabold text-black tracking-tight">
-                                    {formatCurrency(auction.current_price)}
-                                </p>
-                            </div>
-                            {!isPermanent && (
-                                <div className="text-right">
-                                    <p className="text-xs font-medium text-black bg-gray-100 px-2 py-1 inline-block mb-1 border border-gray-200">
-                                        {auction.bid_count} bid{auction.bid_count !== 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {auction.status === 'active' && !isPermanent && (
-                            <AuctionCountdown endTime={auction.ends_at} onEnd={handleCountdownEnd} />
-                        )}
-
-                        {auction.status === 'active' && isPermanent && (
-                            <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                                {(auction as { allow_buy_now?: boolean }).allow_buy_now === false
-                                    ? 'Fixed-price listing. Make an offer or message us. We confirm availability before any sale. It stays live until it is sold or the seller removes it.'
-                                    : 'Fixed-price listing. Buy now at the listed price, or make an offer. It stays live until it is sold or the seller removes it.'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Bid Form */}
-                    {auction.status === 'active' && !isSeller && !isPermanent && (
-                        <BidForm
-                            auctionId={auction.id}
-                            currentPrice={auction.current_price}
-                            minIncrement={auction.min_increment}
-                        />
+                    <p className="text-xs text-stone-500">
+                        {auction.profiles?.location}
+                    </p>
+                    {auction.profiles?.id && (
+                        <SellerRating sellerId={auction.profiles.id} />
                     )}
+                </div>
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-stone-400" />
+            </Link>
+            <FavoriteSellerButton
+                sellerId={auction.seller_id}
+                sellerName={sellerLabel}
+                compact
+                className="shrink-0"
+            />
+        </div>
+    );
 
-                    {/* Offer panel for buyers (logged-in or not) */}
-                    {!isSeller && (
-                        <>
-                            <div className="flex justify-end">
-                                <ShareButton
-                                    title={`${auction.title} live offers`}
-                                    url={`/auctions/${auction.id}#offer-panel`}
-                                />
-                            </div>
-                            <OfferPanel
-                                auctionId={auction.id}
-                                isSeller={false}
-                                userId={user?.id}
-                                isActive={auction.status === 'active'}
-                                listingPrice={isPermanent ? auction.current_price : undefined}
-                                buyNowEnabled={(auction as { allow_buy_now?: boolean }).allow_buy_now !== false}
-                            />
-                        </>
+    const facts: { label: string; value: string }[] = [
+        { label: 'Category', value: auction.brand },
+        { label: 'Brand / Model', value: auction.model || '—' },
+        { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
+        { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
+        ...(auction.battery_health != null ? [{ label: 'Battery health', value: `${auction.battery_health}%` }] : []),
+        ...(auction.sim_type ? [{ label: 'SIM', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
+        ...(auction.network_lock ? [{ label: 'Network lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
+        ...(auction.faults ? [{ label: 'Known faults', value: auction.faults }] : []),
+        { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
+        { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
+        { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
+    ];
+
+    const factsRows = (
+        <div className="border-t border-stone-200">
+            {facts.map(({ label, value }) => (
+                <div key={label} className="flex items-baseline justify-between gap-4 border-b border-stone-100 py-2.5 text-[13.5px] last:border-b-0">
+                    <span className="text-stone-500">{label}</span>
+                    <span className="text-right font-semibold text-stone-900">{value}</span>
+                </div>
+            ))}
+        </div>
+    );
+
+    const buyerCtas = showBuyerCtas && (
+        <div className="space-y-3">
+            <div className="flex gap-2.5">
+                <button
+                    type="button"
+                    onClick={scrollToOffer}
+                    className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold text-black transition-colors hover:bg-amber-300"
+                >
+                    Make an offer
+                </button>
+                {canBuyNow && (
+                    <button
+                        type="button"
+                        onClick={clickBuyNow}
+                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                    >
+                        Buy now
+                    </button>
+                )}
+                {!isPermanent && (
+                    <button
+                        type="button"
+                        onClick={scrollToBid}
+                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                    >
+                        Place a bid
+                    </button>
+                )}
+            </div>
+            {isPermanent && !buyNowEnabled && (
+                <p className="text-xs text-stone-500">
+                    Availability confirmed on enquiry. Make an offer or message us and we confirm the item is still available before any sale.
+                </p>
+            )}
+        </div>
+    );
+
+    const manageCard = (isSeller || isAdmin) && (
+        <div className="space-y-3 rounded-2xl border border-dashed border-stone-300 bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+                <p className="text-[13px] font-semibold text-stone-500">
+                    {isSeller ? 'You listed this item' : 'Admin controls'}
+                </p>
+                <span className="text-[13px] font-bold text-stone-900">Manage</span>
+            </div>
+            {(isSeller || isAdmin) && auction.status !== 'sold' && (
+                <Link
+                    href={`/auctions/${auction.id}/edit`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-stone-800"
+                >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit listing
+                </Link>
+            )}
+            {isSeller && (
+                <OwnerStatusControls
+                    auctionId={auction.id}
+                    status={auction.status}
+                    isPermanent={isPermanent}
+                    bidCount={auction.bid_count ?? 0}
+                />
+            )}
+            {(canDelete || canRelist) && (
+                <div className="flex flex-wrap justify-end gap-2">
+                    {canRelist && (
+                        <button
+                            onClick={handleRelist}
+                            disabled={relistLoading}
+                            className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:border-black disabled:opacity-50"
+                        >
+                            {relistLoading ? 'Relisting...' : 'Relist item'}
+                        </button>
                     )}
-
-                    {isSeller && auction.status === 'active' && !isPermanent && (
-                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm">
-                            You cannot bid on your own auction.
-                        </div>
+                    <button
+                        onClick={handleDelete}
+                        disabled={deleteLoading}
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 ${deleteConfirm ? 'border-red-600 bg-red-600 text-white hover:bg-red-700' : 'border-red-300 bg-white text-red-600 hover:bg-red-50'}`}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : auction.status === 'sold' ? 'Take down listing' : 'Delete auction'}
+                    </button>
+                    {deleteConfirm && (
+                        <button
+                            onClick={() => setDeleteConfirm(false)}
+                            className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm text-stone-500 transition-colors hover:text-black"
+                        >
+                            Cancel
+                        </button>
                     )}
+                </div>
+            )}
+        </div>
+    );
 
+    const purchasePanel = (
+        <div className="space-y-4">
+            {metaPills}
+            <div>
+                <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-black sm:text-[26px]">
+                    {auction.title}
+                </h1>
+                <p className="mt-1 text-[13px] text-stone-500">
+                    {auction.listing_city ?? 'Greater Accra'}
+                </p>
+            </div>
+            <div>
+                <p className="text-[26px] font-extrabold tracking-tight text-black sm:text-3xl">
+                    {formatCurrency(auction.current_price)}
+                </p>
+                <p className="mt-1 text-[12.5px] text-stone-500">{priceSubline}</p>
+            </div>
+
+            {!isPermanent && isActive && (
+                <AuctionCountdown endTime={auction.ends_at} onEnd={handleCountdownEnd} />
+            )}
+
+            {buyerCtas}
+
+            {isSeller && isActive && !isPermanent && (
+                <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
+                    You cannot bid on your own auction.
+                </div>
+            )}
+
+            {showBuyerCtas && !isPermanent && (
+                <div id="bid-form">
+                    <BidForm
+                        auctionId={auction.id}
+                        currentPrice={auction.current_price}
+                        minIncrement={auction.min_increment}
+                    />
+                </div>
+            )}
+
+            {sellerCard}
+            {factsRows}
+            {manageCard}
+        </div>
+    );
+
+    return (
+        <div className="pb-4">
+            {/* Winner Banner */}
+            {isWinner && auction.status === 'sold' && (
+                <WinnerBanner
+                    auctionId={auction.id}
+                    auctionTitle={auction.title}
+                    amount={auction.current_price}
+                    orderId={order?.id}
+                />
+            )}
+
+            {/* Mobile: full-bleed gallery on top, stacked content below */}
+            <div className="sm:hidden">
+                <div className="-mx-4">
+                    <ListingGallery
+                        auctionId={auction.id}
+                        title={auction.title}
+                        images={images}
+                        hasVideo={!!listingVideo}
+                        overlayBadge={statusPill}
+                        overlayActions={galleryActions}
+                    />
+                </div>
+                <div className="mt-4">{purchasePanel}</div>
+            </div>
+
+            {/* Desktop: gallery left, purchase panel right */}
+            <div className="hidden sm:grid sm:grid-cols-[1.15fr_1fr] sm:items-start sm:gap-8 lg:gap-10">
+                <div className="sm:sticky sm:top-6 sm:self-start">
+                    <ListingGallery
+                        auctionId={auction.id}
+                        title={auction.title}
+                        images={images}
+                        hasVideo={!!listingVideo}
+                        overlayBadge={statusPill}
+                        overlayActions={galleryActions}
+                        rounded
+                    />
+                </div>
+                <div className="rounded-2xl border border-stone-200 bg-white p-6 sm:sticky sm:top-6">
+                    {purchasePanel}
                 </div>
             </div>
 
-            <div className="mt-8 space-y-6 border-t border-gray-200 pt-8">
-                    {/* Specs */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
-                        {[
-                            { label: 'Category', value: auction.brand },
-                            { label: 'Brand / Model', value: auction.model || '—' },
-                            { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
-                            { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
-                            ...(auction.battery_health != null ? [{ label: 'Battery Health', value: `${auction.battery_health}%` }] : []),
-                            ...(auction.sim_type ? [{ label: 'SIM Type', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
-                            ...(auction.network_lock ? [{ label: 'Network Lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
-                            ...(auction.faults ? [{ label: 'Known Faults', value: auction.faults }] : []),
-                            { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
-                            { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
-                            { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
-                        ].map(({ label, value }, index, items) => {
-                            const isLastOddCard = items.length % 2 === 1 && index === items.length - 1;
+            <div className="mt-8 space-y-6 border-t border-stone-200 pt-8">
+                <p className="text-sm text-stone-500">
+                    {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
+                </p>
 
-                            return (
-                                <div
-                                    key={label}
-                                    className={`bg-white border border-gray-200 px-4 py-3 min-h-[88px] flex flex-col justify-between ${isLastOddCard ? 'col-span-2 sm:col-span-1' : ''}`}
-                                >
-                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">{label}</p>
-                                    <p className="text-sm font-bold text-black">{value}</p>
-                                </div>
-                            );
-                        })}
+                {/* Description */}
+                {auction.description && (
+                    <div className="rounded-2xl border border-stone-200 bg-white p-5">
+                        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-black">
+                            Description
+                        </h2>
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-stone-600">
+                            {auction.description}
+                        </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                        {formatAuctionLocation(auction.listing_city, auction.meetup_area)}
-                    </p>
-                    {/* Description */}
-                    {auction.description && (
-                        <div className="bg-gray-50 p-5 mt-2 border border-gray-200">
-                            <h2 className="text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                                Description
-                            </h2>
-                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                                {auction.description}
-                            </p>
-                        </div>
-                    )}
+                )}
 
-                    {/* Incoming offers panel for the seller — always show so history is visible */}
-                    {isSeller && (
-                        <>
-                            <div className="flex justify-end">
-                                <ShareButton
-                                    title={`${auction.title} live offers`}
-                                    url={`/auctions/${auction.id}#offer-panel`}
-                                />
-                            </div>
-                            <OfferPanel
-                                auctionId={auction.id}
-                                isSeller={true}
-                                userId={user!.id}
-                                isActive={auction.status === 'active'}
+                {/* Offer panel for buyers (logged-in or not) */}
+                {!isSeller && (
+                    <>
+                        <div className="flex justify-end">
+                            <ShareButton
+                                title={`${auction.title} live offers`}
+                                url={`/auctions/${auction.id}#offer-panel`}
                             />
-                        </>
-                    )}
-
-                    {/* Delete / take down button */}
-                    {(canDelete || canRelist) && (
-                        <div className="flex justify-end mt-2">
-                            {canRelist && (
-                                <button
-                                    onClick={handleRelist}
-                                    disabled={relistLoading}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold border border-gray-200 bg-white text-black hover:border-black transition-colors disabled:opacity-50"
-                                >
-                                    {relistLoading ? 'Relisting...' : 'Relist item'}
-                                </button>
-                            )}
-                            <button
-                                onClick={handleDelete}
-                                disabled={deleteLoading}
-                                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border transition-colors disabled:opacity-50 ${canRelist ? 'ml-2' : ''} ${deleteConfirm ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white text-red-600 border-red-300 hover:bg-red-50'}`}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                {deleteLoading ? 'Deleting…' : deleteConfirm ? 'Confirm delete' : auction.status === 'sold' ? 'Take down listing' : 'Delete auction'}
-                            </button>
-                            {deleteConfirm && (
-                                <button
-                                    onClick={() => setDeleteConfirm(false)}
-                                    className="ml-2 px-4 py-2 text-sm text-gray-500 hover:text-black border border-gray-200 bg-white transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                            )}
                         </div>
-                    )}
+                        <OfferPanel
+                            auctionId={auction.id}
+                            isSeller={false}
+                            userId={user?.id}
+                            isActive={isActive}
+                            listingPrice={isPermanent ? auction.current_price : undefined}
+                            buyNowEnabled={buyNowEnabled}
+                        />
+                    </>
+                )}
 
-                    <AuctionComments
-                        auctionId={auction.id}
-                        currentUserId={user?.id}
-                    />
-
-                    {isWinner && auction.status === 'sold' && winnerNote && (
-                        <div className="border border-emerald-200 bg-emerald-50 p-5 mt-2">
-                            <h2 className="text-sm font-bold text-emerald-800 mb-2 uppercase tracking-wide">
-                                Seller Note (Winner Only)
-                            </h2>
-                            <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">
-                                {winnerNote}
-                            </p>
+                {/* Incoming offers panel for the seller — always show so history is visible */}
+                {isSeller && (
+                    <>
+                        <div className="flex justify-end">
+                            <ShareButton
+                                title={`${auction.title} live offers`}
+                                url={`/auctions/${auction.id}#offer-panel`}
+                            />
                         </div>
-                    )}
+                        <OfferPanel
+                            auctionId={auction.id}
+                            isSeller={true}
+                            userId={user!.id}
+                            isActive={isActive}
+                        />
+                    </>
+                )}
 
-                    {/* Bid History */}
-                    {!isPermanent && <BidHistory bids={bids} loading={bidsLoading} />}
+                <AuctionComments
+                    auctionId={auction.id}
+                    currentUserId={user?.id}
+                />
+
+                {isWinner && auction.status === 'sold' && winnerNote && (
+                    <div className="border border-emerald-200 bg-emerald-50 p-5 mt-2">
+                        <h2 className="text-sm font-bold text-emerald-800 mb-2 uppercase tracking-wide">
+                            Seller Note (Winner Only)
+                        </h2>
+                        <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">
+                            {winnerNote}
+                        </p>
+                    </div>
+                )}
+
+                {/* Bid History */}
+                {!isPermanent && <BidHistory bids={bids} loading={bidsLoading} />}
             </div>
+
+            {/* Sticky purchase bar (mobile buyers) */}
+            {showBuyerCtas && (
+                <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3 border-t border-stone-200 bg-white px-4 py-3 shadow-[0_-4px_18px_rgba(0,0,0,0.06)] sm:hidden">
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-[17px] font-extrabold leading-tight text-black">
+                            {formatCurrency(auction.current_price)}
+                        </p>
+                        <p className="text-[11px] text-stone-500">
+                            {isPermanent ? 'Fixed price' : 'Current bid'}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={scrollToOffer}
+                        className="shrink-0 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-300"
+                    >
+                        Make an offer
+                    </button>
+                    {canBuyNow && (
+                        <button
+                            type="button"
+                            onClick={clickBuyNow}
+                            className="shrink-0 rounded-xl bg-black px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                        >
+                            Buy now
+                        </button>
+                    )}
+                    {!isPermanent && (
+                        <button
+                            type="button"
+                            onClick={scrollToBid}
+                            className="shrink-0 rounded-xl bg-black px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                        >
+                            Bid
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Congrats Modal Overlay */}
             {showCongrats && (
@@ -615,4 +973,4 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             )}
         </div>
     );
-}
+                    }
