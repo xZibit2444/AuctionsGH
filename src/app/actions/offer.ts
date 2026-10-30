@@ -173,7 +173,7 @@ export async function respondToOfferAction(
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
-            body: `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". You have 30 minutes to complete your order.`,
+            body: `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
 
@@ -207,7 +207,8 @@ export async function respondToOfferAction(
                 buyerName,
                 auction.title,
                 Number(offer.amount),
-                offer.auction_id
+                offer.auction_id,
+                true
             );
 
             if (!buyerEmailResult.success) {
@@ -221,7 +222,8 @@ export async function respondToOfferAction(
                 sellerName,
                 auction.title,
                 Number(offer.amount),
-                buyerName
+                buyerName,
+                true
             );
 
             if (!sellerEmailResult.success) {

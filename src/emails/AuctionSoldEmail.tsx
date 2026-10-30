@@ -94,13 +94,13 @@ export const AuctionSoldEmail = ({
 
                     <Text style={text}>
 
-                        The buyer has exactly 30 minutes to confirm the order. Once confirmed, contact them to arrange delivery or pickup and collect payment on delivery.
+                        {buyNow ? 'The buyer will confirm the order. Then contact them to arrange delivery or pickup and agree how to pay.' : 'The buyer has exactly 30 minutes to confirm the order. Once confirmed, contact them to arrange delivery or pickup and collect payment on delivery.'}
 
                     </Text>
 
                     <Text style={text}>
 
-                        {buyNow ? 'If the buyer does not confirm within the 30-minute window, the order will not go ahead and you can relist the item.' : 'If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.'}
+                        {buyNow ? 'There is no deadline for the buyer to confirm a fixed-price order. If the buyer never confirms, you can relist the item.' : 'If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.'}
 
                     </Text>
 

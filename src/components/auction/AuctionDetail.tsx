@@ -372,7 +372,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                         {auction.status === 'active' && isPermanent && (
                             <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                                This is a permanent listing. It stays live until the seller accepts an offer or removes it.
+                                Fixed-price listing. Buy now at the listed price, or make an offer. It stays live until it is sold or the seller removes it.
                             </div>
                         )}
                     </div>
@@ -597,4 +597,4 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             )}
         </div>
     );
-            }
+                    }

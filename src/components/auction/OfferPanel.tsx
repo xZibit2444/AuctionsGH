@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
 import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
 
 
@@ -52,6 +53,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     const [amount, setAmount] = useState('');
 
     const [submitting, setSubmitting] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const [formError, setFormError] = useState('');
     const [buyError, setBuyError] = useState('');
@@ -108,18 +110,22 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
-    const handleBuyNow = async () => {
+    const handleBuyNow = () => {
         if (!isLoggedIn) {
             router.push(`/login?redirectTo=/auctions/${auctionId}`);
             return;
         }
         if (!listingPrice || listingPrice <= 0) return;
-        if (!window.confirm(`Buy this item for ${formatCurrency(listingPrice)}? You and the seller then agree how to pay and collect it. You have 30 minutes to confirm your order after this step.`)) return;
+        setConfirmOpen(true);
+    };
+
+    const confirmBuyNow = async () => {
         setSubmitting(true);
         setBuyError('');
         const result = await buyNowAction(auctionId);
         if (!result.success) {
             setSubmitting(false);
+            setConfirmOpen(false);
             setBuyError(result.error ?? 'Could not complete the purchase');
             return;
         }
@@ -196,14 +202,23 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                     type="button"
                     onClick={handleBuyNow}
                     disabled={submitting}
-                    className="w-full bg-black text-white py-3.5 text-sm font-bold uppercase tracking-wider hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                    className="w-full bg-amber-400 text-black py-3.5 text-sm font-black uppercase tracking-wider hover:bg-amber-300 disabled:opacity-50 transition-colors"
                 >
                     Buy now - {formatCurrency(listingPrice)}
                 </button>
                 <p className="mt-2 text-[11px] text-gray-500">
-                    You and the seller agree how to pay and collect the item. You have 30 minutes to confirm your order.
+                    You and the seller agree how to pay and collect the item.
                 </p>
                 {buyError && <p className="mt-2 text-[11px] text-red-500 font-semibold">{buyError}</p>}
+                <ConfirmDialog
+                    open={confirmOpen}
+                    title="Buy this item?"
+                    message={`You are buying this item for ${formatCurrency(listingPrice)}. After this you and the seller agree how to pay and collect it. AuctionsGH does not take payment.`}
+                    confirmLabel={`Buy for ${formatCurrency(listingPrice)}`}
+                    busy={submitting}
+                    onConfirm={confirmBuyNow}
+                    onCancel={() => setConfirmOpen(false)}
+                />
             </div>
         ) : null}
         <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
@@ -452,7 +467,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                     <div className="p-3 flex gap-2">
 
-                        <div className={`flex flex-1 items-center border transition-colors focus-within:border-black ${
+                        <div className={`flex flex-1 min-w-0 items-center border transition-colors focus-within:border-black ${
 
                             formError ? 'border-red-400' : 'border-gray-200'
 
@@ -470,7 +485,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                                     setFormError('');
                                 }}
                                 placeholder="Your offer amount"
-                                className="flex-1 px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                                className="flex-1 min-w-0 w-full px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
                             />
                         </div>
 
@@ -480,7 +495,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                             disabled={!amount || submitting}
 
-                            className="px-4 py-2.5 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                            className="shrink-0 px-4 py-2.5 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-1.5"
 
                         >
 
@@ -525,4 +540,4 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     );
 
-        }
+}

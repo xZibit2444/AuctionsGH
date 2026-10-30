@@ -102,7 +102,7 @@ export const AuctionWonEmail = ({
 
                 <Text style={footer}>
 
-                    {buyNow ? 'You have 30 minutes to confirm your order. You and the seller then agree how to pay and collect the item.' : 'This link will expire in 48 hours. If you do not check out in time, the item may be offered to the next highest bidder.'}
+                    {buyNow ? 'Confirm your order when you are ready. You and the seller then agree how to pay and collect the item.' : 'This link will expire in 48 hours. If you do not check out in time, the item may be offered to the next highest bidder.'}
 
                 </Text>
 

@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { useAuction } from '@/hooks/useAuction';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
+import { getListingType } from '@/lib/listings';
 import CheckoutTimer from '@/components/checkout/CheckoutTimer';
 import { ShieldCheck, Truck, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
@@ -97,7 +98,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }
 
     const endsAt = auction.ends_at ? new Date(auction.ends_at).getTime() : 0;
-    const isExpired = endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
+    const isFixedPrice = getListingType(auction) === 'permanent';
+    const isExpired = !isFixedPrice && endsAt > 0 && (Date.now() - endsAt > 30 * 60 * 1000);
 
     if (isExpired) {
         return (
@@ -121,10 +123,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             q: "How does payment work?",
             a: "AuctionsGH does not take payment. You confirm the order now, then you and the seller agree how and where to pay and collect. Always inspect the item before handing over payment."
         },
-        {
+        ...(isFixedPrice ? [] : [{
             q: "What if I miss the 30-minute window?",
             a: "If the order is not confirmed within 30 minutes, your order is cancelled and the item may go back on sale. Repeated unconfirmed wins may result in account suspension."
-        },
+        }]),
         {
             q: "How do I receive my item?",
             a: "You can choose to meet the seller in a public place (Pickup) or have it delivered via our trusted courier partners if you are in Accra or Kumasi."
@@ -193,9 +195,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     <h1 className="text-3xl font-black text-black tracking-tight mb-2">Confirm Your Order</h1>
                     <p className="text-gray-500 text-sm font-medium">No online payment. Confirm now to secure the item, then arrange payment and collection with the seller.</p>
                 </div>
-                <div className="w-full md:w-64 shrink-0">
-                    <CheckoutTimer endsAt={auction.ends_at} />
-                </div>
+                {!isFixedPrice && (
+                    <div className="w-full md:w-64 shrink-0">
+                        <CheckoutTimer endsAt={auction.ends_at} />
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -294,7 +298,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                             <Truck className={`w-4 h-4 ${form.delivery === 'delivery' ? 'text-black' : 'text-gray-400'}`} />
                                             <span className={`text-sm font-bold ${form.delivery === 'delivery' ? 'text-black' : 'text-gray-500'}`}>Delivery</span>
                                         </div>
-                                        <span className="text-xs text-gray-400">+ 50 GHC</span>
+                                        <span className="text-xs text-gray-400">Fee agreed with seller</span>
                                     </label>
                                 </div>
                             </div>
@@ -342,7 +346,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                             {/* Cost Breakdown */}
                             <div className="space-y-4 mb-6 text-sm">
                                 <div className="flex justify-between text-gray-600">
-                                    <span className="font-medium">Winning Bid</span>
+                                    <span className="font-medium">{isFixedPrice ? 'Price' : 'Winning Bid'}</span>
                                     <span className="font-mono">{formatCurrency(subtotal)}</span>
                                 </div>
                                 {isDelivery && (
@@ -354,7 +358,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                             </div>
 
                             <div className="flex justify-between items-end pt-5 border-t border-gray-200 mb-8">
-                                <span className="text-sm font-bold text-black uppercase tracking-widest">Total on Delivery</span>
+                                <span className="text-sm font-bold text-black uppercase tracking-widest">Item Total</span>
                                 <span className="text-2xl font-black text-black tracking-tight">{formatCurrency(total)}</span>
                             </div>
 
@@ -363,7 +367,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 form="checkout-form"
                                 type="submit"
                                 disabled={isProcessing}
-                                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-black text-white text-sm font-bold hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
+                                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
                             >
                                 {isProcessing ? 'Confirming...' : 'Confirm Order'}
                             </button>
@@ -377,4 +381,4 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             </div>
         </div>
     );
-                           }
+            }

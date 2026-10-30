@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
-            body: `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". You have 30 minutes to complete your order.`,
+            body: `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
 
@@ -108,10 +108,10 @@ export async function POST(request: NextRequest) {
         const buyerName = getDisplayName(buyerProfileRes.data, 'Buyer');
 
         if (buyerAuthResult.data.user?.email) {
-            await sendAuctionWonEmail(buyerAuthResult.data.user.email, buyerName, auction.title, Number(offer.amount), offer.auction_id);
+            await sendAuctionWonEmail(buyerAuthResult.data.user.email, buyerName, auction.title, Number(offer.amount), offer.auction_id, true);
         }
         if (sellerAuthResult.data.user?.email) {
-            await sendAuctionSoldEmail(sellerAuthResult.data.user.email, sellerName, auction.title, Number(offer.amount), buyerName);
+            await sendAuctionSoldEmail(sellerAuthResult.data.user.email, sellerName, auction.title, Number(offer.amount), buyerName, true);
         }
     } else {
         const [auctionRes, buyerProfileRes2, buyerAuthResult] = await Promise.all([
