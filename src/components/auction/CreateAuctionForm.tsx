@@ -759,7 +759,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 <input type="checkbox" checked={allowBuyNow} onChange={(e) => setAllowBuyNow(e.target.checked)} className="mt-1" />
                                 <span>
                                     <span className="font-semibold">Allow Buy now</span>
-                                    <span className="block text-[11px] text-gray-500">Turn off if you want to confirm availability first. Buyers can still send offers and enquiries.</span>
+                                    <span className="block text-[11px] text-gray-500">Turn this off if you want to confirm availability first. Buyers can still send offers and enquiries.</span>
                                 </span>
                             </label>
                         )}
