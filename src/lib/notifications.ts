@@ -53,15 +53,9 @@ export async function isNotificationEnabled(
 
 export async function insertNotificationIfEnabled(
     supabase: SupabaseClient<Database>,
-    notification: NotificationInsert,
-    options: { ignorePreference?: boolean } = {}
+    notification: NotificationInsert
 ) {
-    // Order-chat messages are transactional: new_message defaults to false in the
-    // profile preferences, which silently dropped every seller alert. Callers can
-    // opt out of the preference check for those in-app notifications.
-    const enabled = options.ignorePreference
-        ? true
-        : await isNotificationEnabled(supabase, notification.user_id, notification.type);
+    const enabled = await isNotificationEnabled(supabase, notification.user_id, notification.type);
     if (!enabled) {
         return { skipped: true, error: null };
     }
