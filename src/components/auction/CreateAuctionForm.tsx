@@ -86,6 +86,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
     const [isPermanent, setIsPermanent] = useState(true);
+    const [allowBuyNow, setAllowBuyNow] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [copiedFrom, setCopiedFrom] = useState<string | null>(null);
@@ -228,6 +229,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     meetup_area: formData.meetup_area,
                     delivery_available: formData.delivery_available,
                     inspection_available: formData.inspection_available,
+                    allow_buy_now: isPermanent ? allowBuyNow : true,
                 })
                 .select()
                 .single();
@@ -752,6 +754,15 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             />
                         </div>
                         {isPermanent && <p className="text-[11px] text-gray-500 mt-1">Buyers see this as the listing price and can send you offers.</p>}
+                        {isPermanent && (
+                            <label className="flex items-start gap-2 mt-3 text-sm text-gray-800 cursor-pointer">
+                                <input type="checkbox" checked={allowBuyNow} onChange={(e) => setAllowBuyNow(e.target.checked)} className="mt-1" />
+                                <span>
+                                    <span className="font-semibold">Allow Buy now</span>
+                                    <span className="block text-[11px] text-gray-500">Turn off if you want to confirm availability first. Buyers can still send offers and enquiries.</span>
+                                </span>
+                            </label>
+                        )}
                         {errors.starting_price && <p className="text-[11px] text-red-500 mt-1">{errors.starting_price}</p>}
                     </div>
 
@@ -840,4 +851,4 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
             )}
         </div>
     );
-                                }
+                    }
