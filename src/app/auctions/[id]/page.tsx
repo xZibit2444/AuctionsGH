@@ -73,7 +73,7 @@ export default async function AuctionPage({ params }: AuctionPageProps) {
     const { id } = await params;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-10">
             <AuctionDetail auctionId={id} />
         </div>
     );
