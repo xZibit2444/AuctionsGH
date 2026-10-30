@@ -19,7 +19,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                     <button
                         key={cat}
                         onClick={() => onSelect(cat)}
-                        className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-colors ${
+                        className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-[13px] font-semibold leading-[1.2] transition-colors ${
                             active
                                 ? 'border-[#12100C] bg-[#12100C] text-white'
                                 : 'border-[#E9E6E0] bg-white text-[#6E675E] hover:border-stone-400 hover:text-[#191612]'
