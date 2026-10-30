@@ -222,7 +222,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     };
 
     const statusPill = isActive ? (
-        <span className="inline-block rounded-md bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white">
+        <span className="inline-block rounded-md bg-emerald-600 px-[9px] py-1 text-[10.5px] font-extrabold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-[5px] sm:text-[11px]">
             Live
         </span>
     ) : (
@@ -254,12 +254,12 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
     const metaPills = (
         <div className="flex flex-wrap items-center gap-2">
-            <span className="hidden sm:inline-flex">{statusPill}</span>
-            <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+            <span className="hidden rounded-full bg-emerald-600 px-2.5 py-[3px] text-xs font-extrabold uppercase leading-[1.2] tracking-[0.05em] text-white sm:inline-block">Live</span>
+            <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600 sm:py-[3px] sm:text-xs">
                 {getListingTypeLabel(listingType)}
             </span>
             {auction.brand && (
-                <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+                <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600 sm:py-[3px] sm:text-xs">
                     {auction.brand}
                 </span>
             )}
@@ -321,7 +321,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         ...(auction.faults ? [{ label: 'Known faults', value: auction.faults }] : []),
         { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
         { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
-        { label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' },
+        ...(typeof auction.delivery_available === 'boolean'
+            ? [{ label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' }]
+            : []),
     ];
 
     const factsRows = (
@@ -503,8 +505,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             </div>
 
             {/* Desktop: gallery left, purchase panel right */}
-            <div className="hidden sm:grid sm:grid-cols-[1.35fr_1fr] sm:items-start sm:gap-7">
-                <div className="sm:sticky sm:top-6 sm:self-start">
+            <div className="hidden sm:flex sm:items-start sm:gap-7">
+                <div className="min-w-0 sm:flex-[1.35] sm:sticky sm:top-5 sm:self-start">
                     <ListingGallery
                         auctionId={auction.id}
                         title={auction.title}
@@ -515,7 +517,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         rounded
                     />
                 </div>
-                <div className="rounded-2xl border border-stone-200 bg-white px-6 py-[22px] sm:sticky sm:top-5">
+                <div className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white px-6 py-[22px] sm:sticky sm:top-5">
                     {purchasePanel}
                 </div>
             </div>
