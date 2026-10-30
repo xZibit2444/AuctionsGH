@@ -35,7 +35,7 @@ export async function createOrderAction(data: CheckoutFormData) {
     try {
         const { data: auction, error: fetchError } = await supabaseAdmin
             .from('auctions')
-            .select('id, title, seller_id, status, winner_id')
+            .select('id, title, seller_id, status, winner_id, current_price')
             .eq('id', data.auctionId)
             .single();
 
@@ -59,7 +59,7 @@ export async function createOrderAction(data: CheckoutFormData) {
                 fulfillment_type,
                 status: initial_status,
                 payment_method: 'cod',
-                amount: data.amount,
+                amount: Number(auction.current_price),
                 meetup_location: data.deliveryMethod === 'pickup' ? 'To be arranged' : data.address,
             })
             .select('id')
