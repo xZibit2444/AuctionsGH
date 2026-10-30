@@ -6,6 +6,10 @@ import type { Auction } from '@/types/auction';
 interface HomeHeroProps {
     auctions: (Auction & { auction_images?: { url: string; position: number | null }[] })[];
     loading: boolean;
+    /** Total active listings from a real count query; falls back to loaded rows. */
+    liveCount?: number | null;
+    /** Distinct categories among active listings; omitted when unknown. */
+    categoryCount?: number | null;
 }
 
 /**
@@ -13,8 +17,8 @@ interface HomeHeroProps {
  * listing photos. Numbers come from the live listings already loaded for the
  * homepage, so the banner never claims more than the site has.
  */
-export default function HomeHero({ auctions, loading }: HomeHeroProps) {
-    const liveCount = auctions.length;
+export default function HomeHero({ auctions, loading, liveCount, categoryCount }: HomeHeroProps) {
+    const shownCount = liveCount ?? auctions.length;
     const hasDelivery = auctions.some((a) => a.delivery_available);
     const seen = new Set<string>();
     const fanPhotos = auctions
@@ -23,8 +27,8 @@ export default function HomeHero({ auctions, loading }: HomeHeroProps) {
         .slice(0, 3);
 
     return (
-        <section className="-mx-4 -mt-4 bg-[#12100C] sm:-mx-6 sm:-mt-8 lg:-mx-8">
-            <div className="mx-auto flex max-w-7xl items-center gap-10 px-6 py-9 sm:px-10 sm:py-12">
+        <section className="bg-[#12100C]">
+            <div className="mx-auto flex max-w-7xl flex-col gap-7 px-6 py-9 sm:flex-row sm:items-center sm:gap-10 sm:px-12 sm:py-[52px]">
                 <div className="min-w-0 flex-1">
                     <p className="mb-3.5 text-xs font-extrabold tracking-[0.18em] text-amber-400">
                         ACCRA · GHANA
@@ -52,25 +56,33 @@ export default function HomeHero({ auctions, loading }: HomeHeroProps) {
                     </div>
                     <div className="mt-7 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-stone-400 sm:text-[13px]">
                         <span>
-                            <b className="font-bold text-white">{loading ? '…' : liveCount}</b> live listings
+                            <b className="font-bold text-white">{loading ? '…' : shownCount}</b> live listings
                         </span>
+                        {categoryCount != null && categoryCount > 0 && (
+                            <span>
+                                <b className="font-bold text-white">{categoryCount}</b> categories
+                            </span>
+                        )}
                         <span>Pickup in Accra{hasDelivery ? ' · delivery on many items' : ''}</span>
                     </div>
                 </div>
 
                 {fanPhotos.length > 0 && (
-                    <div className="relative hidden h-[280px] w-[340px] shrink-0 sm:block" aria-hidden="true">
+                    <div
+                        className="relative h-[140px] w-[190px] shrink-0 sm:h-[280px] sm:w-[340px]"
+                        aria-hidden="true"
+                    >
                         {fanPhotos.map((url, i) => (
                             <img
                                 key={url}
                                 src={url}
                                 alt=""
                                 loading={i === 1 ? 'eager' : 'lazy'}
-                                className={`absolute h-[230px] w-[190px] rounded-[14px] border-4 border-[#2A261F] object-cover ${i === 0
-                                    ? 'left-0 top-[26px] -rotate-[7deg]'
+                                className={`absolute h-[108px] w-[88px] rounded-[10px] border-[3px] border-[#2A261F] object-cover sm:h-[230px] sm:w-[190px] sm:rounded-[14px] sm:border-4 ${i === 0
+                                    ? 'left-0 top-[16px] -rotate-[7deg] sm:top-[26px]'
                                     : i === 1
-                                        ? 'left-[78px] top-0 z-10'
-                                        : 'left-[152px] top-[30px] rotate-[7deg]'
+                                        ? 'left-[51px] top-0 z-10 sm:left-[78px]'
+                                        : 'left-[102px] top-[18px] rotate-[7deg] sm:left-[152px] sm:top-[30px]'
                                     }`}
                             />
                         ))}
