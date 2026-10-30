@@ -106,6 +106,7 @@ export interface Database {
                     listing_city: string;
                     meetup_area: string;
                     delivery_available: boolean;
+                    allow_buy_now?: boolean;
                     inspection_available: boolean;
                     starting_price: number;
                     current_price: number;
@@ -135,6 +136,7 @@ export interface Database {
                     listing_city?: string;
                     meetup_area?: string;
                     delivery_available?: boolean;
+                    allow_buy_now?: boolean;
                     inspection_available?: boolean;
                     starting_price: number;
                     current_price: number;
@@ -162,6 +164,7 @@ export interface Database {
                     listing_city?: string;
                     meetup_area?: string;
                     delivery_available?: boolean;
+                    allow_buy_now?: boolean;
                     inspection_available?: boolean;
                     starting_price?: number;
                     current_price?: number;

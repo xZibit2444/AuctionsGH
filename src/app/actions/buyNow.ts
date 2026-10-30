@@ -32,13 +32,14 @@ export async function buyNowAction(
 
     const { data: listing } = await supabaseAdmin
         .from('auctions')
-        .select('id, title, seller_id, status, ends_at, current_price')
+        .select('id, title, seller_id, status, ends_at, current_price, allow_buy_now')
         .eq('id', auctionId)
         .maybeSingle();
 
     if (!listing) return { success: false, error: 'Listing not found' };
     if (!isPermanentListing(listing.ends_at)) return { success: false, error: 'This item is an auction. Place a bid instead.' };
     if (listing.status !== 'active') return { success: false, error: 'This item is no longer available' };
+    if ((listing as { allow_buy_now?: boolean }).allow_buy_now === false) return { success: false, error: 'Buy now is not available for this item. Make an offer instead.' };
     if (listing.seller_id === user.id) return { success: false, error: 'You cannot buy your own listing' };
 
     const price = Number(listing.current_price);
