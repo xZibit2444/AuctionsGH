@@ -401,6 +401,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                                 userId={user?.id}
                                 isActive={auction.status === 'active'}
                                 listingPrice={isPermanent ? auction.current_price : undefined}
+                                buyNowEnabled={(auction as { allow_buy_now?: boolean }).allow_buy_now !== false}
                             />
                         </>
                     )}
@@ -597,4 +598,4 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             )}
         </div>
     );
-                    }
+}
