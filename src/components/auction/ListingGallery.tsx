@@ -75,8 +75,8 @@ export default function ListingGallery({
     return (
         <div>
             <div className={`relative bg-stone-950 ${rounded ? 'rounded-2xl overflow-hidden border border-stone-200' : ''}`}>
-                {overlayBadge && <div className="absolute left-3 top-3 z-10">{overlayBadge}</div>}
-                {overlayActions && <div className="absolute right-3 top-3 z-10 flex items-center gap-2">{overlayActions}</div>}
+                {overlayBadge && <div className="absolute left-3 top-3 z-10 sm:left-[14px] sm:top-[14px]">{overlayBadge}</div>}
+                {overlayActions && <div className="absolute right-3 top-3 z-10 sm:right-[14px] sm:top-[14px] flex items-center gap-2">{overlayActions}</div>}
 
                 <div
                     ref={trackRef}
@@ -107,7 +107,7 @@ export default function ListingGallery({
                     ))}
                 </div>
 
-                <span className="absolute right-3 bottom-3 z-10 rounded-full bg-black/80 px-2.5 py-1 text-[11px] font-bold text-white">
+                <span className="absolute right-3 bottom-3 z-10 rounded-full bg-black/80 px-2.5 py-1 text-[11px] sm:right-[14px] sm:bottom-[14px] sm:px-[11px] sm:text-[11.5px] font-bold text-white">
                     {index + 1} / {slides.length}
                 </span>
 
