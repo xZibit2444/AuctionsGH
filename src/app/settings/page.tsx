@@ -419,7 +419,7 @@ export default function SettingsPage() {
         new_bid: true,
         auction_ending: true,
         auction_won: true,
-        new_message: false,
+        new_message: true,
         promotions: false,
     };
     const [notifSettings, setNotifSettings] = useState(defaultNotifSettings);
@@ -896,4 +896,4 @@ export default function SettingsPage() {
             </div>
         </AuthGuard>
     );
-                                        }
+                }
