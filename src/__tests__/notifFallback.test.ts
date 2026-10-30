@@ -43,4 +43,21 @@ describe('insertNotificationIfEnabled enum fallback', () => {
         await insertNotificationIfEnabled(bad as never, n);
         expect(inserts.length).toBe(1);
     });
+
+    it('skips new_message when the preference is off, unless ignorePreference is set', async () => {
+        const { inserts, client } = fakeClient([]);
+        const off = {
+            ...client,
+            from: (t: string) => t === 'profiles'
+                ? { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { notification_preferences: { new_message: false } }, error: null }) }) }) }
+                : client.from(t),
+        };
+        const m = { user_id: 'u', type: 'new_message' as const, title: 'New message from Buyer', order_id: 'o' };
+        const skipped = await insertNotificationIfEnabled(off as never, m);
+        expect(skipped.skipped).toBe(true);
+        expect(inserts.length).toBe(0);
+        const sent = await insertNotificationIfEnabled(off as never, m, { ignorePreference: true });
+        expect(sent.skipped).toBe(false);
+        expect(inserts.map((i) => i.type)).toEqual(['new_message']);
+    });
 });
