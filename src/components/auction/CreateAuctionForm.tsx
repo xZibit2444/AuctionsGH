@@ -801,7 +801,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             <span className="font-semibold text-black">{CONDITION_LABELS[formData.condition] ?? formData.condition}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Starting at</span>
+                            <span className="text-gray-500">{isPermanent ? 'Price' : 'Starting at'}</span>
                             <span className="font-semibold text-black">GHS {formData.starting_price || '0'}</span>
                         </div>
                         <div className="flex justify-between text-sm">
