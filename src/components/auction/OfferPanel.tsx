@@ -197,29 +197,25 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     return (
         <>
-        {!isSeller && isActive && listingPrice && !buyNowEnabled ? (
-            <div className="border border-gray-200 bg-white mt-4 p-4">
-                <p className="text-sm font-bold text-black">Availability confirmed on enquiry</p>
-                <p className="mt-1 text-[11px] text-gray-500">
-                    Make an offer below or message us. We confirm the item is still available before any sale.
-                </p>
-            </div>
-        ) : null}
+        {/* The primary purchase CTAs (and the enquiry-only note) are presented once in the
+            listing header and sticky bar. The real Buy now button stays mounted here, hidden,
+            so those CTAs click through to the same handler, confirm dialog and login redirect. */}
         {!isSeller && isActive && listingPrice && buyNowEnabled ? (
-            <div className="border border-gray-200 bg-white mt-4 p-4">
+            <>
                 <button
                     id="buy-now-button"
                     type="button"
                     onClick={handleBuyNow}
                     disabled={submitting}
-                    className="w-full bg-amber-400 text-black py-3.5 text-sm font-black uppercase tracking-wider hover:bg-amber-300 disabled:opacity-50 transition-colors"
+                    hidden
+                    aria-hidden="true"
+                    tabIndex={-1}
                 >
                     Buy now - {formatCurrency(listingPrice)}
                 </button>
-                <p className="mt-2 text-[11px] text-gray-500">
-                    You and the seller agree how to pay and collect the item.
-                </p>
-                {buyError && <p className="mt-2 text-[11px] text-red-500 font-semibold">{buyError}</p>}
+                {buyError && (
+                    <p role="alert" className="mt-4 text-xs font-semibold text-red-500">{buyError}</p>
+                )}
                 <ConfirmDialog
                     open={confirmOpen}
                     title="Buy this item?"
@@ -229,15 +225,15 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                     onConfirm={confirmBuyNow}
                     onCancel={() => setConfirmOpen(false)}
                 />
-            </div>
+            </>
         ) : null}
-        <div id="offer-panel" className="border border-gray-200 bg-white mt-4">
+        <div id="offer-panel" className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-white">
 
             {/* Header */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
                 <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                 <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                    {isSeller ? 'Buyer Offers' : listingPrice ? 'Or Make an Offer' : 'Make an Offer'}
+                    {isSeller ? 'Buyer Offers' : 'Make an Offer'}
                 </p>
             </div>
 
@@ -550,5 +546,4 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
         </>
 
     );
-
 }
