@@ -15,7 +15,7 @@ import {
 } from '@/lib/constants';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
 
-type Condition = 'new' | 'like_new' | 'good' | 'fair' | 'poor';
+type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
 
 type FormState = {
     title: string;
