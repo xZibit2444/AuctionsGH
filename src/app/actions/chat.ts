@@ -62,7 +62,7 @@ export async function sendMessageAction(
         title: `New message from ${senderLabel}`,
         body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
         order_id: orderId,
-    });
+    }, { ignorePreference: true });
 
     return { success: true, messageId: msg.id };
 }

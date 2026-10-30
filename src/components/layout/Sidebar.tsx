@@ -147,7 +147,7 @@ export default function Sidebar() {
         setNotifOpen(false);
         const href = n.order_id
             ? `/orders/${n.order_id}`
-            : n.auction_id && n.type === 'new_offer'
+            : n.auction_id && (n.type === 'new_offer' || n.title === 'New Offer on Your Listing')
                 ? `/auctions/${n.auction_id}#offer-panel`
                 : n.auction_id
                     ? `/auctions/${n.auction_id}`
@@ -407,4 +407,3 @@ export default function Sidebar() {
         </aside>
     );
 }
-
