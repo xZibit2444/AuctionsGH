@@ -68,7 +68,7 @@ export const createAuctionSchema = z.object({
     model: z.string().max(100).optional().default(''),
     storage_gb: z.coerce.number().positive().optional().or(z.literal(0)),
 
-    condition: z.enum(['new', 'like_new', 'good', 'fair', 'poor']),
+    condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor']),
     starting_price: z.coerce
         .number()
         .positive('Starting price must be greater than 0')
