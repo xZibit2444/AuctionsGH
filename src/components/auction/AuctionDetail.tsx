@@ -372,7 +372,9 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
                         {auction.status === 'active' && isPermanent && (
                             <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                                Fixed-price listing. Buy now at the listed price, or make an offer. It stays live until it is sold or the seller removes it.
+                                {(auction as { allow_buy_now?: boolean }).allow_buy_now === false
+                                    ? 'Fixed-price listing. Make an offer or message us. We confirm availability before any sale. It stays live until it is sold or the seller removes it.'
+                                    : 'Fixed-price listing. Buy now at the listed price, or make an offer. It stays live until it is sold or the seller removes it.'}
                             </div>
                         )}
                     </div>
