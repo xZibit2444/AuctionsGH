@@ -36,7 +36,7 @@ export function useImageUpload() {
             'image/webp': 'webp',
         };
         const fileExt = mimeToExt[file.type] ?? 'jpg';
-        const filePath = `${userId}/${auctionId}/${Date.now()}.${fileExt}`;
+        const filePath = `${userId}/${auctionId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
         try {
             const { error: uploadError } = await supabase.storage
