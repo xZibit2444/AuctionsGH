@@ -55,7 +55,7 @@ export default function HomePageClient() {
     const isFiltering = search !== '' || brand !== 'All';
 
     return (
-        <div className="min-h-screen bg-[#F5F4F0]">
+        <div className="min-h-screen bg-[#F5F4F0] pt-14 sm:pt-0">
             <HomeHeader search={search} setSearch={setSearch} />
 
             <HomeHero
