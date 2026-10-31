@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, startTransition, useCallback, useEffect, useState } from 'react';
+import { Suspense, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ITEM_CATEGORIES } from '@/lib/constants';
 import { useAuctions } from '@/hooks/useAuctions';
+import { shuffled } from '@/lib/rotation';
 import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 
@@ -39,6 +40,14 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
         orderBy,
         ascending: ascending === 'asc',
     });
+
+    // Default view rotates on every open so visitors do not always see the
+    // same listings in the same order; an explicit sort choice is preserved.
+    const isDefaultSort = !searchParams.get('sort');
+    const visibleAuctions = useMemo(
+        () => (isDefaultSort ? shuffled(auctions) : auctions),
+        [auctions, isDefaultSort]
+    );
 
     const basePath = listingType === 'permanent' ? '/listings' : '/auctions';
     const pageTitle = listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
@@ -180,7 +189,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
 
             <div className="flex items-center justify-between mb-5">
                 <p className="text-xs text-gray-400 font-medium">
-                    {loading ? 'Loading...' : `${auctions.length} listing${auctions.length !== 1 ? 's' : ''}`}
+                    {loading ? 'Loading...' : `${visibleAuctions.length} listing${visibleAuctions.length !== 1 ? 's' : ''}`}
                     {query && <span className="ml-1">for <span className="font-semibold text-black">&quot;{query}&quot;</span></span>}
                 </p>
                 <div className="flex items-center gap-2">
@@ -197,7 +206,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                 </div>
             </div>
 
-            <AuctionGrid auctions={auctions} loading={loading} />
+            <AuctionGrid auctions={visibleAuctions} loading={loading} />
         </div>
     );
 }
