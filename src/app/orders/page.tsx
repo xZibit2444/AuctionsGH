@@ -96,14 +96,15 @@ export default function OrdersPage() {
     };
 
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
             <div className="mb-6 sm:mb-8">
                 <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">My Orders</h1>
-                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">All your orders — purchases and sales</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">All your orders — purchases and sales</p>
             </div>
 
             {loading ? (
-                <div className="border border-gray-200 divide-y divide-gray-100">
+                <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
                     {Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-4 px-5 py-4">
                             <div className="h-12 w-12 bg-gray-100 skeleton-pulse shrink-0" />
@@ -115,19 +116,19 @@ export default function OrdersPage() {
                     ))}
                 </div>
             ) : orders.length === 0 ? (
-                <div className="text-center py-20 border border-gray-200">
+                <div className="text-center py-20 rounded-[20px] border border-gray-200 bg-white">
                     <Package className="mx-auto h-10 w-10 text-gray-300 mb-4" strokeWidth={1} />
                     <h3 className="text-sm font-bold text-black uppercase tracking-widest">No orders yet</h3>
                     <p className="text-xs text-gray-400 mt-1 mb-6">Win an auction to get started.</p>
                     <Link
                         href="/auctions"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                     >
                         Browse Auctions
                     </Link>
                 </div>
             ) : (
-                <div className="border border-gray-200 divide-y divide-gray-100">
+                <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
                     {orders.map((order) => {
                         const images = order.auction?.auction_images ?? [];
                         const thumb = images.sort((a, b) => a.position - b.position)[0]?.url;
@@ -139,7 +140,7 @@ export default function OrdersPage() {
                         return (
                             <div key={order.id} className="flex items-center gap-4 px-4 sm:px-5 py-4 hover:bg-gray-50 transition-colors">
                                 {/* Thumbnail */}
-                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gray-100 shrink-0 overflow-hidden">
+                                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gray-100 rounded-xl shrink-0 overflow-hidden">
                                     {thumb ? (
                                         <img src={thumb} alt="" className="h-full w-full object-cover" />
                                     ) : (
@@ -155,7 +156,7 @@ export default function OrdersPage() {
                                         <p className="text-sm font-semibold text-black truncate">
                                             {order.auction?.title ?? 'Order'}
                                         </p>
-                                        <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${
+                                        <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                             isBuyer ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-700'
                                         }`}>
                                             {isBuyer ? 'Bought' : 'Sold'}
@@ -174,13 +175,13 @@ export default function OrdersPage() {
 
                                 {/* Status + actions */}
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <span className={`hidden sm:inline-flex px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
+                                    <span className={`hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
                                         {getStatusLabel(order)}
                                     </span>
                                     {!chatClosed && (
                                         <Link
                                             href={`/orders/${order.id}#chat`}
-                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                                             title="Open chat"
                                         >
                                             <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
@@ -188,7 +189,7 @@ export default function OrdersPage() {
                                     )}
                                     <Link
                                         href={`/orders/${order.id}`}
-                                        className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
+                                        className="p-1.5 rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
                                         title="View order"
                                     >
                                         <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
@@ -199,6 +200,7 @@ export default function OrdersPage() {
                     })}
                 </div>
             )}
+        </div>
         </div>
     );
 }
