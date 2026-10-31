@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
             const { data: acceptedOffer } = await supabaseAdmin
                 .from('auction_offers')
-                .select('id, amount')
+                .select('id, amount, counter_amount')
                 .eq('auction_id', auctionId)
                 .eq('buyer_id', user.id)
                 .eq('status', 'accepted')
@@ -108,7 +108,8 @@ export async function POST(req: NextRequest) {
                 await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
             }
 
-            orderAmount = Number(acceptedOffer.amount);
+            // Agreed price: the counter amount when the buyer accepted a counter-offer.
+            orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
         }
 
         const { data: order, error: orderErr } = await supabaseAdmin
