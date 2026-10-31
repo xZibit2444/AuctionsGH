@@ -12,6 +12,8 @@ interface HomeHeaderProps {
     /** Controlled search (homepage). When omitted, submitting goes to /listings?q=. */
     search?: string;
     setSearch?: (value: string) => void;
+    /** Hide the header logo where the desktop sidebar already shows it (homepage). */
+    hideLogo?: boolean;
 }
 
 /**
@@ -19,7 +21,7 @@ interface HomeHeaderProps {
  * logo, pill search, notifications, sell CTA and account avatar in one
  * horizontal row. Desktop only; phones keep the existing MobileNav header.
  */
-export default function HomeHeader({ search, setSearch }: HomeHeaderProps) {
+export default function HomeHeader({ search, setSearch, hideLogo = false }: HomeHeaderProps) {
     const router = useRouter();
     const [localSearch, setLocalSearch] = useState('');
     const controlled = typeof search === 'string' && !!setSearch;
@@ -27,16 +29,18 @@ export default function HomeHeader({ search, setSearch }: HomeHeaderProps) {
     const onChange = controlled ? setSearch! : setLocalSearch;
     return (
         <header className="sticky top-0 z-40 hidden items-center gap-4 border-b border-[#E9E6E0] bg-white px-7 py-3 sm:flex">
-            <Link href="/" className="shrink-0">
-                <Image
-                    src="/logo.png"
-                    alt="AuctionsGH"
-                    width={140}
-                    height={40}
-                    className="h-9 w-auto object-contain"
-                    priority
-                />
-            </Link>
+            {!hideLogo && (
+                <Link href="/" className="shrink-0">
+                    <Image
+                        src="/logo.png"
+                        alt="AuctionsGH"
+                        width={140}
+                        height={40}
+                        className="h-9 w-auto object-contain"
+                        priority
+                    />
+                </Link>
+            )}
 
             <form
                 role="search"
