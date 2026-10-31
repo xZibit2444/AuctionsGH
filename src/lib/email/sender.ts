@@ -491,7 +491,7 @@ export async function sendNewSellerApplicationAdminEmail(
         const { data, error } = await resend.emails.send({
             from: SENDER_EMAIL,
             to,
-            subject: `New seller application â ${applicant.fullName}`,
+            subject: `New seller application — ${applicant.fullName}`,
             html: `
 <!DOCTYPE html>
 <html>
@@ -533,8 +533,8 @@ export async function sendReceiptEmail(
         return { success: false, error: 'API key missing' };
     }
     const subject = props.role === 'buyer'
-        ? `Purchase Receipt #${props.receiptNumber} â ${props.auctionTitle}`
-        : `Sale Receipt #${props.receiptNumber} â ${props.auctionTitle}`;
+        ? `Purchase Receipt #${props.receiptNumber} — ${props.auctionTitle}`
+        : `Sale Receipt #${props.receiptNumber} — ${props.auctionTitle}`;
     try {
         const { data, error } = await resend.emails.send({
             from: SENDER_EMAIL,
