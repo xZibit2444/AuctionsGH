@@ -19,7 +19,7 @@ import {
     getLocationsForRegion,
 } from '@/lib/constants';
 import { formatAuctionLocation } from '@/lib/utils';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity, Video
 } from 'lucide-react';
@@ -148,6 +148,21 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const update = <K extends keyof CreateAuctionInput>(field: K, value: CreateAuctionInput[K]) =>
         setFormData((prev) => ({ ...prev, [field]: value }));
 
+    // Only the spec fields that apply to the selected category are shown and saved.
+    const specFields = specFieldsForCategory(formData.brand);
+
+    const handleCategoryChange = (category: string) => {
+        update('brand', category as CreateAuctionInput['brand']);
+        const visible = specFieldsForCategory(category);
+        setSpecs((p) => ({
+            storage: visible.storage ? p.storage : '',
+            battery: visible.battery ? p.battery : '',
+            sim: visible.sim ? p.sim : '',
+            lock: visible.lock ? p.lock : '',
+            faults: p.faults,
+        }));
+    };
+
     const handleImageAdd = async (files: FileList | File[]) => {
         const arr = Array.from(files);
         const remaining = MAX_IMAGES_PER_AUCTION - images.length;
@@ -215,10 +230,10 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         const result = createAuctionSchema.safeParse(formData);
 
         const specErrors: Record<string, string> = {};
-        if (specs.storage !== '' && !(Number.isInteger(Number(specs.storage)) && Number(specs.storage) >= 1 && Number(specs.storage) <= 8192)) {
+        if (specFields.storage && specs.storage !== '' && !(Number.isInteger(Number(specs.storage)) && Number(specs.storage) >= 1 && Number(specs.storage) <= 8192)) {
             specErrors.spec_storage = 'Storage must be a whole number of GB between 1 and 8192.';
         }
-        if (specs.battery !== '' && !(Number.isInteger(Number(specs.battery)) && Number(specs.battery) >= 0 && Number(specs.battery) <= 100)) {
+        if (specFields.battery && specs.battery !== '' && !(Number.isInteger(Number(specs.battery)) && Number(specs.battery) >= 0 && Number(specs.battery) <= 100)) {
             specErrors.spec_battery = 'Battery health must be a whole number from 0 to 100.';
         }
 
@@ -275,10 +290,10 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     description: formData.description || null,
                     brand: formData.brand,
                     model: formData.model,
-                    storage_gb: formData.storage_gb || (specs.storage !== '' ? Number(specs.storage) : null),
-                    battery_health: specs.battery !== '' ? Number(specs.battery) : null,
-                    sim_type: specs.sim || null,
-                    network_lock: specs.lock || null,
+                    storage_gb: specFields.storage ? formData.storage_gb || (specs.storage !== '' ? Number(specs.storage) : null) : null,
+                    battery_health: specFields.battery && specs.battery !== '' ? Number(specs.battery) : null,
+                    sim_type: specFields.sim ? specs.sim || null : null,
+                    network_lock: specFields.lock ? specs.lock || null : null,
                     faults: specs.faults.trim() || null,
                     condition: formData.condition,
                     starting_price: formData.starting_price,
@@ -462,7 +477,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <FieldLabel>Category</FieldLabel>
-                            <SelectInput value={formData.brand} onChange={(e) => update('brand', e.target.value)}>
+                            <SelectInput value={formData.brand} onChange={(e) => handleCategoryChange(e.target.value)}>
                                 {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                             </SelectInput>
                         </div>
@@ -497,18 +512,24 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         </div>
                     </div>
 
-                    {/* Optional specs */}
+                    {/* Optional specs - only the fields that fit the category */}
+                    {(specFields.storage || specFields.battery || specFields.sim || specFields.lock) && (
                     <div className="grid grid-cols-2 gap-4">
+                        {specFields.storage && (
                         <div>
                             <FieldLabel optional>Storage (GB)</FieldLabel>
                             <input type="number" min={1} max={8192} value={specs.storage} onChange={(e) => setSpecs((p) => ({ ...p, storage: e.target.value }))} placeholder="e.g. 256" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
                             {errors.spec_storage && <p className="text-[11px] text-red-500 mt-1">{errors.spec_storage}</p>}
                         </div>
+                        )}
+                        {specFields.battery && (
                         <div>
                             <FieldLabel optional>Battery health (%)</FieldLabel>
                             <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
                             {errors.spec_battery && <p className="text-[11px] text-red-500 mt-1">{errors.spec_battery}</p>}
                         </div>
+                        )}
+                        {specFields.sim && (
                         <div>
                             <FieldLabel optional>SIM type</FieldLabel>
                             <SelectInput value={specs.sim} onChange={(e) => setSpecs((p) => ({ ...p, sim: e.target.value }))}>
@@ -516,6 +537,8 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 {SIM_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </SelectInput>
                         </div>
+                        )}
+                        {specFields.lock && (
                         <div>
                             <FieldLabel optional>Network lock</FieldLabel>
                             <SelectInput value={specs.lock} onChange={(e) => setSpecs((p) => ({ ...p, lock: e.target.value }))}>
@@ -523,10 +546,12 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 {NETWORK_LOCK_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </SelectInput>
                         </div>
+                        )}
                     </div>
+                    )}
                     <div>
                         <FieldLabel optional>Known faults</FieldLabel>
-                        <textarea rows={2} maxLength={500} value={specs.faults} onChange={(e) => setSpecs((p) => ({ ...p, faults: e.target.value }))} placeholder="Cracks, Face ID not working, etc. Leave empty if none." className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none" />
+                        <textarea rows={2} maxLength={500} value={specs.faults} onChange={(e) => setSpecs((p) => ({ ...p, faults: e.target.value }))} placeholder="Cracks, faults or missing parts. Leave empty if none." className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none" />
                     </div>
 
                     {/* Description */}
