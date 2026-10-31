@@ -28,13 +28,13 @@ export default function Error({
             <div className="flex items-center gap-3 w-full max-w-xs">
                 <button
                     onClick={() => reset()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-black text-white text-sm font-bold hover:bg-gray-900 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                 >
                     <RotateCcw className="h-4 w-4" /> Try Again
                 </button>
                 <Link
                     href="/"
-                    className="flex-1 flex items-center justify-center gap-2 py-3 border border-gray-200 text-black text-sm font-bold hover:border-black transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 border border-gray-200 text-black text-sm font-bold hover:border-black transition-colors"
                 >
                     <Home className="h-4 w-4" /> Home
                 </Link>
