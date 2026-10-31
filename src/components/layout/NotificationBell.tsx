@@ -194,6 +194,8 @@ export default function NotificationBell() {
                                     ? `/auctions/${n.auction_id}#offer-panel`
                                     : n.auction_id
                                     ? `/auctions/${n.auction_id}`
+                                    : n.title.startsWith('New support request')
+                                    ? '/admin/support'
                                     : null;
 
                                 // Use window.location.href so navigation is always a full
