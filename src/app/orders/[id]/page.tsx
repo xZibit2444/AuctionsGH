@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { use, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -73,7 +73,7 @@ function DeliveryTimeline({ status }: { status: DeliveryStatus }) {
     const currentIdx = STATUS_STEPS.findIndex((s) => s.key === status);
 
     return (
-        <div className="border border-gray-200 p-6 bg-white">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-5">Delivery Status</h3>
             <ol className="relative border-l border-gray-200 ml-3 space-y-5">
                 {STATUS_STEPS.map((step, idx) => {
@@ -92,7 +92,7 @@ function DeliveryTimeline({ status }: { status: DeliveryStatus }) {
                             <p className={`text-sm font-bold ml-1 ${active ? 'text-black' : done ? 'text-gray-600' : 'text-gray-300'}`}>
                                 {step.label}
                                 {active && (
-                                    <span className="ml-2 text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 px-2 py-0.5">
+                                    <span className="ml-2 text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
                                         Current
                                     </span>
                                 )}
@@ -283,7 +283,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h1 className="text-xl font-bold mb-2 text-black">Order Not Found</h1>
                 <p className="text-gray-500 mb-6 font-medium">This order does not exist or you do not have permission to view it.</p>
-                <Link href="/dashboard" className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Return to Dashboard
                 </Link>
             </div>
@@ -326,13 +326,13 @@ export default function OrderPage({ params }: OrderPageProps) {
     });
 
     return (
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 pb-24 lg:pb-12">
 
             <button
                 type="button"
                 onClick={handleDownload}
                 disabled={downloading}
-                className="absolute top-0 right-4 sm:right-6 lg:right-8 inline-flex items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:border-black hover:text-black transition-colors shadow-sm disabled:opacity-50"
+                className="absolute top-0 right-4 sm:right-6 lg:right-8 inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:border-gray-300 hover:text-black transition-colors shadow-sm disabled:opacity-50"
             >
                 <Download className={`w-3.5 h-3.5 ${downloading ? 'animate-bounce' : ''}`} />
                 <span className="hidden sm:inline">{downloading ? 'Generating...' : 'Download Order'}</span>
@@ -343,7 +343,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
                             Order #{order.id.split('-')[0].toUpperCase()}
                         </h1>
-                        <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
                             {statusLabel}
                         </span>
                     </div>
@@ -357,7 +357,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         url={`/orders/${order.id}`}
                     />
                     {isClosed && (
-                        <div className={`flex items-center gap-2 px-4 py-2 border ${isCompleted ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isCompleted ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
                             <CheckCircle2 className="w-5 h-5" />
                             <span className="text-xs font-bold uppercase tracking-widest">{isCompleted ? 'Transaction Complete' : 'Order Closed'}</span>
                         </div>
@@ -367,10 +367,10 @@ export default function OrderPage({ params }: OrderPageProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                    <div className="border border-gray-200 p-6 bg-white">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Item</h3>
                         <div className="flex gap-4">
-                            <div className="w-20 h-20 bg-gray-100 shrink-0 border border-gray-200">
+                            <div className="w-20 h-20 bg-gray-100 rounded-xl shrink-0 overflow-hidden">
                                 {order.auction?.auction_images?.[0] && (
                                     <img src={order.auction.auction_images[0].url} alt="" className="w-full h-full object-cover" />
                                 )}
@@ -385,7 +385,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{order.auction?.condition} Condition</p>
                                 <div className="flex items-center gap-2">
                                     <p className="font-mono font-black text-black">{formatCurrency(order.amount)}</p>
-                                    <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700">
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700">
                                         Pay on Delivery
                                     </span>
                                 </div>
@@ -393,12 +393,12 @@ export default function OrderPage({ params }: OrderPageProps) {
                         </div>
                     </div>
 
-                    <div className="border border-gray-200 p-6 bg-white">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isBuyer ? 'Seller Contact' : 'Buyer'}</h3>
                         {isBuyer ? (
                             <Link
                                 href={`/users/${order.seller?.id || order.seller_id}`}
-                                className="group block overflow-hidden border border-gray-200 bg-white hover:border-black transition-colors"
+                                className="group block overflow-hidden rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors"
                             >
                                 <div className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Seller Profile</p>
@@ -422,7 +422,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                                     {sellerLabel}
                                                 </p>
                                                 {order.seller?.is_verified && (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
                                                         <CheckCircle2 className="h-3 w-3" />
                                                         Verified
                                                     </span>
@@ -447,7 +447,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
                                             <p className="text-sm font-semibold text-black break-all">{order.seller?.phone_number || 'Not provided'}</p>
                                         </div>
-                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
+                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
                                             <MapPin className="h-4 w-4 text-gray-400" />
                                             {order.seller?.location || 'Not shared'}
                                         </div>
@@ -461,7 +461,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         ) : (
                             <Link
                                 href={`/users/${order.buyer?.id || order.buyer_id}`}
-                                className="group block overflow-hidden border border-gray-200 bg-white hover:border-black transition-colors"
+                                className="group block overflow-hidden rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors"
                             >
                                 <div className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Buyer Profile</p>
@@ -485,7 +485,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                                     {buyerLabel}
                                                 </p>
                                                 {order.buyer?.is_verified && (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-widest">
                                                         <CheckCircle2 className="h-3 w-3" />
                                                         Verified
                                                     </span>
@@ -499,7 +499,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone</p>
                                             <p className="text-sm font-semibold text-black break-all">{order.buyer?.phone_number || 'Not provided'}</p>
                                         </div>
-                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
+                                        <div className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold text-black">
                                             <MapPin className="h-4 w-4 text-gray-400" />
                                             {order.buyer?.location || 'Not shared'}
                                         </div>
@@ -513,7 +513,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         )}
                     </div>
 
-                    <div className="border border-gray-200 p-6 bg-white">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Fulfillment</h3>
                         <div className="flex items-start gap-3">
                             {order.fulfillment_type === 'meet_and_inspect' ? (
@@ -531,7 +531,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                     </div>
 
                     {isBuyer && winnerNote && (
-                        <div className="border border-emerald-200 p-6 bg-emerald-50">
+                        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
                             <h3 className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-3">Seller Note (Winner Only)</h3>
                             <p className="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">{winnerNote}</p>
                         </div>
@@ -604,7 +604,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                             <Link
                                 key={listing.id}
                                 href={`/auctions/${listing.id}`}
-                                className="group block border border-gray-200 bg-white hover:border-black transition-colors overflow-hidden"
+                                className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white hover:border-gray-300 transition-colors"
                             >
                                 <div className="aspect-square bg-gray-100 overflow-hidden">
                                     {listing.auction_images?.[0] ? (
@@ -633,4 +633,4 @@ export default function OrderPage({ params }: OrderPageProps) {
             )}
         </div>
     );
-}
+              }
