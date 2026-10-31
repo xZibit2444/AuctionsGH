@@ -205,7 +205,8 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                 {slides.map((slide, i) => (
                     <div
                         key={slide.eyebrow}
-                        className={`mx-auto flex w-full min-w-full max-w-7xl flex-col gap-7 px-6 pb-16 pt-9 sm:flex-row sm:items-center sm:gap-10 sm:px-12 sm:pb-[68px] sm:pt-[52px] ${i === index ? 'visible' : 'invisible'}`}
+                        inert={i !== index}
+                        className="mx-auto flex w-full min-w-full max-w-7xl flex-col gap-7 px-6 pb-16 pt-9 sm:flex-row sm:items-center sm:gap-10 sm:px-12 sm:pb-[68px] sm:pt-[52px]"
                     >
                         <div className="min-w-0 flex-1">
                             <p className="mb-3.5 text-xs font-extrabold tracking-[0.18em] text-amber-400">
