@@ -60,7 +60,7 @@ export default function AdminOrderSearch() {
                         type="button"
                         onClick={handleSearch}
                         disabled={isPending || !query.trim()}
-                        className="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-xl bg-black text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50"
                     >
                         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                         {isPending ? 'Searching...' : 'Search'}
@@ -218,4 +218,4 @@ export default function AdminOrderSearch() {
             )}
         </div>
     );
-}
+                                                }
