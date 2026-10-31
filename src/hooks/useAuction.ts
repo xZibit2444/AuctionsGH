@@ -27,7 +27,7 @@ export function useAuction(auctionId: string) {
             id, username, full_name, avatar_url, location, is_verified
           ),
           orders(id, status, buyer_id),
-          auction_offers(id, buyer_id, amount, status)
+          auction_offers(id, buyer_id, amount, counter_amount, status)
         `
                 )
                 .eq('id', auctionId)
