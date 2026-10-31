@@ -43,6 +43,7 @@ const contactOptions = [
 
 export default function ContactPage() {
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
             <div className="max-w-2xl">
                 <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-500 mb-3">
@@ -62,7 +63,7 @@ export default function ContactPage() {
                     <Link
                         key={title}
                         href={href}
-                        className="border border-gray-200 p-5 sm:p-6 hover:border-black transition-colors"
+                        className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 hover:border-gray-400 transition-colors"
                     >
                         <Icon className="h-5 w-5 text-amber-500 mb-4" strokeWidth={1.75} />
                         <h2 className="text-sm font-black uppercase tracking-widest text-black">{title}</h2>
@@ -72,7 +73,7 @@ export default function ContactPage() {
                 ))}
             </div>
 
-            <div className="mt-10 border border-gray-200 p-6 sm:p-8">
+            <div className="mt-10 rounded-[20px] border border-gray-200 bg-white p-6 sm:p-8">
                 <div className="flex items-start gap-3">
                     <ShieldCheck className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" strokeWidth={1.75} />
                     <div>
@@ -87,13 +88,13 @@ export default function ContactPage() {
                         <div className="flex flex-wrap gap-3 mt-5">
                             <Link
                                 href="/safety"
-                                className="inline-flex items-center justify-center px-4 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                             >
                                 Read Safety Tips
                             </Link>
                             <Link
                                 href="/faq"
-                                className="inline-flex items-center justify-center px-4 py-2.5 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors"
+                                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-black hover:border-gray-400 transition-colors"
                             >
                                 Browse FAQ
                             </Link>
@@ -101,6 +102,7 @@ export default function ContactPage() {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
