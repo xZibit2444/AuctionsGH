@@ -69,6 +69,14 @@ describe('buyNowAction', () => {
         expect(db.offers[0].status).toBe('declined');
         expect(db.notes.map(n => n.user_id).sort()).toEqual(['b1', 's1']);
     });
+    it('also closes countered offers when the item sells', async () => {
+        db.offers = [
+            { id: 'o3', buyer_id: 'b4', status: 'countered', counter_amount: 6000 },
+        ];
+        const r = await buyNowAction('a1');
+        expect(r.success).toBe(true);
+        expect(db.offers[0].status).toBe('declined');
+    });
     it('also closes accepted offers and notifies those buyers the item sold', async () => {
         db.offers = [
             { id: 'o1', buyer_id: 'b2', status: 'accepted' },
