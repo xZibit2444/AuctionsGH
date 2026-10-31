@@ -81,7 +81,7 @@ export const updateListingSchema = z.object({
     sim_type: z.preprocess(emptyToNull, z.enum(['physical_sim', 'esim', 'dual_sim']).nullable()).optional(),
     network_lock: z.preprocess(emptyToNull, z.enum(['unlocked', 'locked', 'unknown']).nullable()).optional(),
     faults: z.string().trim().max(500, 'Faults cannot exceed 500 characters').optional().nullable(),
-    condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor']),
+    condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor', 'unspecified']),
     price: z.coerce
         .number()
         .positive('Price must be greater than 0')
