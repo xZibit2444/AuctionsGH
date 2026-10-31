@@ -142,6 +142,27 @@ describe('updateListingAction deal-in-progress locks', () => {
         expect(db.updates[0].starting_price).toBe(11000);
     });
 
+    it('starting/current price divergence: an unrelated save during a deal writes NO price fields', async () => {
+        // starting_price 12900 vs current_price 12000 (agreed): the lock baseline
+        // is starting_price (what the form displays), and no price is written at all.
+        db.listing = baseListing({ starting_price: 12900 });
+        db.acceptedOffer = { id: 'o1', amount: 12000 };
+        const res = await updateListingAction('a1', { ...BASE_INPUT, price: 12900, description: 'Typo fix' });
+        expect(res.success).toBe(true);
+        expect(db.updates[0].description).toBe('Typo fix');
+        expect(db.updates[0]).not.toHaveProperty('starting_price');
+        expect(db.updates[0]).not.toHaveProperty('current_price');
+    });
+
+    it('a real price change during a deal is still rejected against the displayed baseline', async () => {
+        db.listing = baseListing({ starting_price: 12900 });
+        db.acceptedOffer = { id: 'o1', amount: 12000 };
+        const res = await updateListingAction('a1', { ...BASE_INPUT, price: 12500 });
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/price is locked while a deal is in progress/i);
+        expect(db.updates).toHaveLength(0);
+    });
+
     it('keeps sold listings fully locked', async () => {
         db.listing = baseListing({ status: 'sold' });
         const res = await updateListingAction('a1', { ...BASE_INPUT, description: 'x' });
