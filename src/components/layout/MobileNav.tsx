@@ -275,7 +275,8 @@ export default function MobileNav() {
                 </aside>
             </div>
 
-            {/* Mobile bottom tab bar */}
+            {/* Mobile bottom tab bar (hidden on listing detail pages, where the purchase bar docks instead) */}
+            {!/^\/auctions\/[0-9a-f-]{36}$/i.test(pathname) && (
             <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface)] border-t border-[var(--border-color)] sm:hidden">
                 <div className="flex items-center justify-around h-16 px-2">
                     {tabs.map((tab) => {
@@ -314,6 +315,7 @@ export default function MobileNav() {
                     })}
                 </div>
             </nav>
+            )}
         </>
     );
 }

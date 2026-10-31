@@ -11,7 +11,7 @@ interface AuctionGridProps {
 export default function AuctionGrid({ auctions, loading }: AuctionGridProps) {
     if (loading) {
         return (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
                 {Array.from({ length: 8 }).map((_, i) => (
                     <AuctionCardSkeleton key={i} />
                 ))}
@@ -34,7 +34,7 @@ export default function AuctionGrid({ auctions, loading }: AuctionGridProps) {
     }
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
             {auctions.map((auction) => (
                 <div key={auction.id}>
                     <AuctionCard auction={auction} />

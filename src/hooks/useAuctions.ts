@@ -75,7 +75,11 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         updated_at,
                         seller_id,
                         storage_gb,
+                        listing_city,
+                        meetup_area,
+                        delivery_available,
                         auction_images(url, position),
+                        listing_videos(id),
                         orders(id, status, deliveries(status)),
                         auction_offers(status)
                     `
@@ -93,7 +97,11 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         updated_at,
                         seller_id,
                         storage_gb,
-                        auction_images(url, position)
+                        listing_city,
+                        meetup_area,
+                        delivery_available,
+                        auction_images(url, position),
+                        listing_videos(id)
                     `;
                 let query = supabase.from('auctions').select(selectCols);
 
