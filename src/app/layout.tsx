@@ -10,7 +10,7 @@ import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script';
 
-// All pages use Supabase at runtime — prevent static prerender at build time
+// All pages use Supabase at runtime â prevent static prerender at build time
 export const dynamic = 'force-dynamic';
 
 const jakarta = Plus_Jakarta_Sans({
@@ -25,11 +25,11 @@ const DEFAULT_OG_IMAGE = '/opengraph-image';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Auctions GH — Ghana's Online Auction Marketplace",
+    default: "Auctions GH â Ghana's Online Auction Marketplace",
     template: '%s | Auctions GH',
   },
   description:
-    "Buy and sell smartphones and electronics at the best prices through live online auctions. Ghana's leading auction marketplace — bid, win, and pay securely.",
+    "Buy and sell smartphones and electronics at the best prices through live online auctions. Ghana's leading auction marketplace â bid, win, and pay securely.",
   keywords: [
     'Ghana auction', 'online auction Ghana', 'buy phones Ghana', 'sell phones Ghana',
     'smartphone auction', 'electronics marketplace Ghana', 'live auction', 'bid online',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     locale: 'en_GH',
     url: SITE_URL,
     siteName: 'Auctions GH',
-    title: "Auctions GH — Ghana's Online Auction Marketplace",
+    title: "Auctions GH â Ghana's Online Auction Marketplace",
     description:
       "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
     images: [
@@ -55,13 +55,13 @@ export const metadata: Metadata = {
         url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'Auctions GH — Online Auction Marketplace',
+        alt: 'Auctions GH â Online Auction Marketplace',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Auctions GH — Ghana's Online Auction Marketplace",
+    title: "Auctions GH â Ghana's Online Auction Marketplace",
     description:
       "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
     images: [DEFAULT_OG_IMAGE],
@@ -96,9 +96,7 @@ export default function RootLayout({
             <FloatingChatToast />
             <FloatingOfferToast />
             <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
-            <div className="hidden sm:block">
-              <ConditionalFooter />
-            </div>
+            <ConditionalFooter />
           </MainContent>
         </Providers>
         <SpeedInsights />
