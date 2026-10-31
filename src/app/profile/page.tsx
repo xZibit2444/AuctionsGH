@@ -130,8 +130,9 @@ export default function ProfilePage() {
     const displayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'Your profile';
 
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 pb-24 sm:pb-10">
-            <div className="mb-8 flex flex-col gap-4 border border-gray-200 bg-white p-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-8 flex flex-col gap-4 rounded-[20px] border border-gray-200 bg-white p-6 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex items-center gap-4">
                     <Avatar
                         src={profile?.avatar_url}
@@ -148,11 +149,11 @@ export default function ProfilePage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:min-w-[240px]">
-                    <div className="border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                         <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Successful buys</p>
                         <p className="mt-2 text-2xl font-black text-black">{buyingOrders.length}</p>
                     </div>
-                    <div className="border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                         <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Successful sales</p>
                         <p className="mt-2 text-2xl font-black text-black">{sellingOrders.length}</p>
                     </div>
@@ -162,7 +163,7 @@ export default function ProfilePage() {
             <div className="mb-6 flex flex-wrap items-center gap-3">
                 <button
                     onClick={() => setTab('buying')}
-                    className={`inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-bold transition-colors ${
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-colors ${
                         tab === 'buying'
                             ? 'border-black bg-black text-white'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:text-black'
@@ -173,7 +174,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                     onClick={() => setTab('selling')}
-                    className={`inline-flex items-center gap-2 border px-4 py-2.5 text-sm font-bold transition-colors ${
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-colors ${
                         tab === 'selling'
                             ? 'border-black bg-black text-white'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:text-black'
@@ -185,7 +186,7 @@ export default function ProfilePage() {
             </div>
 
             {loading ? (
-                <div className="divide-y divide-gray-100 border border-gray-200 bg-white">
+                <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white overflow-hidden">
                     {Array.from({ length: 4 }).map((_, index) => (
                         <div key={index} className="flex items-center gap-4 px-5 py-4">
                             <div className="h-14 w-14 shrink-0 bg-gray-100 skeleton-pulse" />
@@ -197,7 +198,7 @@ export default function ProfilePage() {
                     ))}
                 </div>
             ) : visibleOrders.length === 0 ? (
-                <div className="border border-gray-200 bg-white py-20 text-center">
+                <div className="rounded-[20px] border border-gray-200 bg-white py-20 text-center">
                     <Package className="mx-auto mb-4 h-10 w-10 text-gray-300" strokeWidth={1} />
                     <h2 className="text-sm font-bold uppercase tracking-widest text-black">
                         {tab === 'buying' ? 'No successful buys yet' : 'No successful sales yet'}
@@ -209,13 +210,13 @@ export default function ProfilePage() {
                     </p>
                     <Link
                         href={tab === 'buying' ? '/auctions' : '/dashboard'}
-                        className="mt-6 inline-flex items-center gap-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-900"
+                        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-extrabold text-black transition-colors hover:bg-amber-500"
                     >
                         {tab === 'buying' ? 'Browse auctions' : 'Open dashboard'}
                     </Link>
                 </div>
             ) : (
-                <div className="divide-y divide-gray-100 border border-gray-200 bg-white">
+                <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white overflow-hidden">
                     {visibleOrders.map((order) => {
                         const thumbnail = [...(order.auction?.auction_images ?? [])]
                             .sort((a, b) => a.position - b.position)[0]?.url;
@@ -226,7 +227,7 @@ export default function ProfilePage() {
 
                         return (
                             <div key={order.id} className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-gray-50 sm:px-5">
-                                <div className="h-14 w-14 shrink-0 overflow-hidden bg-gray-100">
+                                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gray-100">
                                     {thumbnail ? (
                                         <img src={thumbnail} alt="" className="h-full w-full object-cover" />
                                     ) : (
@@ -241,7 +242,7 @@ export default function ProfilePage() {
                                         <p className="truncate text-sm font-semibold text-black">
                                             {order.auction?.title ?? 'Completed order'}
                                         </p>
-                                        <span className="bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                                        <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
                                             Completed
                                         </span>
                                     </div>
@@ -278,6 +279,7 @@ export default function ProfilePage() {
                     })}
                 </div>
             )}
+        </div>
         </div>
     );
 }
