@@ -51,7 +51,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
         status: 'visible',
         listingType,
         // No pagination yet: keep the cap well above the catalog size so the
-        // default All view really shows every listing.
+        // default All view really shows every listing (cap raised from 40).
         limit: 200,
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
