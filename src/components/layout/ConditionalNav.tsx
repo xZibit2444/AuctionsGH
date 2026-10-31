@@ -6,6 +6,8 @@ import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 
 const AUTH_ROUTES = ['/login', '/signup'];
+// Single listing pages (/auctions/<id>) use the storefront header, no sidebar.
+const isListingDetail = (pathname: string) => /^\/auctions\/(?!create$)[^/]+$/.test(pathname);
 
 export default function ConditionalNav() {
     const pathname = usePathname();
@@ -21,5 +23,9 @@ export default function ConditionalNav() {
     }, []);
 
     if (AUTH_ROUTES.includes(pathname)) return null;
+    // Homepage keeps the storefront header and regains the desktop sidebar;
+    // listing-detail pages keep the approved header-only layout.
+    if (pathname === '/') return isDesktop ? <Sidebar /> : <MobileNav />;
+    if (isListingDetail(pathname)) return isDesktop ? null : <MobileNav />;
     return isDesktop ? <Sidebar /> : <MobileNav />;
 }
