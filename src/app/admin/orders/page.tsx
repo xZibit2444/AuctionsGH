@@ -332,7 +332,7 @@ export default async function AdminOrdersPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border border-gray-200 bg-black text-white p-5">
+                                    <div className="rounded-2xl border border-gray-200 bg-black text-white p-5">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-4">Live Status Snapshot</p>
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between gap-4">
