@@ -271,9 +271,9 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
         <div id="offer-panel" className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-white">
 
             {/* Header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
-                <Tag className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <p className="text-[11px] font-black text-white uppercase tracking-widest">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-white">
+                <Tag className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                <p className="text-[11px] font-black text-black uppercase tracking-widest">
                     {isSeller ? 'Buyer Offers' : 'Make an Offer'}
                 </p>
             </div>
@@ -381,7 +381,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             disabled={!!responding}
 
-                                            className="flex-1 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                            className="flex-1 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
 
                                         >
 
@@ -401,7 +401,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             disabled={!!responding}
 
-                                            className="flex-1 py-2 bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                            className="flex-1 py-2 rounded-lg bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
 
                                         >
 
@@ -439,7 +439,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             onChange={(e) => setCounterDrafts((d) => ({ ...d, [o.id]: e.target.value }))}
 
-                                            className="flex-1 border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                                            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
 
                                         />
 
@@ -517,7 +517,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             disabled={!!responding}
 
-                                            className="mt-1 px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                            className="mt-1 px-4 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50 flex items-center gap-1.5"
 
                                         >
 
@@ -537,7 +537,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             disabled={!!responding}
 
-                                            className="mt-1 px-4 py-2 bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                            className="mt-1 px-4 py-2 rounded-lg bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
 
                                         >
 
@@ -563,7 +563,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                             onClick={() => router.push(`/checkout/${auctionId}`)}
 
-                                            className="mt-1 px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center gap-1.5"
+                                            className="mt-1 px-4 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors flex items-center gap-1.5"
 
                                         >
 
@@ -645,7 +645,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                             disabled={!amount || submitting}
 
-                            className="shrink-0 px-4 py-2.5 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                            className="shrink-0 px-4 py-2.5 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50 flex items-center gap-1.5"
 
                         >
 
