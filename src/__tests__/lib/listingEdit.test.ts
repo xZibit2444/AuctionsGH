@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { updateListingSchema } from '@/lib/listingEdit';
+import { updateListingSchema, specFieldsForCategory } from '@/lib/listingEdit';
 import { getLocationsForRegion } from '@/lib/constants';
 
 const base = {
@@ -60,5 +60,25 @@ describe('locations', () => {
         expect(updateListingSchema.safeParse({ ...base, sim_type: 'robot' }).success).toBe(false);
         expect(updateListingSchema.safeParse({ ...base, network_lock: 'maybe' }).success).toBe(false);
         expect(updateListingSchema.safeParse({ ...base, faults: 'x'.repeat(501) }).success).toBe(false);
+    });
+});
+
+describe('specFieldsForCategory', () => {
+    it('shows all spec fields for phone categories', () => {
+        const all = { storage: true, battery: true, sim: true, lock: true };
+        expect(specFieldsForCategory('Phones & Tablets')).toEqual(all);
+        expect(specFieldsForCategory('Apple')).toEqual(all);
+    });
+
+    it('shows storage and battery but not SIM or lock for computers', () => {
+        expect(specFieldsForCategory('Computers & Laptops')).toEqual({ storage: true, battery: true, sim: false, lock: false });
+    });
+
+    it('hides phone spec fields for unrelated categories', () => {
+        const none = { storage: false, battery: false, sim: false, lock: false };
+        for (const c of ['Home & Garden', 'Electronics', 'Vehicles', 'Fashion & Clothing', 'Sports & Outdoors', 'Kids & Baby', 'Health & Beauty', 'Agriculture', 'Other']) {
+            expect(specFieldsForCategory(c)).toEqual(none);
+        }
+        expect(specFieldsForCategory(undefined)).toEqual(none);
     });
 });
