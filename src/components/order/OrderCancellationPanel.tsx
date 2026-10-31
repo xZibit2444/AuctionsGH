@@ -41,11 +41,13 @@ export default function OrderCancellationPanel({
     const [selectedReason, setSelectedReason] = useState<string>(isBuyer ? BUYER_REASONS[0].value : SELLER_REASONS[0].value);
     const [note, setNote] = useState('');
     const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+    const [confirming, setConfirming] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const reasonOptions = useMemo(() => (isBuyer ? BUYER_REASONS : SELLER_REASONS), [isBuyer]);
 
     const handleCancel = () => {
+        setConfirming(false);
         setFeedback(null);
         startTransition(async () => {
             const result = await cancelOrderAction({
@@ -60,7 +62,7 @@ export default function OrderCancellationPanel({
             }
 
             const followUp = result.auctionAction === 'reopened'
-                ? 'The listing was reopened for 24 hours.'
+                ? (isPermanent ? 'The listing was reopened for other buyers.' : 'The listing was reopened for 24 hours.')
                 : result.auctionAction === 'cancelled'
                     ? 'The listing was taken down.'
                     : 'The order was closed.';
@@ -138,15 +140,48 @@ export default function OrderCancellationPanel({
                                 </div>
                             )}
 
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                disabled={isPending}
-                                className="mt-4 inline-flex items-center gap-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-900 disabled:opacity-50"
-                            >
-                                {isPending ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
-                                {isPending ? 'Cancelling...' : 'Cancel order'}
-                            </button>
+                            {!confirming ? (
+                                <button
+                                    type="button"
+                                    onClick={() => { setFeedback(null); setConfirming(true); }}
+                                    className="mt-4 inline-flex items-center gap-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-900"
+                                >
+                                    <Ban className="h-4 w-4" />
+                                    Cancel order
+                                </button>
+                            ) : (
+                                <div className="mt-4 border border-red-200 bg-red-50 p-4">
+                                    <p className="text-sm font-bold text-red-800">
+                                        Cancel this order? This cannot be undone.
+                                    </p>
+                                    <p className="mt-1 text-sm text-red-700">
+                                        {isBuyer
+                                            ? (isPermanent
+                                                ? 'The listing will reopen for other buyers.'
+                                                : 'The listing will reopen for 24 hours.')
+                                            : 'The listing will be taken down.'}
+                                    </p>
+                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCancel}
+                                            disabled={isPending}
+                                            className="inline-flex items-center gap-2 bg-red-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-800 disabled:opacity-50"
+                                        >
+                                            {isPending ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                                            {isPending ? 'Cancelling...' : 'Yes, cancel order'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirming(false)}
+                                            disabled={isPending}
+                                            className="inline-flex items-center gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-black hover:text-black disabled:opacity-50"
+                                        >
+                                            Keep order
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <p className="mt-2 text-sm text-gray-500">
