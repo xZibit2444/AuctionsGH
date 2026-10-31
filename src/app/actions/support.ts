@@ -4,6 +4,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
 import { SUPPORT_TOPICS } from '@/lib/supportTopics';
 import { sendSupportReplyEmail, SUPPORT_SENDER } from '@/lib/email/supportReply';
+import { sendNewSupportRequestAdminEmail } from '@/lib/email/sender';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createAdminClient = () => _createAdminClient() as any;
@@ -57,6 +58,21 @@ export async function submitSupportRequest(
         message,
     });
     if (error) return { success: false, error: 'Could not send your request. Please try again.' };
+
+    // Notify super admins so new reports and support requests are not missed.
+    const { data: superAdmins } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('is_super_admin', true) as { data: { id: string }[] | null };
+    if (superAdmins?.length) {
+        const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 });
+        const superAdminIds = new Set(superAdmins.map((a) => a.id));
+        for (const authUser of authUsers?.users ?? []) {
+            if (!superAdminIds.has(authUser.id) || !authUser.email) continue;
+            void sendNewSupportRequestAdminEmail(authUser.email, { name, email, topic, message });
+        }
+    }
+
     return { success: true };
 }
 
