@@ -7,6 +7,9 @@ const PERMANENT_LISTING_YEAR_THRESHOLD = 2090;
 /** Far-future ends_at used for permanent ('live until sold') listings. */
 export const PERMANENT_LISTING_ENDS_AT = '2099-12-31T23:59:59.000Z';
 
+/** ISO lower bound matching the year threshold above, for DB-level filtering. */
+export const PERMANENT_LISTING_ENDS_AT_THRESHOLD = '2090-01-01T00:00:00.000Z';
+
 export function isPermanentListing(endsAt?: string | null) {
     if (!endsAt) return false;
 
@@ -35,3 +38,4 @@ export function getListingType(listing: {
 export function getListingTypeLabel(type: ListingType) {
     return type === 'permanent' ? 'Permanent Listing' : 'Auction';
 }
+
