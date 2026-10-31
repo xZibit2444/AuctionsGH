@@ -292,10 +292,11 @@ export default function OrderPage({ params }: OrderPageProps) {
     const isCancelled = isCancelledOrderStatus(order.status);
     const isClosed = isTerminalOrderStatus(order.status) || deliveryStatus === 'completed' || deliveryStatus === 'delivered';
     const closedReason: 'completed' | 'cancelled' | 'closed' = isCompleted ? 'completed' : isCancelled ? 'cancelled' : 'closed';
+    const isFailedClosed = isClosed && !isCompleted && !isCancelled;
     const winnerNoteRaw = order.auction?.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
-    const statusLabel = formatOrderStatusLabel(surfaceStatus);
-    const statusColor = isCancelled
+    const statusLabel = isFailedClosed ? 'Closed' : formatOrderStatusLabel(surfaceStatus);
+    const statusColor = isCancelled || isFailedClosed
         ? 'bg-gray-100 text-gray-600'
         : isCompleted
         ? 'bg-emerald-100 text-emerald-700'
@@ -352,9 +353,9 @@ export default function OrderPage({ params }: OrderPageProps) {
                         url={`/orders/${order.id}`}
                     />
                     {isClosed && (
-                        <div className={`flex items-center gap-2 px-4 py-2 border ${isCancelled ? 'text-gray-600 bg-gray-50 border-gray-200' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
+                        <div className={`flex items-center gap-2 px-4 py-2 border ${isCompleted ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-200'}`}>
                             <CheckCircle2 className="w-5 h-5" />
-                            <span className="text-xs font-bold uppercase tracking-widest">{isCancelled ? 'Order Closed' : 'Transaction Complete'}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">{isCompleted ? 'Transaction Complete' : 'Order Closed'}</span>
                         </div>
                     )}
                 </div>
@@ -532,7 +533,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         </div>
                     )}
 
-                    {!isCancelled && <DeliveryTimeline status={deliveryStatus} />}
+                    {!isCancelled && !isFailedClosed && <DeliveryTimeline status={deliveryStatus} />}
                 </div>
 
                 <div className="space-y-6">
@@ -544,7 +545,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         cancellationReason={order.cancellation_reason}
                     />
 
-                    {isBuyer ? (
+                    {!isFailedClosed && (isBuyer ? (
                         <DeliveryCodeDisplay
                             orderId={order.id}
                             deliveryStatus={deliveryStatus}
@@ -552,7 +553,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         />
                     ) : (
                         <DeliveryConfirmationForm orderId={order.id} deliveryStatus={deliveryStatus} onStatusChange={setDeliveryStatus} />
-                    )}
+                    ))}
 
                     <div id="chat">
                         <OrderChat
