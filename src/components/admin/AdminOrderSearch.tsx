@@ -89,7 +89,7 @@ export default function AdminOrderSearch() {
             {result && (
                 <div className="mt-4 border-2 border-black bg-white overflow-hidden">
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 bg-black text-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-t-2xl px-5 py-4 bg-black text-white">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1">Search Result</p>
                             <h2 className="text-xl font-black">Order #{result.receiptNumber}</h2>
