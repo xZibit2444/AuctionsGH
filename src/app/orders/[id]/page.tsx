@@ -291,6 +291,7 @@ export default function OrderPage({ params }: OrderPageProps) {
     const isCompleted = isCompletedOrderStatus(order.status) || deliveryStatus === 'delivered' || deliveryStatus === 'completed';
     const isCancelled = isCancelledOrderStatus(order.status);
     const isClosed = isTerminalOrderStatus(order.status) || deliveryStatus === 'completed' || deliveryStatus === 'delivered';
+    const closedReason: 'completed' | 'cancelled' | 'closed' = isCompleted ? 'completed' : isCancelled ? 'cancelled' : 'closed';
     const winnerNoteRaw = order.auction?.auction_winner_notes;
     const winnerNote = Array.isArray(winnerNoteRaw) ? winnerNoteRaw[0]?.note : winnerNoteRaw?.note;
     const statusLabel = formatOrderStatusLabel(surfaceStatus);
@@ -558,6 +559,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                             orderId={order.id}
                             userId={user!.id}
                             isCompleted={isClosed}
+                            closedReason={closedReason}
                             otherPartyName={
                                 isBuyer
                                     ? ((order.seller?.full_name ?? 'Seller').split(' ')[0])
