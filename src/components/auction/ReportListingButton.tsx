@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Flag, Loader2, X } from 'lucide-react';
 import { submitSupportRequest } from '@/app/actions/support';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,8 +67,8 @@ export default function ReportListingButton({ auctionId, auctionTitle, className
                 <Flag className="h-4 w-4" strokeWidth={2} />
             </button>
 
-            {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
+            {open && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
                     <div
                         className="w-full max-w-md bg-white border border-gray-200 p-5"
                         onClick={(e) => e.stopPropagation()}
@@ -148,7 +149,8 @@ export default function ReportListingButton({ auctionId, auctionTitle, className
                             </form>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
