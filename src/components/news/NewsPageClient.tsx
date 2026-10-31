@@ -118,6 +118,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
     );
 
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 pb-28 sm:pb-16">
             <header className="mb-6">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Updates</p>
@@ -133,7 +134,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
             </header>
 
             {news.length > 0 && (
-                <nav aria-label="Filter notices" className="sticky top-0 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 py-3 bg-white/95 backdrop-blur border-b border-gray-100 mb-6">
+                <nav aria-label="Filter notices" className="sticky top-0 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 py-3 bg-gray-50/95 backdrop-blur border-b border-gray-200 mb-6">
                     <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         {categories.map((category) => {
                             const isActive = activeFilter === category;
@@ -143,7 +144,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                                     type="button"
                                     aria-pressed={isActive}
                                     onClick={() => setActiveFilter(category)}
-                                    className={`shrink-0 px-3.5 py-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive ? 'bg-black text-white' : 'border border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
+                                    className={`shrink-0 rounded-full border px-3.5 py-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive ? 'bg-black text-white border-black' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
                                 >
                                     {category}
                                 </button>
@@ -154,7 +155,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
             )}
 
             {Boolean(error) && news.length === 0 && (
-                <div className="border border-amber-200 bg-amber-50 p-5 sm:p-6 mb-8">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6 mb-8">
                     <h2 className="text-sm font-black uppercase tracking-widest text-amber-900 mb-2">Preview mode</h2>
                     <p className="text-sm text-amber-800 leading-relaxed">
                         The `news_updates` table is not available yet, so this page is showing sample content for testing.
@@ -164,7 +165,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
             )}
 
             {filteredNews.length === 0 ? (
-                <div className="border border-gray-200 bg-gray-50 p-6 sm:p-8">
+                <div className="rounded-[20px] border border-gray-200 bg-white p-6 sm:p-8">
                     <h2 className="text-sm font-black uppercase tracking-widest text-black mb-2">
                         {news.length === 0 ? 'No updates yet' : `No ${activeFilter.toLowerCase()} notices`}
                     </h2>
@@ -184,14 +185,14 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                         const rest = entries.filter((e) => !(e.label && KEY_FIELDS.includes(e.label.toLowerCase())));
 
                         return (
-                            <article key={item.id} className="border border-gray-200 bg-white">
+                            <article key={item.id} className="rounded-[20px] border border-gray-200 bg-white overflow-hidden">
                                 <div className="px-4 pt-4 sm:px-6 sm:pt-5">
                                     <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                                        <span className="inline-flex items-center bg-black px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                                        <span className="inline-flex items-center rounded-full bg-black px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white">
                                             {category}
                                         </span>
                                         {reserved && (
-                                            <span className={`inline-flex items-center border px-2 py-1 text-[10px] font-black uppercase tracking-widest ${reserved.toLowerCase() === 'yes' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
+                                            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${reserved.toLowerCase() === 'yes' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
                                                 {reserved.toLowerCase() === 'yes' ? 'Reserved Price' : 'No Reserve'}
                                             </span>
                                         )}
@@ -203,7 +204,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                                 </div>
 
                                 {key.length > 0 && (
-                                    <dl className="mx-4 sm:mx-6 mt-4 border-l-2 border-amber-400 bg-gray-50 px-4 py-3 space-y-2">
+                                    <dl className="mx-4 sm:mx-6 mt-4 rounded-xl border-l-2 border-amber-400 bg-gray-50 px-4 py-3 space-y-2">
                                         {key.map((entry, i) => (
                                             <div key={`${item.id}-k-${i}`} className="grid gap-0.5 sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-3">
                                                 <dt className="text-[10px] font-black uppercase tracking-widest text-gray-400 sm:pt-0.5">{entry.label}</dt>
@@ -235,6 +236,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                     })}
                 </div>
             )}
+        </div>
         </div>
     );
 }
