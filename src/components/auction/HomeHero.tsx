@@ -77,16 +77,34 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
     const shownCount = liveCount ?? auctions.length;
     const hasDelivery = auctions.some((a) => a.delivery_available);
 
-    const allPhotos = fanFrom(auctions);
     const fixedPrice = auctions.filter((a) => isPermanentListing(a.ends_at));
     const timedAuctions = auctions.filter((a) => !isPermanentListing(a.ends_at));
-    const fixedPhotos = fanFrom(fixedPrice);
-    const auctionPhotos = fanFrom(timedAuctions);
-    const sellPhotos = fanFrom(auctions.slice().reverse());
+
+    // Each slide claims its own photos: category matches win, then the shared
+    // pool tops up. Nothing is claimed twice, so the four slides never repeat
+    // the same listing pictures.
+    const pool = fanFrom(auctions, 12);
+    const claimed = new Set<string>();
+    const claim = (preferred: string[], n = 3): string[] => {
+        const out: string[] = [];
+        for (const url of [...preferred, ...pool]) {
+            if (out.length >= n) break;
+            if (!claimed.has(url)) {
+                claimed.add(url);
+                out.push(url);
+            }
+        }
+        return out;
+    };
+
+    const allPhotos = claim(fanFrom(auctions, 6));
+    const fixedPhotos = claim(fanFrom(fixedPrice, 6));
+    const auctionPhotos = claim(fanFrom(timedAuctions, 6));
+    const sellPhotos = claim(fanFrom(auctions.slice().reverse(), 6));
 
     const slides: HeroSlide[] = [
         {
-            eyebrow: 'ACCRA · GHANA',
+            eyebrow: 'ACROSS GHANA',
             title: (
                 <>
                     Buy and sell <span className="text-amber-400">anything</span> in Ghana.
@@ -111,7 +129,7 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                         </span>,
                     ]
                     : []),
-                <span key="pickup">Pickup in Accra{hasDelivery ? ' · delivery on many items' : ''}</span>,
+                <span key="pickup">{hasDelivery ? 'Meetup pickup or seller delivery' : 'Meetup pickup arranged with the seller'}</span>,
             ],
             photos: allPhotos,
         },
@@ -129,7 +147,7 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                 <span key="chat">Chat with the seller</span>,
                 <span key="insp">Inspection and delivery where the seller offers them</span>,
             ],
-            photos: fixedPhotos.length > 0 ? fixedPhotos : allPhotos,
+            photos: fixedPhotos,
         },
         {
             eyebrow: 'LIVE AUCTIONS',
@@ -145,7 +163,7 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                 <span key="cd">Live countdown on every auction</span>,
                 <span key="win">Winners confirm within 30 minutes</span>,
             ],
-            photos: auctionPhotos.length > 0 ? auctionPhotos : allPhotos,
+            photos: auctionPhotos,
         },
         {
             eyebrow: 'SELL ON AUCTIONSGH',
@@ -161,7 +179,7 @@ export default function HomeHero({ auctions, loading, liveCount, categoryCount }
                 <span key="kind">Auction or fixed price</span>,
                 <span key="msg">Buyers message you directly</span>,
             ],
-            photos: sellPhotos.length > 0 ? sellPhotos : allPhotos,
+            photos: sellPhotos,
         },
     ];
 
