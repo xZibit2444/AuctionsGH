@@ -118,7 +118,7 @@ export default function Navbar() {
                             <>
                                 {!profile?.is_banned && (
                                     <Link href="/auctions/create" onClick={(e) => handleNavClick(e, '/auctions/create')}>
-                                        <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
+                                        <button className="hidden sm:inline-flex items-center gap-1.5 rounded-xl px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
                                             <Plus className="h-4 w-4" />
                                             Sell
                                         </button>
@@ -133,7 +133,7 @@ export default function Navbar() {
                                         onClick={() => setDropdownOpen((o) => !o)}
                                         className="flex items-center gap-1 p-1 hover:bg-gray-50 transition-colors"
                                     >
-                                        <div className="h-8 w-8 bg-black text-white flex items-center justify-center font-black text-xs">
+                                        <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center font-black text-xs">
                                             {(profile?.full_name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)) ||
                                                 profile?.username?.[0]?.toUpperCase() ||
                                                 user.email?.[0]?.toUpperCase() || 'U'}
@@ -209,7 +209,7 @@ export default function Navbar() {
                                     </button>
                                 </Link>
                                 <Link href="/signup" onClick={(e) => handleNavClick(e, '/signup', true)}>
-                                    <button className="px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
+                                    <button className="rounded-xl px-4 py-2 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
                                         Sign up
                                     </button>
                                 </Link>
