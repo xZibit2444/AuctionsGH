@@ -14,6 +14,7 @@ import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@
 const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
 const NETWORK_LOCK_LABELS: Record<string, string> = Object.fromEntries(NETWORK_LOCK_OPTIONS.map((o) => [o.value, o.label]));
 import { getListingType, getListingTypeLabel } from '@/lib/listings';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import AuctionCountdown from './AuctionCountdown';
 import AuctionStatusBadge from './AuctionStatusBadge';
 import ListingGallery from './ListingGallery';
@@ -41,8 +42,8 @@ interface AuctionDetailProps {
 
 type AuctionDetailData = {
     listing_videos?: { id: string; content_type: string; duration_seconds: number | null }[] | null;
-    orders?: { id: string; status: string }[] | { id: string; status: string } | null;
-    auction_offers?: { status: string }[] | null;
+    orders?: { id: string; status: string; buyer_id?: string }[] | { id: string; status: string; buyer_id?: string } | null;
+    auction_offers?: { id: string; buyer_id: string; amount: number; status: string }[] | null;
     auction_winner_notes?: { note: string }[] | { note: string } | null;
     profiles?: {
         id: string;
@@ -181,7 +182,14 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
     const isAdmin = profile?.is_super_admin === true;
     const orderRaw = auctionData.orders;
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
-    const hasAcceptedOffer = (auctionData.auction_offers ?? []).some((offer) => offer.status === 'accepted');
+    // An accepted offer only locks the listing while its order is genuinely open:
+    // permanent listings keep accepted offers while still live.
+    const hasOpenOrder = !!order && !isTerminalOrderStatus(order.status);
+    const hasAcceptedOffer = (auctionData.auction_offers ?? []).some((offer) => offer.status === 'accepted') && hasOpenOrder;
+    const myAcceptedOffer = (auctionData.auction_offers ?? []).find(
+        (offer) => offer.status === 'accepted' && offer.buyer_id === user?.id
+    );
+    const myOrder = order && (order as { buyer_id?: string }).buyer_id === user?.id ? order : null;
     const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
     const canSellerDelete = !hasAcceptedOffer
         && (auction.status !== 'sold' || completedDeal);
@@ -488,6 +496,30 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     amount={auction.current_price}
                     orderId={order?.id}
                 />
+            )}
+
+            {/* Accepted-offer banner: permanent listings stay live until an order
+                is completed, so the accepted buyer confirms from here */}
+            {!isSeller && isPermanent && auction.status === 'active' && myAcceptedOffer && (
+                <div className="mb-6 p-6 bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-bold mb-2">Your offer was accepted!</h2>
+                        <p className="text-gray-300">
+                            The seller accepted your offer of <strong>{formatCurrency(Number(myAcceptedOffer.amount))}</strong> for{' '}
+                            <strong>&quot;{auction.title}&quot;</strong>.{' '}
+                            {myOrder
+                                ? 'Your order is confirmed - track its progress below.'
+                                : 'Confirm your order to secure it - this listing stays live until an order is completed.'}
+                        </p>
+                    </div>
+                    <Link
+                        href={myOrder ? `/orders/${myOrder.id}` : `/checkout/${auction.id}`}
+                        className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
+                    >
+                        {myOrder ? 'Track Your Order' : 'Confirm Order'}
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
             )}
 
             {/* Mobile: full-bleed gallery on top, stacked content below */}
