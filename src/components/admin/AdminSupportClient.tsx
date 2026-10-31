@@ -79,12 +79,12 @@ export default function AdminSupportClient({ initial, replies: initialReplies, s
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                        {r.name} · <a className="underline" href={`mailto:${r.email}`}>{r.email}</a> · {new Date(r.created_at).toLocaleString()}
+                        {r.name} · <a className="underline" href={`mailto:${r.email}`}>{r.email}</a> · {new Date(r.created_at).toLocaleString('en-GB')}
                     </p>
                     <p className="text-sm text-black mt-3 whitespace-pre-wrap break-words">{r.message}</p>
                     {replies.filter((x) => x.request_id === r.id).map((x) => (
                         <div key={x.id} className="mt-3 border-l-2 border-black pl-3">
-                            <p className="text-[11px] text-gray-500">Sent {new Date(x.created_at).toLocaleString()} from {x.from_address} to {x.to_email}</p>
+                            <p className="text-[11px] text-gray-500">Sent {new Date(x.created_at).toLocaleString('en-GB')} from {x.from_address} to {x.to_email}</p>
                             <p className="text-sm text-black whitespace-pre-wrap break-words mt-1">{x.body}</p>
                         </div>
                     ))}
