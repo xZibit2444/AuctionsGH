@@ -79,7 +79,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
 
                     <Link
                         href="/login"
-                        className="block w-full text-center py-3 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                        className="block w-full text-center py-3 rounded-xl bg-amber-400 text-black text-xs font-extrabold uppercase tracking-widest hover:bg-amber-500 transition-colors"
                     >
                         Back to Sign In
                     </Link>
