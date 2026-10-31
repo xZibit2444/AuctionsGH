@@ -74,7 +74,7 @@ export default function BidHistory({ bids, loading }: BidHistoryProps) {
                                         </p>
                                     )}
                                     {i === 0 && (
-                                        <span className="bg-black text-white px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold">
+                                        <span className="rounded-full bg-black text-white px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold">
                                             Highest
                                         </span>
                                     )}
