@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isPermanentListing } from '@/lib/listings';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import { AUCTION_VIDEOS_BUCKET } from '@/lib/constants';
 import type { Auction, AuctionImage } from '@/types/auction';
 import type { Profile } from '@/types/profile';
@@ -131,7 +132,9 @@ export async function relistAuctionAction(
         return { success: false, error: 'This listing still has an active order. Relisting is only available after the order is completed.' };
     }
 
-    if (acceptedOffer && !completedDeal) {
+    // An accepted offer only blocks relisting while its order is genuinely open
+    const dealOpen = !!latestOrder && !isTerminalOrderStatus(latestOrder.status);
+    if (acceptedOffer && dealOpen && !completedDeal) {
         return { success: false, error: 'This listing still has an active accepted offer.' };
     }
 
