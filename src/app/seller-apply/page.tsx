@@ -25,7 +25,7 @@ function StatusScreen({ app }: { app: ExistingApplication }) {
                 <p className="text-sm text-gray-500 mb-6">Your application was approved. You can now create listings.</p>
                 <Link
                     href="/auctions/create"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                 >
                     Create Your First Listing <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -215,7 +215,7 @@ function SellerApplyForm({ rejectedNotes }: { rejectedNotes?: string | null }) {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full sm:w-auto px-8 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto px-8 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {submitting ? 'Submitting…' : 'Submit Application'}
                     </button>
@@ -258,7 +258,7 @@ function SellerApplyContent() {
                 <p className="text-sm text-gray-500 mb-6">Your account has seller access.</p>
                 <Link
                     href="/auctions/create"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                 >
                     Create a Listing <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -283,4 +283,4 @@ export default function SellerApplyPage() {
             <SellerApplyContent />
         </AuthGuard>
     );
-}
+                                    }
