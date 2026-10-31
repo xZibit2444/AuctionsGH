@@ -177,7 +177,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             network_lock: specFields.lock ? form.network_lock : '',
             faults: form.faults,
             condition: form.condition,
-            price: priceLocked ? undefined : Number(form.price),
+            price: (priceLocked || dealLocked) ? undefined : Number(form.price),
             listing_city: form.listing_city,
             meetup_area: form.meetup_area,
             delivery_available: form.delivery_available,
