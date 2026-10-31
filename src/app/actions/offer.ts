@@ -7,6 +7,7 @@ import { isPermanentListing } from '@/lib/listings';
 import {
     sendAuctionSoldEmail,
     sendAuctionWonEmail,
+    sendCounterOfferEmail,
     sendNewOfferEmail,
     sendOfferDeclinedEmail,
 } from '@/lib/email/sender';
@@ -114,30 +115,10 @@ export async function makeOfferAction(
     return { success: true, offerId: offer.id };
 }
 
-export async function respondToOfferAction(
-    offerId: string,
-    response: 'accepted' | 'declined'
+async function finalizeAcceptedOffer(
+    offer: { id: string; auction_id: string; buyer_id: string; seller_id: string; amount: number },
+    agreedAmount: number
 ): Promise<{ success: boolean; error?: string }> {
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: 'Not authenticated' };
-
-    const { data: offer, error: fetchErr } = await supabaseAdmin
-        .from('auction_offers')
-        .select('id, auction_id, buyer_id, seller_id, amount, status')
-        .eq('id', offerId)
-        .single();
-
-    if (fetchErr || !offer) return { success: false, error: 'Offer not found' };
-    if (offer.seller_id !== user.id) return { success: false, error: 'Unauthorized' };
-    if (offer.status !== 'pending') return { success: false, error: 'This offer is no longer pending' };
-
-    await supabaseAdmin
-        .from('auction_offers')
-        .update({ status: response, updated_at: new Date().toISOString() })
-        .eq('id', offerId);
-
-    if (response === 'accepted') {
         const { data: auction } = await supabaseAdmin
             .from('auctions')
             .select('title, status, ends_at')
@@ -160,7 +141,7 @@ export async function respondToOfferAction(
                 .update({
                     status: 'sold',
                     winner_id: offer.buyer_id,
-                    current_price: offer.amount,
+                    current_price: agreedAmount,
                     ends_at: now,
                     updated_at: now,
                 })
@@ -174,7 +155,7 @@ export async function respondToOfferAction(
                 .update({ status: 'declined', updated_at: now })
                 .eq('auction_id', offer.auction_id)
                 .eq('status', 'pending')
-                .neq('id', offerId);
+                .neq('id', offer.id);
         }
 
         await insertNotificationIfEnabled(supabaseAdmin as never, {
@@ -182,16 +163,16 @@ export async function respondToOfferAction(
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
             body: isPermanent
-                ? `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live until an order is completed.`
-                : `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
+                ? `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live until an order is completed.`
+                : `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
 
         await insertNotificationIfEnabled(supabaseAdmin as never, {
-            user_id: user.id,
+            user_id: offer.seller_id,
             type: 'new_offer',
             title: 'Offer Accepted - Awaiting Buyer',
-            body: `You accepted GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". The listing stays active until the order is completed.`,
+            body: `You accepted GHS ${agreedAmount.toLocaleString()} for "${auction.title}". The listing stays active until the order is completed.`,
             auction_id: offer.auction_id,
         });
 
@@ -216,7 +197,7 @@ export async function respondToOfferAction(
                 buyerAuthResult.data.user.email,
                 buyerName,
                 auction.title,
-                Number(offer.amount),
+                agreedAmount,
                 offer.auction_id,
                 true
             );
@@ -231,7 +212,7 @@ export async function respondToOfferAction(
                 sellerAuthResult.data.user.email,
                 sellerName,
                 auction.title,
-                Number(offer.amount),
+                agreedAmount,
                 buyerName,
                 true
             );
@@ -240,7 +221,36 @@ export async function respondToOfferAction(
                 console.error('Failed to send accepted-offer sold email:', sellerEmailResult.error);
             }
         }
-    } else {
+    return { success: true };
+}
+
+export async function respondToOfferAction(
+    offerId: string,
+    response: 'accepted' | 'declined'
+): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { data: offer, error: fetchErr } = await supabaseAdmin
+        .from('auction_offers')
+        .select('id, auction_id, buyer_id, seller_id, amount, status')
+        .eq('id', offerId)
+        .single();
+
+    if (fetchErr || !offer) return { success: false, error: 'Offer not found' };
+    if (offer.seller_id !== user.id) return { success: false, error: 'Unauthorized' };
+    if (offer.status !== 'pending') return { success: false, error: 'This offer is no longer pending' };
+
+    await supabaseAdmin
+        .from('auction_offers')
+        .update({ status: response, updated_at: new Date().toISOString() })
+        .eq('id', offerId);
+
+    if (response === 'accepted') {
+        return finalizeAcceptedOffer(offer, Number(offer.amount));
+    }
+
         const [{ data: auction }, { data: buyerProfile }, buyerAuthResult] = await Promise.all([
             supabaseAdmin.from('auctions').select('title').eq('id', offer.auction_id).single(),
             supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
@@ -272,7 +282,123 @@ export async function respondToOfferAction(
                 console.error('Failed to send offer declined email:', declinedEmailResult.error);
             }
         }
+
+    return { success: true };
+}
+
+export async function counterOfferAction(
+    offerId: string,
+    counterAmount: number
+): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Not authenticated' };
+    if (!Number.isFinite(counterAmount) || counterAmount <= 0) {
+        return { success: false, error: 'Enter a valid counter amount' };
     }
+
+    const { data: offer, error: fetchErr } = await supabaseAdmin
+        .from('auction_offers')
+        .select('id, auction_id, buyer_id, seller_id, amount, status')
+        .eq('id', offerId)
+        .single();
+
+    if (fetchErr || !offer) return { success: false, error: 'Offer not found' };
+    if (offer.seller_id !== user.id) return { success: false, error: 'Unauthorized' };
+    if (offer.status !== 'pending') return { success: false, error: 'This offer is no longer pending' };
+    if (Number(offer.amount) === counterAmount) {
+        return { success: false, error: 'Counter amount matches the offer - accept it instead' };
+    }
+
+    const { error: updateErr } = await supabaseAdmin
+        .from('auction_offers')
+        .update({ status: 'countered', counter_amount: counterAmount, updated_at: new Date().toISOString() })
+        .eq('id', offerId)
+        .eq('status', 'pending');
+
+    if (updateErr) return { success: false, error: 'Failed to send counter-offer' };
+
+    const [{ data: auction }, { data: buyerProfile }, buyerAuthResult] = await Promise.all([
+        supabaseAdmin.from('auctions').select('title').eq('id', offer.auction_id).single(),
+        supabaseAdmin.from('profiles').select('full_name, username').eq('id', offer.buyer_id).maybeSingle(),
+        supabaseAdmin.auth.admin.getUserById(offer.buyer_id),
+    ]);
+    const title = auction?.title ?? 'this item';
+
+    await insertNotificationIfEnabled(supabaseAdmin as never, {
+        user_id: offer.buyer_id,
+        type: 'new_offer',
+        title: 'Counter-Offer Received',
+        body: `The seller countered your offer of GHS ${Number(offer.amount).toLocaleString()} for "${title}" with GHS ${counterAmount.toLocaleString()}. Open the listing to accept or decline.`,
+        auction_id: offer.auction_id,
+    });
+
+    if (buyerAuthResult.data.user?.email) {
+        const buyerName = getDisplayName(
+            buyerProfile as { full_name?: string | null; username?: string | null } | null,
+            'Buyer'
+        );
+        const emailResult = await sendCounterOfferEmail(
+            buyerAuthResult.data.user.email,
+            buyerName,
+            title,
+            Number(offer.amount),
+            counterAmount,
+            offer.auction_id
+        );
+        if (!emailResult.success) {
+            console.error('Failed to send counter-offer email:', emailResult.error);
+        }
+    }
+
+    return { success: true };
+}
+
+export async function respondToCounterAction(
+    offerId: string,
+    response: 'accepted' | 'declined'
+): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { data: offer, error: fetchErr } = await supabaseAdmin
+        .from('auction_offers')
+        .select('id, auction_id, buyer_id, seller_id, amount, counter_amount, status')
+        .eq('id', offerId)
+        .single();
+
+    if (fetchErr || !offer) return { success: false, error: 'Offer not found' };
+    if (offer.buyer_id !== user.id) return { success: false, error: 'Unauthorized' };
+    if (offer.status !== 'countered' || offer.counter_amount == null) {
+        return { success: false, error: 'There is no counter-offer to answer' };
+    }
+
+    const { error: updateErr } = await supabaseAdmin
+        .from('auction_offers')
+        .update({ status: response, updated_at: new Date().toISOString() })
+        .eq('id', offerId)
+        .eq('status', 'countered');
+
+    if (updateErr) return { success: false, error: 'Failed to answer the counter-offer' };
+
+    if (response === 'accepted') {
+        return finalizeAcceptedOffer(offer, Number(offer.counter_amount));
+    }
+
+    const { data: auction } = await supabaseAdmin
+        .from('auctions')
+        .select('title')
+        .eq('id', offer.auction_id)
+        .single();
+
+    await insertNotificationIfEnabled(supabaseAdmin as never, {
+        user_id: offer.seller_id,
+        type: 'system',
+        title: 'Counter-Offer Declined',
+        body: `The buyer declined your counter of GHS ${Number(offer.counter_amount).toLocaleString()} for "${auction?.title ?? 'this item'}". The listing stays live.`,
+        auction_id: offer.auction_id,
+    });
 
     return { success: true };
 }
