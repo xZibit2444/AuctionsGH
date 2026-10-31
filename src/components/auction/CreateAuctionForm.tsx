@@ -46,7 +46,7 @@ function SelectInput({ value, onChange, children }: {
             <select
                 value={value}
                 onChange={onChange}
-                className="w-full border border-gray-200 px-4 py-3 text-sm text-black bg-white focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors appearance-none cursor-pointer"
             >
                 {children}
             </select>
@@ -387,7 +387,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     if (publishedAuctionId) {
         return (
             <div className="max-w-md mx-auto text-center py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <h2 className="text-3xl font-black text-black tracking-tight mb-2">
@@ -399,7 +399,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         : 'Your listing is now live and accepting bids.'}
                 </p>
                 {videoWarning && (
-                    <p className="text-sm text-red-600 border border-red-200 bg-red-50 px-4 py-3 mb-6 text-left">
+                    <p className="text-sm text-red-600 rounded-xl border border-red-200 bg-red-50 px-4 py-3 mb-6 text-left">
                         {videoWarning}
                     </p>
                 )}
@@ -407,7 +407,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 <div className="space-y-3">
                     <Link
                         href={`/auctions/${publishedAuctionId}`}
-                        className="w-full flex items-center justify-center gap-2 bg-black text-white py-3.5 text-sm font-bold hover:bg-gray-900 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-black py-3.5 text-sm font-extrabold hover:bg-amber-500 transition-colors"
                     >
                         View Live Listing <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -425,7 +425,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     return (
         <div className="max-w-2xl mx-auto">
             {copiedFrom && (
-                <div className="mb-6 border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-black">
+                <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-black">
                     Copied from &quot;{copiedFrom}&quot;. Nothing is published yet. Add your photos and check the details and price before you publish.
                 </div>
             )}
@@ -434,7 +434,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 {STEPS.map((label, i) => (
                     <div key={label} className="flex items-center flex-1 last:flex-none">
                         <div className="flex items-center gap-2.5">
-                            <div className={`h-8 w-8 flex items-center justify-center text-xs font-black shrink-0 transition-colors duration-300 ${step > i + 1
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-colors duration-300 ${step > i + 1
                                 ? 'bg-black text-white'
                                 : step === i + 1
                                     ? 'bg-black text-white ring-4 ring-black/10'
@@ -453,7 +453,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
             </div>
 
             {errors.submit && (
-                <div className="flex items-center gap-2 mb-5 border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm">
+                <div className="flex items-center gap-2 mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
                     {errors.submit}
                 </div>
@@ -469,7 +469,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             value={formData.title}
                             onChange={(e) => update('title', e.target.value)}
                             placeholder={placeholders.title}
-                            className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
+                            className={`w-full rounded-xl border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
                         />
                         {errors.title && <p className="text-[11px] text-red-500 mt-1">{errors.title}</p>}
                     </div>
@@ -488,7 +488,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 value={formData.model ?? ''}
                                 onChange={(e) => update('model', e.target.value)}
                                 placeholder={placeholders.model}
-                                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
                             />
                         </div>
                     </div>
@@ -502,7 +502,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                     key={key}
                                     type="button"
                                     onClick={() => update('condition', key)}
-                                    className={`px-3 py-2.5 text-sm font-semibold border transition-all duration-150 ${formData.condition === key
+                                    className={`px-3 py-2.5 text-sm font-semibold border rounded-full transition-all duration-150 ${formData.condition === key
                                         ? 'border-black bg-black text-white'
                                         : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                         }`}
@@ -519,14 +519,14 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         {specFields.storage && (
                         <div>
                             <FieldLabel optional>Storage (GB)</FieldLabel>
-                            <input type="number" min={1} max={8192} value={specs.storage} onChange={(e) => setSpecs((p) => ({ ...p, storage: e.target.value }))} placeholder="e.g. 256" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                            <input type="number" min={1} max={8192} value={specs.storage} onChange={(e) => setSpecs((p) => ({ ...p, storage: e.target.value }))} placeholder="e.g. 256" className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
                             {errors.spec_storage && <p className="text-[11px] text-red-500 mt-1">{errors.spec_storage}</p>}
                         </div>
                         )}
                         {specFields.battery && (
                         <div>
                             <FieldLabel optional>{placeholders.batteryLabel}</FieldLabel>
-                            <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
+                            <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
                             {errors.spec_battery && <p className="text-[11px] text-red-500 mt-1">{errors.spec_battery}</p>}
                         </div>
                         )}
@@ -552,7 +552,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     )}
                     <div>
                         <FieldLabel optional>Known faults</FieldLabel>
-                        <textarea rows={2} maxLength={500} value={specs.faults} onChange={(e) => setSpecs((p) => ({ ...p, faults: e.target.value }))} placeholder="Cracks, faults or missing parts. Leave empty if none." className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none" />
+                        <textarea rows={2} maxLength={500} value={specs.faults} onChange={(e) => setSpecs((p) => ({ ...p, faults: e.target.value }))} placeholder="Cracks, faults or missing parts. Leave empty if none." className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors resize-none" />
                     </div>
 
                     {/* Description */}
@@ -563,7 +563,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             value={formData.description ?? ''}
                             onChange={(e) => update('description', e.target.value)}
                             placeholder="Describe the item's condition, what's included, reason for selling…"
-                            className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none"
+                            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors resize-none"
                         />
                     </div>
 
@@ -574,7 +574,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             value={formData.winner_note ?? ''}
                             onChange={(e) => update('winner_note', e.target.value)}
                             placeholder="Private note only the winning buyer can see (e.g. best contact hours, pickup instruction)."
-                            className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none ${errors.winner_note ? 'border-red-400' : 'border-gray-200'}`}
+                            className={`w-full rounded-xl border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors resize-none ${errors.winner_note ? 'border-red-400' : 'border-gray-200'}`}
                         />
                         {errors.winner_note && <p className="text-[11px] text-red-500 mt-1">{errors.winner_note}</p>}
                     </div>
@@ -662,7 +662,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
 
                     <button
                         onClick={() => setStep(2)}
-                        className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-black py-3 text-sm font-extrabold hover:bg-amber-500 transition-colors"
                     >
                         Next: Add Photos <ArrowRight className="h-4 w-4" />
                     </button>
@@ -714,12 +714,12 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                     />
                                     <button
                                         onClick={() => removeImage(i)}
-                                        className="absolute top-2 right-2 h-6 w-6 bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                        className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     >
                                         <X className="h-3.5 w-3.5" />
                                     </button>
                                     {i === 0 && (
-                                        <span className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
+                                        <span className="absolute bottom-2 left-2 rounded-full bg-black/70 text-white text-[10px] font-black px-2 py-0.5 uppercase tracking-widest">
                                             Cover
                                         </span>
                                     )}
@@ -740,7 +740,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     <div>
                         <FieldLabel optional>Video</FieldLabel>
                         {videoPreview ? (
-                            <div className="relative border border-gray-200 bg-black">
+                            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-black">
                                 <video
                                     src={videoPreview}
                                     controls
@@ -784,7 +784,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         </button>
                         <button
                             onClick={() => setStep(3)}
-                            className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-black py-3 text-sm font-extrabold hover:bg-amber-500 transition-colors"
                         >
                             Next: Set Price <ArrowRight className="h-4 w-4" />
                         </button>
@@ -837,7 +837,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                             key={hours}
                                             type="button"
                                             onClick={() => { update('duration_hours', hours); update('duration_minutes', 0); setIsCustomDuration(false); }}
-                                            className={`px-3 py-2 text-sm font-semibold border rounded-lg transition-colors ${
+                                            className={`px-3 py-2 text-sm font-semibold border rounded-xl transition-colors ${
                                                 !isCustomDuration && formData.duration_hours === hours
                                                     ? 'border-black bg-black text-white'
                                                     : 'border-gray-200 text-gray-600 hover:border-gray-400'
@@ -850,7 +850,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 <button
                                     type="button"
                                     onClick={() => setIsCustomDuration(true)}
-                                    className={`w-full px-3 py-2 text-sm font-semibold border rounded-lg transition-colors ${
+                                    className={`w-full px-3 py-2 text-sm font-semibold border rounded-xl transition-colors ${
                                         isCustomDuration ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
                                     }`}
                                 >
@@ -969,7 +969,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     </div>
 
                     {errors.submit && (
-                        <div className="flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
                             {errors.submit}
                         </div>
@@ -985,7 +985,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-bold hover:bg-gray-900 transition-colors disabled:opacity-60"
+                            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-black py-3 text-sm font-extrabold hover:bg-amber-500 transition-colors disabled:opacity-60"
                         >
                             {submitting
                                 ? 'Publishing…'
@@ -998,4 +998,3 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         </div>
     );
                     }
-
