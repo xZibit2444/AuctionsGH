@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { finalizeListingSaleIfActive } from '@/lib/finalizeListingSale';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendOrderCompletionEmails } from '@/lib/orderCompletionEmails';
 import { createClient as createServerClient } from '@/lib/supabase/server';
@@ -20,6 +21,8 @@ async function resolveUser(req: NextRequest) {
 type DeliveryConfirmationRow = {
     id: string;
     seller_id: string;
+    buyer_id: string;
+    auction_id: string;
     delivery_code: string;
     status: string;
 };
@@ -61,7 +64,7 @@ export async function POST(req: NextRequest) {
 
         const { data: delivery, error: fetchErr } = await supabaseAdmin
             .from('deliveries')
-            .select('id, seller_id, delivery_code, status')
+            .select('id, seller_id, buyer_id, auction_id, delivery_code, status')
             .eq('order_id', orderId)
             .single();
 
@@ -105,6 +108,9 @@ export async function POST(req: NextRequest) {
             .from('orders')
             .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
             .eq('id', orderId);
+
+        // A completed order is what finally takes a permanent listing off the market
+        await finalizeListingSaleIfActive(d.auction_id, d.buyer_id);
 
         await sendOrderCompletionEmails(orderId);
 
