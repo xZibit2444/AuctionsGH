@@ -63,7 +63,7 @@ function ApplicationRow({ app, onReviewed }: { app: Application; onReviewed: () 
                 onClick={() => setExpanded(v => !v)}
             >
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 bg-black text-white flex items-center justify-center font-black text-xs shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center font-black text-xs shrink-0">
                         {app.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -129,7 +129,7 @@ function ApplicationRow({ app, onReviewed }: { app: Application; onReviewed: () 
                                 <button
                                     onClick={() => handle('approved')}
                                     disabled={loading}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50"
                                 >
                                     <CheckCircle className="h-3.5 w-3.5" />
                                     Approve
