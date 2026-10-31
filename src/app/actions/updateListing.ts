@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
 import { isPermanentListing } from '@/lib/listings';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import { updateListingSchema, type UpdateListingInput } from '@/lib/listingEdit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,6 +16,9 @@ type ListingRow = {
     status: string;
     bid_count: number | null;
     ends_at: string | null;
+    title: string;
+    condition: string | null;
+    starting_price: number | null;
 };
 
 async function getOwnedListing(auctionId: string) {
@@ -32,7 +36,7 @@ async function getOwnedListing(auctionId: string) {
 
     const { data: listing } = await admin
         .from('auctions')
-        .select('id, seller_id, status, bid_count, ends_at')
+        .select('id, seller_id, status, bid_count, ends_at, title, condition, starting_price')
         .eq('id', auctionId)
         .maybeSingle() as { data: ListingRow | null };
     if (!listing) return { error: 'Listing not found' as const };
@@ -45,12 +49,44 @@ async function getOwnedListing(auctionId: string) {
 async function hasAcceptedOffer(admin: ReturnType<typeof createAdminClient>, auctionId: string) {
     const { data } = await admin
         .from('auction_offers')
-        .select('id')
+        .select('id, amount')
         .eq('auction_id', auctionId)
         .eq('status', 'accepted')
         .limit(1)
         .maybeSingle();
-    return Boolean(data);
+    return data ? { amount: Number(data.amount) } : null;
+}
+
+async function getOpenOrder(admin: ReturnType<typeof createAdminClient>, auctionId: string) {
+    const { data } = await admin
+        .from('orders')
+        .select('id, status, amount')
+        .eq('auction_id', auctionId)
+        .maybeSingle();
+    if (!data || isTerminalOrderStatus(data.status)) return null;
+    return { amount: Number(data.amount) };
+}
+
+// A deal is in progress when an offer was accepted or an order is still open.
+// While it is, the fields that make up the buyer's agreed order (title,
+// condition, price) are locked so edits can't silently change that deal.
+// Everything else on the listing stays editable.
+async function getDealInProgress(admin: ReturnType<typeof createAdminClient>, auctionId: string) {
+    const [offer, order] = await Promise.all([
+        hasAcceptedOffer(admin, auctionId),
+        getOpenOrder(admin, auctionId),
+    ]);
+    if (!offer && !order) return null;
+    return { agreedPrice: (order ?? offer)!.amount };
+}
+
+export async function getListingDealState(
+    auctionId: string
+): Promise<{ dealPending: boolean; agreedPrice: number | null }> {
+    const ctx = await getOwnedListing(auctionId);
+    if ('error' in ctx) return { dealPending: false, agreedPrice: null };
+    const deal = await getDealInProgress(ctx.admin, auctionId);
+    return { dealPending: Boolean(deal), agreedPrice: deal?.agreedPrice ?? null };
 }
 
 export async function updateListingAction(
@@ -72,11 +108,10 @@ export async function updateListingAction(
     const { admin, listing } = ctx;
 
     if (listing.status === 'sold') {
-        return { success: false, error: 'This listing has an active deal and cannot be edited.' };
+        return { success: false, error: 'This listing has been sold and can no longer be edited.' };
     }
-    if (await hasAcceptedOffer(admin, auctionId)) {
-        return { success: false, error: 'An offer was accepted on this listing, so it cannot be edited.' };
-    }
+
+    const deal = await getDealInProgress(admin, auctionId);
 
     const d = parsed.data;
     const update: Record<string, unknown> = {
@@ -96,6 +131,19 @@ export async function updateListingAction(
         inspection_available: d.inspection_available,
         updated_at: new Date().toISOString(),
     };
+
+    if (deal) {
+        const locked: string[] = [];
+        if (d.title.trim() !== (listing.title ?? '')) locked.push('title');
+        if (d.condition !== (listing.condition ?? '')) locked.push('condition');
+        if (d.price !== undefined && Number(d.price) !== Number(listing.starting_price)) locked.push('price');
+        if (locked.length > 0) {
+            return {
+                success: false,
+                error: `The ${locked.join(', ')} ${locked.length === 1 ? 'is' : 'are'} locked while a deal is in progress on this listing. The buyer already agreed to them; they unlock if the deal falls through.`,
+            };
+        }
+    }
 
     if (d.price !== undefined) {
         const bids = listing.bid_count ?? 0;
