@@ -66,7 +66,7 @@ export default function ShareButton({
             onClick={handleClick}
             disabled={pending}
             className={cn(
-                'inline-flex items-center justify-center gap-2 border transition-colors disabled:opacity-50',
+                'inline-flex items-center justify-center gap-2 rounded-full border transition-colors disabled:opacity-50',
                 compact
                     ? 'h-9 w-9 border-gray-200 bg-white text-gray-500 hover:border-black hover:text-black'
                     : 'px-4 py-2 bg-white text-black border-gray-200 hover:border-black',
