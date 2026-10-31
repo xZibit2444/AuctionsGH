@@ -262,7 +262,11 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
     const metaPills = (
         <div className="flex flex-wrap items-center gap-2">
-            <span className="hidden rounded-full bg-emerald-600 px-2.5 py-[3px] text-xs font-extrabold uppercase leading-[1.2] tracking-[0.05em] text-white sm:inline-block">Live</span>
+            {isActive ? (
+                <span className="hidden rounded-full bg-emerald-600 px-2.5 py-[3px] text-xs font-extrabold uppercase leading-[1.2] tracking-[0.05em] text-white sm:inline-block">Live</span>
+            ) : (
+                <span className="hidden sm:inline-block"><AuctionStatusBadge status={auction.status} /></span>
+            )}
             <span className="rounded-full border border-stone-200 px-2.5 py-1 text-[11px] font-semibold text-stone-600 sm:py-[3px] sm:text-xs">
                 {getListingTypeLabel(listingType)}
             </span>
