@@ -94,14 +94,14 @@ export default function AdminSupportClient({ initial, replies: initialReplies, s
                             <textarea rows={5} maxLength={5000} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write your reply" className="w-full border border-gray-200 px-3 py-2 text-sm text-black focus:outline-none focus:border-black resize-none" />
                             <p className="text-[11px] text-gray-500 mt-2">&quot;Hi {r.name.trim().split(/\s+/)[0] || 'there'},&quot; and your sign-off are added for you, so start with your message. The customer&apos;s answer will not appear here. Their reply goes to {replyTo}, so watch that inbox.</p>
                             <div className="flex gap-2 mt-3">
-                                <button disabled={sending} onClick={() => sendReply(r)} className="px-4 py-2 bg-black text-white text-xs font-semibold hover:bg-gray-900 disabled:opacity-50">{sending ? 'Sending...' : 'Send reply'}</button>
+                                <button disabled={sending} onClick={() => sendReply(r)} className="rounded-xl px-4 py-2 bg-black text-white text-xs font-semibold hover:bg-gray-900 disabled:opacity-50">{sending ? 'Sending...' : 'Send reply'}</button>
                                 <button disabled={sending} onClick={() => { setComposing(null); setDraft(''); }} className="px-4 py-2 border border-gray-200 text-xs font-semibold text-black hover:border-black">Cancel</button>
                             </div>
                         </div>
                     )}
                     <div className="flex gap-2 mt-4">
                         {composing !== r.id && enabled && (
-                            <button onClick={() => { setComposing(r.id); setDraft(''); }} className="px-3 py-1.5 bg-black text-white text-xs font-semibold hover:bg-gray-900">Reply by email</button>
+                            <button onClick={() => { setComposing(r.id); setDraft(''); }} className="rounded-lg px-3 py-1.5 bg-black text-white text-xs font-semibold hover:bg-gray-900">Reply by email</button>
                         )}
                         {(['new', 'in_progress', 'resolved'] as const).filter((s) => s !== r.status).map((s) => (
                             <button key={s} disabled={busy === r.id} onClick={() => setStatus(r.id, s)} className="px-3 py-1.5 border border-gray-200 text-xs font-semibold text-black hover:border-black transition-colors disabled:opacity-50">
