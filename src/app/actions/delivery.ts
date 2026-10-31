@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { finalizeListingSaleIfActive } from '@/lib/finalizeListingSale';
 import { sendOrderCompletionEmails } from '@/lib/orderCompletionEmails';
 import { createClient } from '@supabase/supabase-js';
 
@@ -106,7 +107,7 @@ export async function confirmDeliveryAction(
 
     const { data: delivery, error: fetchErr } = await supabaseAdmin
         .from('deliveries')
-        .select('id, seller_id, delivery_code, status')
+        .select('id, seller_id, buyer_id, auction_id, delivery_code, status')
         .eq('order_id', orderId)
         .single();
 
@@ -137,6 +138,9 @@ export async function confirmDeliveryAction(
         .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
         .eq('id', orderId);
 
+    // A completed order is what finally takes a permanent listing off the market
+    await finalizeListingSaleIfActive(delivery.auction_id, delivery.buyer_id);
+
     await sendOrderCompletionEmails(orderId);
 
     return { success: true };
@@ -155,7 +159,7 @@ export async function confirmDeliveredByBuyerAction(
 
     const { data: delivery, error: fetchErr } = await supabaseAdmin
         .from('deliveries')
-        .select('id, buyer_id, status')
+        .select('id, buyer_id, auction_id, status')
         .eq('order_id', orderId)
         .single();
 
@@ -183,6 +187,9 @@ export async function confirmDeliveredByBuyerAction(
         .from('orders')
         .update({ status: 'completed', updated_at: nowIso } as never)
         .eq('id', orderId);
+
+    // A completed order is what finally takes a permanent listing off the market
+    await finalizeListingSaleIfActive(delivery.auction_id, delivery.buyer_id);
 
     await sendOrderCompletionEmails(orderId);
 
