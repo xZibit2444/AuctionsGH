@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { AUCTION_VIDEOS_BUCKET } from '@/lib/constants';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import type { Profile } from '@/types/profile';
 import type { Auction } from '@/types/auction';
 
@@ -98,12 +99,12 @@ export async function deleteAuctionAction(
         .limit(1)
         .maybeSingle();
 
-    if (acceptedOffer) {
-        // Check whether the order was fully completed
-        const isDone = dealCompleted;
-        if (!isDone) {
-            return { success: false, error: 'There is an active deal on this listing. It cannot be deleted until the order is completed.' };
-        }
+    // An accepted offer only blocks deletion while its order is genuinely open.
+    // Permanent listings keep their accepted offers while still live, and a
+    // buyer who never confirms (or whose order died) must not strand the listing.
+    const dealOpen = !!latestOrder && !isTerminalOrderStatus(latestOrder.status);
+    if (acceptedOffer && dealOpen) {
+        return { success: false, error: 'There is an active deal on this listing. It cannot be deleted until the order is completed.' };
     }
 
     await removeListingVideoFiles(auctionId);
