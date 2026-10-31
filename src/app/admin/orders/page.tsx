@@ -265,7 +265,7 @@ export default async function AdminOrdersPage() {
                                     <div className="flex flex-wrap gap-2">
                                         <Link
                                             href={`/orders/${order.id}`}
-                                            className="inline-flex items-center justify-center px-4 py-2 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                            className="inline-flex items-center justify-center rounded-xl px-4 py-2 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                                         >
                                             Open Order
                                         </Link>
