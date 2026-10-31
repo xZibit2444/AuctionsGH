@@ -63,7 +63,7 @@ export function specFieldsForCategory(category: string | null | undefined): Spec
 }
 
 export const NETWORK_LOCK_OPTIONS = [
-    { value: 'unlocked', label: 'Factory unlocked' },
+    { value: 'unlocked', label: 'Unlocked' },
     { value: 'locked', label: 'Network locked' },
     { value: 'unknown', label: 'Not sure' },
 ] as const;
