@@ -13,7 +13,7 @@ import {
     ITEM_CATEGORIES,
     getLocationsForRegion,
 } from '@/lib/constants';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
 
 type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
 
@@ -135,6 +135,25 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
     const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
         setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
 
+    // Only the spec fields that apply to the selected category are shown and saved.
+    const specFields = specFieldsForCategory(form.brand);
+
+    const handleCategoryChange = (category: string) => {
+        const visible = specFieldsForCategory(category);
+        setForm((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      brand: category,
+                      storage_gb: visible.storage ? prev.storage_gb : '',
+                      battery_health: visible.battery ? prev.battery_health : '',
+                      sim_type: visible.sim ? prev.sim_type : '',
+                      network_lock: visible.lock ? prev.network_lock : '',
+                  }
+                : prev
+        );
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -146,10 +165,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             description: form.description,
             brand: form.brand,
             model: form.model,
-            storage_gb: form.storage_gb ? Number(form.storage_gb) : null,
-            battery_health: form.battery_health,
-            sim_type: form.sim_type,
-            network_lock: form.network_lock,
+            storage_gb: specFields.storage && form.storage_gb ? Number(form.storage_gb) : null,
+            battery_health: specFields.battery ? form.battery_health : '',
+            sim_type: specFields.sim ? form.sim_type : '',
+            network_lock: specFields.lock ? form.network_lock : '',
             faults: form.faults,
             condition: form.condition,
             price: priceLocked ? undefined : Number(form.price),
@@ -197,7 +216,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <Label>Category</Label>
-                        <select value={form.brand} onChange={(e) => set('brand', e.target.value)} className={inputClass}>
+                        <select value={form.brand} onChange={(e) => handleCategoryChange(e.target.value)} className={inputClass}>
                             {[...ITEM_CATEGORIES, ...(ITEM_CATEGORIES.includes(form.brand as never) ? [] : [form.brand])].map((c) => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
@@ -215,7 +234,8 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${specFields.storage ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {specFields.storage && (
                     <div>
                         <Label optional>Storage (GB)</Label>
                         <input
@@ -226,6 +246,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                             className={inputClass}
                         />
                     </div>
+                    )}
                     <div>
                         <Label>Condition</Label>
                         <select
@@ -257,7 +278,9 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                     {err('price')}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {(specFields.battery || specFields.sim) && (
+                <div className={`grid gap-4 ${specFields.battery && specFields.sim ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {specFields.battery && (
                     <div>
                         <Label optional>Battery health (%)</Label>
                         <input
@@ -271,6 +294,8 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         />
                         {err('battery_health')}
                     </div>
+                    )}
+                    {specFields.sim && (
                     <div>
                         <Label optional>SIM type</Label>
                         <select value={form.sim_type} onChange={(e) => set('sim_type', e.target.value)} className={inputClass}>
@@ -281,8 +306,11 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         </select>
                         {err('sim_type')}
                     </div>
+                    )}
                 </div>
+                )}
 
+                {specFields.lock && (
                 <div>
                     <Label optional>Network lock</Label>
                     <select value={form.network_lock} onChange={(e) => set('network_lock', e.target.value)} className={inputClass}>
@@ -293,6 +321,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                     </select>
                     {err('network_lock')}
                 </div>
+                )}
 
                 <div>
                     <Label optional>Known faults</Label>
@@ -301,7 +330,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         maxLength={500}
                         value={form.faults}
                         onChange={(e) => set('faults', e.target.value)}
-                        placeholder="Cracks, Face ID not working, battery service, etc. Leave empty if none."
+                        placeholder="Cracks, faults or missing parts. Leave empty if none."
                         className={inputClass}
                     />
                     {err('faults')}
@@ -313,7 +342,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         rows={5}
                         value={form.description}
                         onChange={(e) => set('description', e.target.value)}
-                        placeholder="Battery health, SIM/lock status, faults, what's included…"
+                        placeholder="Condition details, what's included, reason for selling…"
                         className={inputClass}
                     />
                     {err('description')}
