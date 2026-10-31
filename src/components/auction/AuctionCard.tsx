@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
-import { isPermanentListing } from '@/lib/listings';
+import { getListingType } from '@/lib/listings';
 import { MapPin, Package, Play } from 'lucide-react';
 import type { Auction } from '@/types/auction';
 
@@ -19,7 +19,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
         (a, b) => a.position - b.position
     )[0];
     const hasVideo = (auction.listing_videos ?? []).length > 0;
-    const priceLabel = isPermanentListing(auction.ends_at) ? 'Fixed price' : 'Auction';
+    const priceLabel = getListingType(auction) === 'permanent' ? 'Fixed price' : 'Auction';
     const conditionLabel = CONDITION_LABELS[auction.condition] ?? auction.condition;
 
     return (
@@ -48,6 +48,13 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                         <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-bold text-[#12100C]">
                             <Play className="h-3 w-3" strokeWidth={2.5} />
                             Video
+                        </span>
+                    )}
+                    {/* Sold listings stay browsable for 48h - mark them so a sold
+                        card never reads as a live one in the grid */}
+                    {auction.status === 'sold' && (
+                        <span className="absolute inset-x-0 bottom-0 bg-[#12100C]/85 py-1.5 text-center text-[11px] font-black uppercase tracking-widest text-white">
+                            Sold
                         </span>
                     )}
                 </div>
