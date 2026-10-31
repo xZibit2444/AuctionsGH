@@ -91,7 +91,7 @@ vi.mock('next/link', () => ({
         React.createElement('a', { href, ...rest }, children),
 }));
 
-import SettingsPage from '@/app/settings/page';
+import SettingsPage from '@/components/settings/SettingsPage';
 import DashboardPage from '@/app/dashboard/page';
 
 let container: HTMLDivElement;
@@ -112,21 +112,49 @@ describe('redesign smoke', () => {
         container.remove();
     });
 
-    it('settings: all three sections, real data, accurate save wording', async () => {
-        await render(React.createElement(SettingsPage));
+    it('settings profile: real data, edit flow, accurate save wording, no other sections', async () => {
+        await render(React.createElement(SettingsPage, { section: 'profile' }));
         const text = container.textContent ?? '';
-        for (const needle of ['Public profile', 'Alert preferences', 'Account access', 'Two-factor authentication',
-            'Jason Tieku', '@jnytieku', 'tiekujason@gmail.com', 'Greater Accra', 'Changes apply when you save',
-            'New bid on your listing', 'Auction ending soon', 'Auction won', 'New messages', 'Promotions & tips']) {
+        for (const needle of ['Public profile', 'Jason Tieku', '@jnytieku', 'tiekujason@gmail.com', 'Greater Accra',
+            'Changes apply when you save']) {
             expect(text).toContain(needle);
         }
+        // only the profile card renders - the other sections live on their own pages now
+        expect(text).not.toContain('Alert preferences');
+        expect(text).not.toContain('Account access');
         expect(text).not.toContain('instantly');
+        // nav rail links to the sibling section pages
+        const hrefs = Array.from(container.querySelectorAll('a')).map(a => a.getAttribute('href'));
+        expect(hrefs).toContain('/settings/profile');
+        expect(hrefs).toContain('/settings/notifications');
+        expect(hrefs).toContain('/settings/security');
         const editBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent?.trim() === 'Edit');
         expect(editBtn).toBeTruthy();
         await act(async () => { editBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true })); });
         expect(container.textContent).toContain('Save changes');
         expect(container.textContent).toContain('Upload photo');
         expect(container.textContent).toContain('Cannot change');
+    }, 15000);
+
+    it('settings notifications: alert toggles on their own page', async () => {
+        await render(React.createElement(SettingsPage, { section: 'notifications' }));
+        const text = container.textContent ?? '';
+        for (const needle of ['Alert preferences', 'New bid on your listing', 'Auction ending soon', 'Auction won',
+            'New messages', 'Promotions & tips', 'Save preferences']) {
+            expect(text).toContain(needle);
+        }
+        expect(text).not.toContain('Public profile');
+        expect(text).not.toContain('Account access');
+    }, 15000);
+
+    it('settings security: sessions and account access on their own page', async () => {
+        await render(React.createElement(SettingsPage, { section: 'security' }));
+        const text = container.textContent ?? '';
+        for (const needle of ['Account access', 'Two-factor authentication', 'Sign out of this device']) {
+            expect(text).toContain(needle);
+        }
+        expect(text).not.toContain('Public profile');
+        expect(text).not.toContain('Alert preferences');
     }, 15000);
 
     it('dashboard: stacked selling+buying, admin gated by super admin', async () => {
