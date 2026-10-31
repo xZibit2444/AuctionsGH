@@ -13,6 +13,7 @@ import AuctionGrid from '@/components/auction/AuctionGrid';
 
 const CATEGORIES = ['All', ...ITEM_CATEGORIES];
 const SORT_OPTIONS = [
+    { label: 'Shuffled', value: 'shuffled' },
     { label: 'Ending Soon', value: 'ends_at:asc' },
     { label: 'Newest', value: 'created_at:desc' },
     { label: 'Price: Low to High', value: 'current_price:asc' },
@@ -26,7 +27,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const [query, setQuery] = useState(searchParams.get('q') ?? '');
     const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
     const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
-    const [sort, setSort] = useState(searchParams.get('sort') ?? 'ends_at:asc');
+    const [sort, setSort] = useState(searchParams.get('sort') ?? 'shuffled');
     const [condition, setCondition] = useState(searchParams.get('cond') ?? 'All');
     const [minPrice, setMinPrice] = useState(searchParams.get('min') ?? '');
     const [maxPrice, setMaxPrice] = useState(searchParams.get('max') ?? '');
@@ -39,7 +40,8 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
         Boolean(searchParams.get('cond') ?? searchParams.get('min') ?? searchParams.get('max') ?? searchParams.get('delivery')),
     );
 
-    const [orderBy, ascending] = sort.split(':') as [
+    // 'shuffled' fetches in ends_at order, then rotates client-side per load.
+    const [orderBy, ascending] = (sort === 'shuffled' ? 'ends_at:asc' : sort).split(':') as [
         'ends_at' | 'created_at' | 'current_price',
         string,
     ];
@@ -59,7 +61,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
 
     // Default view rotates on every open so visitors do not always see the
     // same listings in the same order; an explicit sort choice is preserved.
-    const isDefaultSort = !searchParams.get('sort');
+    const isDefaultSort = sort === 'shuffled';
     const visibleAuctions = useMemo(
         () => (isDefaultSort ? shuffled(auctions) : auctions),
         [auctions, isDefaultSort]
@@ -334,7 +336,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                 </div>
             )}
 
-            <AuctionGrid auctions={visibleAuctions} loading={loading} />
+            <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={listingType === 'permanent' ? 'listings' : 'auctions'} />
         </div>
     );
 }
