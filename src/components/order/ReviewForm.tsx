@@ -66,7 +66,7 @@ export default function ReviewForm({ orderId, revieweeId, revieweeName, onSubmit
     const display = hovered || rating;
 
     return (
-        <div className="border border-gray-200 p-6 bg-white">
+        <div className="rounded-2xl border border-gray-200 p-6 bg-white">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
                 Rate {revieweeName}
             </h3>
@@ -111,7 +111,7 @@ export default function ReviewForm({ orderId, revieweeId, revieweeName, onSubmit
                         maxLength={500}
                         rows={3}
                         placeholder={`How was your experience with ${revieweeName}?`}
-                        className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors resize-none"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors resize-none"
                     />
                     <p className="text-[10px] text-gray-400 mt-0.5 text-right">{comment.length}/500</p>
                 </div>
@@ -123,7 +123,7 @@ export default function ReviewForm({ orderId, revieweeId, revieweeName, onSubmit
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 disabled:opacity-50 transition-colors"
+                    className="w-full py-2.5 rounded-xl bg-amber-400 text-black text-xs font-black uppercase tracking-widest hover:bg-amber-500 disabled:opacity-50 transition-colors"
                 >
                     {loading ? 'Submitting...' : 'Submit Review'}
                 </button>
