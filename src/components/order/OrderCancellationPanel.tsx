@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Ban, CheckCircle2, RefreshCcw } from 'lucide-react';
 import { cancelOrderAction } from '@/app/actions/cancelOrder';
-import { formatOrderStatusLabel, isCancelledOrderStatus } from '@/lib/orderStatus';
+import { formatOrderStatusLabel, isCancelledOrderStatus, isCompletedOrderStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
 
 const BUYER_REASONS = [
     { value: 'changed_mind', label: 'Changed my mind' },
@@ -146,7 +146,9 @@ export default function OrderCancellationPanel({
                         </>
                     ) : (
                         <p className="mt-2 text-sm text-gray-500">
-                            This order can no longer be cancelled from the app because fulfillment or completion has already started.
+                            {isTerminalOrderStatus(status) && !isCompletedOrderStatus(status) && !isCancelledOrderStatus(status)
+                                ? 'This order is closed and can no longer be cancelled.'
+                                : 'This order can no longer be cancelled from the app because fulfillment or completion has already started.'}
                         </p>
                     )}
                 </div>
