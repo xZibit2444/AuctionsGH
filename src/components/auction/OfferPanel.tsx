@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { makeOfferAction, respondToOfferAction } from '@/app/actions/offer';
+import { counterOfferAction, makeOfferAction, respondToCounterAction, respondToOfferAction } from '@/app/actions/offer';
 import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -24,7 +24,9 @@ interface Offer {
 
     amount: number;
 
-    status: 'pending' | 'accepted' | 'declined';
+    status: 'pending' | 'accepted' | 'declined' | 'countered';
+
+    counter_amount?: number | null;
 
     created_at: string;
 
@@ -60,6 +62,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     const [buyError, setBuyError] = useState('');
 
     const [responding, setResponding] = useState<string | null>(null);
+
+    const [counterDrafts, setCounterDrafts] = useState<Record<string, string>>({});
 
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -182,6 +186,43 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     };
 
 
+    const handleCounter = async (offerId: string) => {
+
+        const value = Number(counterDrafts[offerId] ?? '');
+
+        setResponding(offerId);
+
+        const result = await counterOfferAction(offerId, value);
+
+        setResponding(null);
+
+        if (!result.success) alert(result.error ?? 'Something went wrong');
+
+        else setCounterDrafts((d) => ({ ...d, [offerId]: '' }));
+
+        void fetchOffers();
+
+    };
+
+
+
+    const handleCounterResponse = async (offerId: string, response: 'accepted' | 'declined') => {
+
+        setResponding(offerId);
+
+        const result = await respondToCounterAction(offerId, response);
+
+        setResponding(null);
+
+        if (!result.success) alert(result.error ?? 'Something went wrong');
+
+        void fetchOffers();
+
+        if (result.success && response === 'accepted') router.refresh();
+
+    };
+
+
 
     if (loading) return null;
 
@@ -191,7 +232,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
-    const hasPending = !isSeller && offers.some((o) => o.status === 'pending');
+    const hasPending = !isSeller && offers.some((o) => o.status === 'pending' || o.status === 'countered');
 
 
 
@@ -380,6 +421,48 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
+                                {isSeller && o.status === 'pending' && (
+
+                                    <div className="flex gap-1.5 mt-1.5">
+
+                                        <input
+
+                                            type="number"
+
+                                            min={1}
+
+                                            inputMode="numeric"
+
+                                            placeholder="Counter (GHS)"
+
+                                            value={counterDrafts[o.id] ?? ''}
+
+                                            onChange={(e) => setCounterDrafts((d) => ({ ...d, [o.id]: e.target.value }))}
+
+                                            className="flex-1 border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-black"
+
+                                        />
+
+                                        <button
+
+                                            onClick={() => handleCounter(o.id)}
+
+                                            disabled={!!responding || !(counterDrafts[o.id] ?? '').trim()}
+
+                                            className="px-4 py-2 bg-white text-black border border-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
+
+                                        >
+
+                                            Counter
+
+                                        </button>
+
+                                    </div>
+
+                                )}
+
+
+
                                 {/* Response bubble */}
 
                                 {o.status !== 'pending' && (
@@ -392,7 +475,11 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                                 ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
 
-                                                : 'bg-red-50 border border-red-100 text-red-700'
+                                                : o.status === 'countered'
+
+                                                    ? 'bg-amber-50 border border-amber-200 text-amber-800'
+
+                                                    : 'bg-red-50 border border-red-100 text-red-700'
 
                                         }`}>
 
@@ -400,9 +487,65 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                                 ? '✓ Yes — offer accepted!'
 
-                                                : '✗ No — offer declined.'}
+                                                : o.status === 'countered'
+
+                                                    ? (isSeller
+
+                                                        ? `Counter sent: GHS ${Number(o.counter_amount ?? 0).toLocaleString()} - waiting for buyer`
+
+                                                        : `Seller countered: GHS ${Number(o.counter_amount ?? 0).toLocaleString()}`)
+
+                                                    : '✗ No — offer declined.'}
 
                                         </div>
+
+                                    </div>
+
+                                )}
+
+
+
+                                {/* Buyer answers a counter-offer */}
+
+                                {!isSeller && o.status === 'countered' && (
+
+                                    <div className="flex justify-end gap-1.5">
+
+                                        <button
+
+                                            onClick={() => handleCounterResponse(o.id, 'accepted')}
+
+                                            disabled={!!responding}
+
+                                            className="mt-1 px-4 py-2 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+
+                                        >
+
+                                            {isResponding
+
+                                                ? <Loader2 className="h-3 w-3 animate-spin" />
+
+                                                : <CheckCircle2 className="h-3 w-3" />}
+
+                                            Accept GHS {Number(o.counter_amount ?? 0).toLocaleString()}
+
+                                        </button>
+
+                                        <button
+
+                                            onClick={() => handleCounterResponse(o.id, 'declined')}
+
+                                            disabled={!!responding}
+
+                                            className="mt-1 px-4 py-2 bg-white text-black border border-gray-200 text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+
+                                        >
+
+                                            <XCircle className="h-3 w-3 text-red-400" />
+
+                                            Decline
+
+                                        </button>
 
                                     </div>
 
