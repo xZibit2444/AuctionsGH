@@ -47,7 +47,7 @@ function Label({ children, optional }: { children: React.ReactNode; optional?: b
 }
 
 const inputClass =
-    'w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors';
+    'w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors';
 
 export default function EditListingForm({ auctionId }: { auctionId: string }) {
     const router = useRouter();
@@ -415,7 +415,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 <div className="flex items-center gap-3 pt-2">
                     <button
                         type="submit"
-                        className="bg-black text-white px-6 py-3 text-sm font-bold hover:bg-gray-900 disabled:opacity-50"
+                        className="rounded-xl bg-amber-400 text-black px-6 py-3 text-sm font-extrabold hover:bg-amber-500 disabled:opacity-50"
                     >
                         {saving ? 'Saving…' : 'Save Changes'}
                     </button>
@@ -426,4 +426,4 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             </fieldset>
         </form>
     );
-        }
+                    }
