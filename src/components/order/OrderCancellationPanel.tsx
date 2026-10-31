@@ -76,7 +76,7 @@ export default function OrderCancellationPanel({
     };
 
     return (
-        <div className="border border-gray-200 bg-white p-6">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
             <div className="flex items-start gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center ${canCancel ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
                     {isCancelledOrderStatus(status) ? <Ban className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
@@ -110,7 +110,7 @@ export default function OrderCancellationPanel({
                                     <select
                                         value={selectedReason}
                                         onChange={(e) => setSelectedReason(e.target.value)}
-                                        className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black"
+                                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
                                     >
                                         {reasonOptions.map((option) => (
                                             <option key={option.value} value={option.value}>{option.label}</option>
@@ -128,13 +128,13 @@ export default function OrderCancellationPanel({
                                         rows={3}
                                         maxLength={240}
                                         placeholder="Add any detail the other party should know."
-                                        className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black"
+                                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
                                     />
                                 </label>
                             </div>
 
                             {feedback && (
-                                <div className={`mt-4 flex items-start gap-2 border px-3 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+                                <div className={`mt-4 flex items-start gap-2 rounded-xl border px-3 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
                                     {feedback.type === 'success' ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" /> : <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />}
                                     <span>{feedback.message}</span>
                                 </div>
@@ -144,13 +144,13 @@ export default function OrderCancellationPanel({
                                 <button
                                     type="button"
                                     onClick={() => { setFeedback(null); setConfirming(true); }}
-                                    className="mt-4 inline-flex items-center gap-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-900"
+                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-900"
                                 >
                                     <Ban className="h-4 w-4" />
                                     Cancel order
                                 </button>
                             ) : (
-                                <div className="mt-4 border border-red-200 bg-red-50 p-4">
+                                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
                                     <p className="text-sm font-bold text-red-800">
                                         Cancel this order? This cannot be undone.
                                     </p>
@@ -166,7 +166,7 @@ export default function OrderCancellationPanel({
                                             type="button"
                                             onClick={handleCancel}
                                             disabled={isPending}
-                                            className="inline-flex items-center gap-2 bg-red-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-800 disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-800 disabled:opacity-50"
                                         >
                                             {isPending ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
                                             {isPending ? 'Cancelling...' : 'Yes, cancel order'}
@@ -175,7 +175,7 @@ export default function OrderCancellationPanel({
                                             type="button"
                                             onClick={() => setConfirming(false)}
                                             disabled={isPending}
-                                            className="inline-flex items-center gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-black hover:text-black disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:text-black disabled:opacity-50"
                                         >
                                             Keep order
                                         </button>
