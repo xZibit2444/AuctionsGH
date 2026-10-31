@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { isPermanentListing } from '@/lib/listings';
 import {
     sendAuctionSoldEmail,
     sendAuctionWonEmail,
@@ -139,7 +140,7 @@ export async function respondToOfferAction(
     if (response === 'accepted') {
         const { data: auction } = await supabaseAdmin
             .from('auctions')
-            .select('title, status')
+            .select('title, status, ends_at')
             .eq('id', offer.auction_id)
             .single();
 
@@ -147,33 +148,42 @@ export async function respondToOfferAction(
             return { success: false, error: 'Auction is no longer active - cannot accept offer' };
         }
 
-        const now = new Date().toISOString();
-        const { error: updateErr } = await supabaseAdmin
-            .from('auctions')
-            .update({
-                status: 'sold',
-                winner_id: offer.buyer_id,
-                current_price: offer.amount,
-                ends_at: now,
-                updated_at: now,
-            })
-            .eq('id', offer.auction_id)
-            .eq('status', 'active');
+        // Permanent listings stay live until an order is actually completed:
+        // an accepted offer does not reserve the item, because buyers can
+        // accept-then-never-pay. Timed auctions close immediately as before.
+        const isPermanent = isPermanentListing(auction.ends_at);
 
-        if (updateErr) return { success: false, error: 'Failed to finalise auction' };
+        if (!isPermanent) {
+            const now = new Date().toISOString();
+            const { error: updateErr } = await supabaseAdmin
+                .from('auctions')
+                .update({
+                    status: 'sold',
+                    winner_id: offer.buyer_id,
+                    current_price: offer.amount,
+                    ends_at: now,
+                    updated_at: now,
+                })
+                .eq('id', offer.auction_id)
+                .eq('status', 'active');
 
-        await supabaseAdmin
-            .from('auction_offers')
-            .update({ status: 'declined', updated_at: now })
-            .eq('auction_id', offer.auction_id)
-            .eq('status', 'pending')
-            .neq('id', offerId);
+            if (updateErr) return { success: false, error: 'Failed to finalise auction' };
+
+            await supabaseAdmin
+                .from('auction_offers')
+                .update({ status: 'declined', updated_at: now })
+                .eq('auction_id', offer.auction_id)
+                .eq('status', 'pending')
+                .neq('id', offerId);
+        }
 
         await insertNotificationIfEnabled(supabaseAdmin as never, {
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
-            body: `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
+            body: isPermanent
+                ? `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live until an order is completed.`
+                : `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
 
