@@ -90,7 +90,8 @@ export default function SavedPage() {
 
     return (
         <AuthGuard>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
+            <div className="bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 sm:mb-8">
                     <div>
@@ -112,7 +113,7 @@ export default function SavedPage() {
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Array.from({ length: 2 }).map((_, i) => (
-                                <div key={i} className="bg-white h-36 border border-gray-200 skeleton-pulse" />
+                                <div key={i} className="bg-white h-36 rounded-2xl border border-gray-200 skeleton-pulse" />
                             ))}
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-gray-200">
@@ -122,7 +123,7 @@ export default function SavedPage() {
                         </div>
                     </div>
                 ) : !hasAnySavedItems ? (
-                    <div className="text-center py-20 border border-gray-200">
+                    <div className="text-center py-20 rounded-[20px] border border-gray-200 bg-white">
                         <Heart className="h-8 w-8 text-gray-200 mx-auto mb-4" strokeWidth={1} />
                         <p className="text-sm font-semibold text-black mb-1">Nothing saved yet</p>
                         <p className="text-xs text-gray-400 mb-6">
@@ -130,7 +131,7 @@ export default function SavedPage() {
                         </p>
                         <Link
                             href="/auctions"
-                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                         >
                             Browse Auctions
                             <ArrowRight className="h-4 w-4" />
@@ -148,7 +149,7 @@ export default function SavedPage() {
                             </div>
 
                             {favoriteSellers.length === 0 ? (
-                                <div className="border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+                                <div className="rounded-[20px] border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
                                     No favorite sellers yet.
                                 </div>
                             ) : (
@@ -164,7 +165,7 @@ export default function SavedPage() {
                                             <Link
                                                 key={seller.id}
                                                 href={`/sellers/${seller.id}`}
-                                                className="group border border-gray-200 bg-white p-5 hover:border-black transition-colors"
+                                                className="group rounded-2xl border border-gray-200 bg-white p-5 hover:border-gray-400 transition-colors"
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex items-start gap-4 min-w-0">
@@ -219,7 +220,7 @@ export default function SavedPage() {
                             </div>
 
                             {auctions.length === 0 ? (
-                                <div className="border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+                                <div className="rounded-[20px] border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
                                     No saved auctions yet.
                                 </div>
                             ) : (
@@ -234,6 +235,7 @@ export default function SavedPage() {
                         </section>
                     </div>
                 )}
+            </div>
             </div>
         </AuthGuard>
     );
