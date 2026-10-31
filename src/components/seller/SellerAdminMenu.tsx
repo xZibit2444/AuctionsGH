@@ -55,7 +55,7 @@ export default function SellerAdminMenu({ sellerId, sellerName }: SellerAdminMen
         <div className="relative" ref={menuRef}>
             <button
                 onClick={() => setOpen((current) => !current)}
-                className="inline-flex h-10 w-10 items-center justify-center border border-gray-200 text-gray-500 transition-colors hover:border-black hover:text-black"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:border-gray-300 hover:text-black"
                 aria-label="Seller moderation settings"
                 title="Seller moderation settings"
             >
@@ -63,7 +63,7 @@ export default function SellerAdminMenu({ sellerId, sellerName }: SellerAdminMen
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full z-20 mt-2 w-56 border border-gray-200 bg-white shadow-lg">
+                <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-xl border border-gray-200 bg-white shadow-lg">
                     <button
                         onClick={() => void handleBan()}
                         disabled={pending}
