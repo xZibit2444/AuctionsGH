@@ -223,11 +223,11 @@ export default function FloatingChatToast() {
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
-                    className="pointer-events-auto w-72 sm:w-80 bg-black text-white shadow-2xl"
+                    className="pointer-events-auto w-72 sm:w-80 rounded-2xl overflow-hidden bg-black text-white shadow-2xl"
                     style={{ animation: 'slideInRight 0.25s ease-out' }}
                 >
                     <div className="flex items-start gap-3 px-4 pt-4 pb-2">
-                        <div className="shrink-0 h-8 w-8 bg-emerald-500/20 flex items-center justify-center">
+                        <div className="shrink-0 h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                             <MessageCircle className="w-4 h-4 text-emerald-400" />
                         </div>
                         <div className="flex-1 min-w-0">
