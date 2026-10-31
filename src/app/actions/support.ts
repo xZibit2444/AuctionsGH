@@ -5,6 +5,7 @@ import { createAdminClient as _createAdminClient } from '@/lib/supabase/admin';
 import { SUPPORT_TOPICS } from '@/lib/supportTopics';
 import { sendSupportReplyEmail, SUPPORT_SENDER } from '@/lib/email/supportReply';
 import { sendNewSupportRequestAdminEmail } from '@/lib/email/sender';
+import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createAdminClient = () => _createAdminClient() as any;
@@ -70,6 +71,14 @@ export async function submitSupportRequest(
         for (const authUser of authUsers?.users ?? []) {
             if (!superAdminIds.has(authUser.id) || !authUser.email) continue;
             void sendNewSupportRequestAdminEmail(authUser.email, { name, email, topic, message });
+        }
+        for (const adminId of superAdminIds) {
+            void insertNotificationIfEnabled(admin as never, {
+                user_id: adminId,
+                type: 'system',
+                title: `New support request: ${topic}`,
+                body: `${name} (${email}): ${message.slice(0, 300)}`,
+            });
         }
     }
 
