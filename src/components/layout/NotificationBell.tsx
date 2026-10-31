@@ -219,7 +219,7 @@ export default function NotificationBell() {
                     {/* Footer */}
                     <div className="border-t border-gray-100 px-4 py-2.5">
                         <button
-                            onClick={() => { setOpen(false); router.push('/settings#notifications'); }}
+                            onClick={() => { setOpen(false); router.push('/settings/notifications'); }}
                             className="text-[10px] font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
                         >
                             Notification settings →
