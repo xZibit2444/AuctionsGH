@@ -178,10 +178,10 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
     };
 
     return (
-        <div id="comments" className="border border-gray-200 bg-white mt-4">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-black">
-                <MessageSquare className="h-3.5 w-3.5 text-amber-400" />
-                <p className="text-[11px] font-black text-white uppercase tracking-widest">Live Comments</p>
+        <div id="comments" className="rounded-2xl overflow-hidden border border-gray-200 bg-white mt-4">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-white">
+                <MessageSquare className="h-3.5 w-3.5 text-amber-500" />
+                <p className="text-[11px] font-black text-black uppercase tracking-widest">Live Comments</p>
             </div>
 
             <div className="max-h-[420px] overflow-y-auto px-4 py-4 bg-gray-50">
@@ -232,7 +232,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                                                 <span className="text-xs text-gray-500">@{comment.profile.username}</span>
                                             )}
                                             {isMine && (
-                                                <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-black text-white">
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-black text-white">
                                                     You
                                                 </span>
                                             )}
@@ -294,7 +294,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                     <button
                         type="submit"
                         disabled={!body.trim() || sending}
-                        className="self-end inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-50"
+                        className="self-end inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black text-[11px] font-black uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50"
                     >
                         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                         Comment
