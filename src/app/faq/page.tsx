@@ -299,25 +299,26 @@ function FAQItemRow({ item }: { item: FAQItem }) {
 
 export default function FAQPage() {
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 pb-28 sm:pb-16">
             {/* Header */}
             <div className="mb-10 sm:mb-12">
                 <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
                     Frequently Asked Questions
                 </h1>
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-gray-500 mt-2">
                     Everything you need to know about buying and selling on AuctionsGH.
                 </p>
             </div>
 
             {/* Sections */}
-            <div className="space-y-10">
+            <div className="space-y-6">
                 {sections.map((section) => (
-                    <div key={section.title}>
-                        <h2 className="text-[11px] font-black text-black uppercase tracking-widest mb-1 pb-3 border-b border-black">
+                    <div key={section.title} className="rounded-[20px] border border-gray-200 bg-white px-5 sm:px-6">
+                        <h2 className="text-[11px] font-black text-amber-700 uppercase tracking-widest mb-1 pt-5 pb-3 border-b border-gray-100">
                             {section.title}
                         </h2>
-                        <div>
+                        <div className="pb-2">
                             {section.items.map((item) => (
                                 <FAQItemRow key={item.q} item={item} />
                             ))}
@@ -327,28 +328,29 @@ export default function FAQPage() {
             </div>
 
             {/* CTA */}
-            <div className="mt-12 border border-gray-200 p-6 sm:p-8">
+            <div className="mt-12 rounded-[20px] border border-gray-200 bg-white p-6 sm:p-8">
                 <h3 className="text-sm font-black text-black uppercase tracking-widest mb-1">
                     Still have questions?
                 </h3>
-                <p className="text-sm text-gray-400 mt-1 mb-5">
+                <p className="text-sm text-gray-500 mt-1 mb-5">
                     Can&apos;t find what you&apos;re looking for? Our support team is here to help.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <Link
                         href="/support"
-                        className="inline-flex items-center justify-center px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                        className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                     >
                         Contact Support
                     </Link>
                     <Link
                         href="/auctions"
-                        className="inline-flex items-center justify-center px-5 py-2.5 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors"
+                        className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-black hover:border-gray-400 transition-colors"
                     >
                         Browse Auctions
                     </Link>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
