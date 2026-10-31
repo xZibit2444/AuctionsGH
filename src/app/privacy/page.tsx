@@ -145,8 +145,9 @@ export default function PrivacyPolicyPage() {
     const lastUpdated = 'March 9, 2026';
 
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            <div className="border border-gray-200 bg-white p-6 sm:p-8 mb-8">
+            <div className="rounded-[20px] border border-gray-200 bg-white p-6 sm:p-8 mb-8">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Legal</p>
                 <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-black">Privacy Policy</h1>
                 <p className="text-sm text-gray-500 mt-3 max-w-2xl">
@@ -158,7 +159,7 @@ export default function PrivacyPolicyPage() {
 
             <div className="space-y-6">
                 {sections.map((section) => (
-                    <section key={section.title} className="border border-gray-200 bg-gray-50 p-5 sm:p-6">
+                    <section key={section.title} className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
                         <h2 className="text-sm font-black uppercase tracking-widest text-black mb-3">{section.title}</h2>
                         <div className="text-sm leading-7 text-gray-700">
                             {section.body}
@@ -166,7 +167,7 @@ export default function PrivacyPolicyPage() {
                     </section>
                 ))}
 
-                <section className="border border-black bg-black text-white p-5 sm:p-6">
+                <section className="rounded-2xl border border-black bg-black text-white p-5 sm:p-6">
                     <h2 className="text-sm font-black uppercase tracking-widest mb-3">11. Contact</h2>
                     <p className="text-sm text-white/80 leading-7">
                         For privacy requests or questions, contact AuctionsGH at{' '}
@@ -175,6 +176,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                 </section>
             </div>
+        </div>
         </div>
     );
 }
