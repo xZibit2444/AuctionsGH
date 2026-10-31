@@ -2,6 +2,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { isPermanentListing } from '@/lib/listings';
+import { FAILED_ORDER_STATUSES } from '@/lib/orderStatus';
 import {
     sendOrderConfirmedBuyerEmail,
     sendOrderConfirmedSellerEmail,
@@ -35,7 +37,7 @@ export async function createOrderAction(data: CheckoutFormData) {
     try {
         const { data: auction, error: fetchError } = await supabaseAdmin
             .from('auctions')
-            .select('id, title, seller_id, status, winner_id, current_price')
+            .select('id, title, seller_id, status, winner_id, current_price, ends_at')
             .eq('id', data.auctionId)
             .single();
 
@@ -43,8 +45,48 @@ export async function createOrderAction(data: CheckoutFormData) {
             return { success: false, error: 'Auction not found' };
         }
 
-        if (auction.status !== 'sold' || auction.winner_id !== data.buyerId) {
-            return { success: false, error: 'Invalid auction state or unauthorized' };
+        let orderAmount = Number(auction.current_price);
+        const isSoldWinner = auction.status === 'sold' && auction.winner_id === data.buyerId;
+
+        if (!isSoldWinner) {
+            // Permanent listings stay live after an offer is accepted, so the
+            // accepted buyer confirms their order while the listing is still
+            // active. The agreed offer amount is read from the accepted offer,
+            // never from the client.
+            if (auction.status !== 'active' || !isPermanentListing(auction.ends_at)) {
+                return { success: false, error: 'Invalid auction state or unauthorized' };
+            }
+
+            const { data: acceptedOffer } = await supabaseAdmin
+                .from('auction_offers')
+                .select('id, amount')
+                .eq('auction_id', data.auctionId)
+                .eq('buyer_id', data.buyerId)
+                .eq('status', 'accepted')
+                .maybeSingle();
+
+            if (!acceptedOffer) {
+                return { success: false, error: 'Invalid auction state or unauthorized' };
+            }
+
+            // The listing is still on the market: only one open order can
+            // exist, so first buyer to confirm wins the slot. A stale terminal
+            // order (cancelled / ghosted / refunded) is removed so the next
+            // buyer can confirm - its delivery and PIN rows cascade away.
+            const { data: existingOrder } = await supabaseAdmin
+                .from('orders')
+                .select('id, status')
+                .eq('auction_id', data.auctionId)
+                .maybeSingle();
+
+            if (existingOrder) {
+                if (!FAILED_ORDER_STATUSES.includes(existingOrder.status as typeof FAILED_ORDER_STATUSES[number])) {
+                    return { success: false, error: 'Another buyer is confirming this purchase right now. If it falls through, you can try again.' };
+                }
+                await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
+            }
+
+            orderAmount = Number(acceptedOffer.amount);
         }
 
         const fulfillment_type = 'meet_and_inspect';
@@ -59,7 +101,7 @@ export async function createOrderAction(data: CheckoutFormData) {
                 fulfillment_type,
                 status: initial_status,
                 payment_method: 'cod',
-                amount: Number(auction.current_price),
+                amount: orderAmount,
                 meetup_location: data.deliveryMethod === 'pickup' ? 'To be arranged' : data.address,
             })
             .select('id')
