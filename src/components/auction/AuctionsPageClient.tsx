@@ -29,13 +29,14 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
     const [sort, setSort] = useState(searchParams.get('sort') ?? 'shuffled');
     const [condition, setCondition] = useState(searchParams.get('cond') ?? 'All');
-    const [minPrice, setMinPrice] = useState(searchParams.get('min') ?? '');
-    const [maxPrice, setMaxPrice] = useState(searchParams.get('max') ?? '');
+    // A linked/shared URL can carry a reversed range; normalize on the way in
+    // so the applied filter (and the inputs) never silently match nothing.
+    const [initialMin, initialMax] = [searchParams.get('min') ?? '', searchParams.get('max') ?? ''];
+    const normalizedInitial = normalizePriceRange(initialMin, initialMax);
+    const [minPrice, setMinPrice] = useState(normalizedInitial.min);
+    const [maxPrice, setMaxPrice] = useState(normalizedInitial.max);
     const [deliveryOnly, setDeliveryOnly] = useState(searchParams.get('delivery') === '1');
-    const [priceDraft, setPriceDraft] = useState({
-        min: searchParams.get('min') ?? '',
-        max: searchParams.get('max') ?? '',
-    });
+    const [priceDraft, setPriceDraft] = useState(normalizedInitial);
     const [showFilters, setShowFilters] = useState(
         Boolean(searchParams.get('cond') ?? searchParams.get('min') ?? searchParams.get('max') ?? searchParams.get('delivery')),
     );
