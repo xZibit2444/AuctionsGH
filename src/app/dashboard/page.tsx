@@ -1,20 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
 import BuyerStats from '@/components/dashboard/BuyerStats';
 import Link from 'next/link';
-import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper, Mail } from 'lucide-react';
+import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper, Mail, LifeBuoy } from 'lucide-react';
 
-type Tab = 'buyer' | 'seller';
+const adminShortcuts = [
+    { href: '/admin/analytics', title: 'Analytics', sub: 'GMV, funnels, seller performance, and trust alerts.', icon: BarChart3 },
+    { href: '/admin/applications', title: 'Seller Applications', sub: 'Review and approve pending seller applications.', icon: ClipboardList },
+    { href: '/admin/orders', title: 'Order Monitor', sub: 'See all orders, delivery codes, and live statuses.', icon: Package },
+    { href: '/admin/users', title: 'User Moderation', sub: 'Permanently ban abusive or fraudulent accounts.', icon: Ban },
+    { href: '/admin/auctions', title: 'Auction Management', sub: 'Edit, unpublish, force-end, or extend any listing.', icon: Gavel },
+    { href: '/admin/support', title: 'Support Requests', sub: 'Read and resolve issues sent from Contact Support.', icon: LifeBuoy },
+    { href: '/admin/news', title: 'News & Announcements', sub: 'Post and manage news items shown on /news.', icon: Newspaper },
+    { href: '/admin/newsletter', title: 'Send Newsletter', sub: 'Email news updates to all subscribers.', icon: Mail },
+];
+
+function SectionHeading({ title, linkHref, linkLabel }: { title: string; linkHref: string; linkLabel: string }) {
+    return (
+        <div className="flex items-baseline justify-between mb-4 px-0.5">
+            <h2 className="text-[12px] font-black text-gray-400 uppercase tracking-[0.16em]">{title}</h2>
+            <Link href={linkHref} className="text-xs font-bold text-amber-700 hover:text-amber-800 transition-colors">
+                {linkLabel}
+            </Link>
+        </div>
+    );
+}
 
 export default function DashboardPage() {
     const { user, profile, loading } = useAuth();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<Tab>('buyer');
 
     useEffect(() => {
         if (!loading && !user) router.push('/login');
@@ -22,232 +41,96 @@ export default function DashboardPage() {
 
     // Render the page shell immediately — only redirect if definitely not logged in
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
-                {/* Header */}
-                <div className="flex items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">Dashboard</h1>
-                        <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Your activity overview</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <Link
-                            href="/settings"
-                            className="p-2 border border-gray-200 text-gray-500 hover:border-black hover:text-black transition-colors"
-                            title="Settings"
-                        >
-                            <Settings className="h-4 w-4" />
-                        </Link>
-                        {user && !profile?.is_banned && activeTab === 'seller' && (
+        <div className="bg-gray-50 min-h-screen">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-12">
+
+                {/* Hero */}
+                <div className="relative overflow-hidden mb-8 sm:mb-10">
+                    <div className="pointer-events-none absolute -inset-x-10 -top-24 h-56 bg-[radial-gradient(closest-side,rgba(251,191,36,0.28),transparent_70%)]" />
+                    <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+                        <div className="max-w-2xl">
+                            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Account Center</p>
+                            <h1 className="mt-2.5 text-3xl sm:text-4xl font-black tracking-tight text-black">Dashboard</h1>
+                            <p className="mt-2.5 text-sm sm:text-[15px] text-gray-500 leading-6">
+                                Your activity overview - listings, offers, and orders in one place.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2.5 shrink-0">
                             <Link
-                                href="/auctions/create"
-                                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-black text-white text-xs sm:text-sm font-semibold hover:bg-gray-900 transition-colors"
+                                href="/settings"
+                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 bg-white text-sm font-bold text-black hover:border-gray-400 transition-colors"
                             >
-                                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                <span>New Listing</span>
+                                <Settings className="h-4 w-4" />
+                                Settings
                             </Link>
-                        )}
+                            {user && !profile?.is_banned && (
+                                <Link
+                                    href="/auctions/create"
+                                    className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    <span>New listing</span>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Admin shortcut to seller applications */}
+                {/* Store management — super admin only */}
                 {profile?.is_super_admin && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 sm:mb-8">
-                        <Link
-                            href="/admin/analytics"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <BarChart3 className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Analytics Dashboard</p>
-                                    <p className="text-xs text-gray-400">GMV, funnels, seller performance, and trust alerts.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/applications"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <ClipboardList className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Seller Applications</p>
-                                    <p className="text-xs text-gray-400">Review and approve pending seller applications.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/orders"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Package className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Order Monitor</p>
-                                    <p className="text-xs text-gray-400">See all orders, delivery codes, and live statuses.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/users"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Ban className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">User Moderation</p>
-                                    <p className="text-xs text-gray-400">Permanently ban abusive or fraudulent accounts.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/auctions"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Gavel className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Auction Management</p>
-                                    <p className="text-xs text-gray-400">Edit, unpublish, force-end, or extend any listing.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/news"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Newspaper className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">News &amp; Announcements</p>
-                                    <p className="text-xs text-gray-400">Post and manage news items shown on /news.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/support"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Mail className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Support Requests</p>
-                                    <p className="text-xs text-gray-400">Read and resolve issues sent from Contact Support.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-
-                        <Link
-                            href="/admin/newsletter"
-                            className="flex items-center justify-between gap-4 p-4 border border-gray-200 hover:border-black transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 bg-black text-white flex items-center justify-center shrink-0">
-                                    <Mail className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-black">Send Newsletter</p>
-                                    <p className="text-xs text-gray-400">Email news updates to all subscribers.</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-                        </Link>
-                    </div>
+                    <section className="mb-8 sm:mb-10">
+                        <SectionHeading title="Store management" linkHref="/admin/analytics" linkLabel="Open analytics" />
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            {adminShortcuts.map(({ href, title, sub, icon: Icon }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    className="group flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 hover:border-amber-400/60 transition-colors"
+                                >
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/20 text-amber-700">
+                                        <Icon className="h-4 w-4" strokeWidth={1.9} />
+                                    </span>
+                                    <span>
+                                        <span className="flex items-center gap-1 text-sm font-extrabold text-black">
+                                            {title}
+                                            <ChevronRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-amber-600 transition-colors" />
+                                        </span>
+                                        <span className="block text-[11.5px] text-gray-400 mt-1 leading-snug">{sub}</span>
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
                 )}
 
+                {/* Live listings control — super admin only */}
                 {profile?.is_super_admin && (
-                    <div className="mb-6 sm:mb-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <h2 className="text-xs font-black text-black uppercase tracking-widest">Live Listings Control</h2>
-                                <p className="mt-1 text-xs text-gray-400">Super admins can remove active listings directly from the dashboard.</p>
-                            </div>
-                            <Link
-                                href="/auctions"
-                                className="text-xs font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
-                            >
-                                Browse all
-                            </Link>
-                        </div>
-                        <div className="border border-gray-200 overflow-hidden">
+                    <section className="mb-8 sm:mb-10">
+                        <SectionHeading title="Live Listings Control" linkHref="/auctions" linkLabel="Browse all" />
+                        <p className="text-xs text-gray-400 -mt-2.5 mb-4 px-0.5">Super admins can remove active listings directly from the dashboard.</p>
+                        <div className="rounded-[20px] border border-gray-200 bg-white overflow-hidden">
                             <ListingTable adminMode status="active" />
                         </div>
-                    </div>
+                    </section>
                 )}
 
-                {/* Tab Switcher */}
-                <div className="flex border-b border-gray-200 mb-6 sm:mb-8">
-                    {([
-                        { id: 'buyer' as Tab, label: 'Buyer' },
-                        { id: 'seller' as Tab, label: 'Seller' },
-                    ]).map(({ id, label }) => (
-                        <button
-                            key={id}
-                            onClick={() => setActiveTab(id)}
-                            className={`px-5 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${activeTab === id
-                                ? 'border-black text-black'
-                                : 'border-transparent text-gray-400 hover:text-black'
-                                }`}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
+                {/* Selling */}
+                <section className="mb-8 sm:mb-10">
+                    <SectionHeading title="Selling" linkHref="/auctions" linkLabel="Browse all listings" />
+                    <div className="mb-4">
+                        <SellerStats />
+                    </div>
+                    <div className="rounded-[20px] border border-gray-200 bg-white overflow-hidden">
+                        <ListingTable />
+                    </div>
+                </section>
 
-                {/* Tab Content */}
-                {activeTab === 'buyer' ? (
+                {/* Buying */}
+                <section>
+                    <SectionHeading title="Buying" linkHref="/auctions" linkLabel="Browse auctions" />
                     <BuyerStats />
-                ) : (
-                    <div className="space-y-6 sm:space-y-8">
-                        {/* Seller Stats Grid */}
-                        <div className="border border-gray-200">
-                            <SellerStats />
-                        </div>
-
-                        {/* Listings */}
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xs font-black text-black uppercase tracking-widest">My Listings</h2>
-                                <Link
-                                    href="/auctions"
-                                    className="text-xs font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
-                                >
-                                    Browse all
-                                </Link>
-                            </div>
-                            <div className="border border-gray-200 overflow-hidden">
-                                <ListingTable />
-                            </div>
-                        </div>
-                    </div>
-                )}
+                </section>
             </div>
+        </div>
     );
 }
