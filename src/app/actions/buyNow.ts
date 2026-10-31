@@ -56,11 +56,21 @@ export async function buyNowAction(
     if (claimErr) return { success: false, error: 'Could not complete the purchase. Please try again.' };
     if (!claimed || claimed.length === 0) return { success: false, error: 'Someone else just bought this item' };
 
-    await supabaseAdmin
+    // Close out every open offer (pending and accepted). Accepted-offer buyers
+    // are told explicitly: permanent listings stay live until a sale completes,
+    // so they may have been on their way to checkout.
+    const { data: openOffers } = await supabaseAdmin
         .from('auction_offers')
-        .update({ status: 'declined', updated_at: now })
+        .select('id, buyer_id, status')
         .eq('auction_id', auctionId)
-        .eq('status', 'pending');
+        .in('status', ['pending', 'accepted']) as { data: { id: string; buyer_id: string; status: string }[] | null };
+
+    if (openOffers && openOffers.length > 0) {
+        await supabaseAdmin
+            .from('auction_offers')
+            .update({ status: 'declined', updated_at: now })
+            .in('id', openOffers.map((o) => o.id));
+    }
 
     const amountText = `GHS ${price.toLocaleString()}`;
     await insertNotificationIfEnabled(supabaseAdmin as never, {
@@ -77,6 +87,16 @@ export async function buyNowAction(
         body: `A buyer bought "${listing.title}" at ${amountText}. They will confirm the order and contact you to arrange payment and collection.`,
         auction_id: auctionId,
     });
+
+    for (const o of (openOffers ?? []).filter((o) => o.status === 'accepted' && o.buyer_id !== user.id)) {
+        await insertNotificationIfEnabled(supabaseAdmin as never, {
+            user_id: o.buyer_id,
+            type: 'system',
+            title: 'Item Sold to Another Buyer',
+            body: `"${listing.title}" was bought at the listed price by another buyer. Your accepted offer no longer applies.`,
+            auction_id: auctionId,
+        });
+    }
 
     try {
         const [{ data: sp }, { data: bp }, sAuth, bAuth] = await Promise.all([
