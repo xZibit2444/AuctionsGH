@@ -145,7 +145,7 @@ export async function updateListingAction(
         }
     }
 
-    if (d.price !== undefined) {
+    if (d.price !== undefined && !deal) {
         const bids = listing.bid_count ?? 0;
         if (bids > 0 && !isPermanentListing(listing.ends_at)) {
             return { success: false, error: 'The price cannot change after bids have been placed.' };
