@@ -149,11 +149,12 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const hasFilters = query || category !== 'All';
 
     return (
+        <div className="bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-black text-black tracking-tight">{pageTitle}</h1>
-                    <p className="text-xs text-gray-400 mt-1">{pageDescription} Sold items stay here for 48 hours, then remain only on the seller&apos;s page.</p>
+                    <p className="text-sm text-gray-500 mt-1">{pageDescription} Sold items stay here for 48 hours, then remain only on the seller&apos;s page.</p>
                 </div>
                 {hasFilters && (
                     <button
@@ -178,7 +179,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
                         placeholder="Search items..."
-                        className="w-full border border-gray-200 pl-9 pr-9 py-2.5 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+                        className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-9 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
                     />
                     {inputVal && (
                         <button
@@ -192,14 +193,14 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                 </div>
                 <button
                     type="submit"
-                    className="px-4 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors shrink-0"
+                    className="px-5 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors shrink-0"
                 >
                     Search
                 </button>
             </form>
 
             {error && (
-                <div className="mb-5 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
                     {error}
                 </div>
             )}
@@ -212,10 +213,10 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     <Link
                         key={tab.href}
                         href={tab.href}
-                        className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${
+                        className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap shrink-0 border transition-colors ${
                             tab.active
                                 ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
                         }`}
                     >
                         {tab.label}
@@ -228,10 +229,10 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     <button
                         key={c}
                         onClick={() => handleCategory(c)}
-                        className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap shrink-0 border transition-colors ${
+                        className={`rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap shrink-0 border transition-colors ${
                             category === c
                                 ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
                         }`}
                     >
                         {c}
@@ -248,10 +249,10 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     <button
                         type="button"
                         onClick={() => setShowFilters((v) => !v)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold border transition-colors ${
+                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
                             showFilters || activeFilterCount > 0
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                                ? 'bg-amber-400/15 border-amber-400/60 text-amber-700'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
                         }`}
                     >
                         <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
@@ -260,7 +261,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     <select
                         value={sort}
                         onChange={(e) => handleSort(e.target.value)}
-                        className="text-xs font-semibold text-black bg-transparent focus:outline-none cursor-pointer"
+                        className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-black focus:outline-none focus:border-amber-400 cursor-pointer"
                     >
                         {SORT_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>
@@ -270,13 +271,13 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
             </div>
 
             {showFilters && (
-                <div className="mb-5 border border-gray-200 bg-white p-3 flex flex-wrap items-end gap-3">
+                <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 flex flex-wrap items-end gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Condition</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Condition</span>
                         <select
                             value={condition}
                             onChange={(e) => handleCondition(e.target.value)}
-                            className="border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                            className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
                         >
                             <option value="All">Any</option>
                             {Object.entries(CONDITION_LABELS).map(([value, label]) => (
@@ -285,7 +286,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                         </select>
                     </label>
                     <label className="flex flex-col gap-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Min price (GH₵)</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Min price (GH₵)</span>
                         <input
                             type="number"
                             min={0}
@@ -297,11 +298,11 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') applyPriceRange(priceDraft.min, priceDraft.max);
                             }}
-                            className="w-24 border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                            className="w-24 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
                         />
                     </label>
                     <label className="flex flex-col gap-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Max price (GH₵)</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Max price (GH₵)</span>
                         <input
                             type="number"
                             min={0}
@@ -313,7 +314,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') applyPriceRange(priceDraft.min, priceDraft.max);
                             }}
-                            className="w-24 border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                            className="w-24 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-black focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
                         />
                     </label>
                     <label className="flex items-center gap-2 pb-2">
@@ -321,7 +322,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                             type="checkbox"
                             checked={deliveryOnly}
                             onChange={(e) => handleDeliveryOnly(e.target.checked)}
-                            className="h-3.5 w-3.5 accent-black"
+                            className="h-3.5 w-3.5 accent-amber-500"
                         />
                         <span className="text-xs font-semibold text-gray-600">Delivery available</span>
                     </label>
@@ -339,12 +340,13 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
 
             <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={listingType === 'permanent' ? 'listings' : 'auctions'} />
         </div>
+        </div>
     );
 }
 
 export default function AuctionsPageClient() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" /></div>}>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-amber-400 border-t-transparent rounded-full" /></div>}>
             <AuctionsContent listingType="auction" />
         </Suspense>
     );
@@ -352,8 +354,8 @@ export default function AuctionsPageClient() {
 
 export function PermanentListingsPageClient() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full" /></div>}>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-amber-400 border-t-transparent rounded-full" /></div>}>
             <AuctionsContent listingType="permanent" />
         </Suspense>
     );
-}
+                                                          }
