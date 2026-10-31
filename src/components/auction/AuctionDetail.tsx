@@ -9,7 +9,7 @@ import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
 
 const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
 const NETWORK_LOCK_LABELS: Record<string, string> = Object.fromEntries(NETWORK_LOCK_OPTIONS.map((o) => [o.value, o.label]));
@@ -310,14 +310,15 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         </div>
     );
 
+    const specFields = specFieldsForCategory(auction.brand);
     const facts: { label: string; value: string }[] = [
         { label: 'Category', value: auction.brand },
         { label: 'Brand / Model', value: auction.model || '—' },
         { label: 'Condition', value: CONDITION_LABELS[auction.condition] },
-        { label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' },
-        ...(auction.battery_health != null ? [{ label: 'Battery health', value: `${auction.battery_health}%` }] : []),
-        ...(auction.sim_type ? [{ label: 'SIM', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
-        ...(auction.network_lock ? [{ label: 'Network lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
+        ...(specFields.storage ? [{ label: 'Storage', value: auction.storage_gb ? `${auction.storage_gb} GB` : '—' }] : []),
+        ...(specFields.battery && auction.battery_health != null ? [{ label: 'Battery health', value: `${auction.battery_health}%` }] : []),
+        ...(specFields.sim && auction.sim_type ? [{ label: 'SIM', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
+        ...(specFields.lock && auction.network_lock ? [{ label: 'Network lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
         ...(auction.faults ? [{ label: 'Known faults', value: auction.faults }] : []),
         { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
         { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
