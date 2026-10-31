@@ -9,14 +9,21 @@ const isStorefrontRoute = (pathname: string) =>
 
 /**
  * Homepage and single-listing pages use the compact storefront footer from
- * the approved mockup. Every other route keeps the full site footer.
+ * the approved mockup, now shown on every viewport. Every other route keeps
+ * the full site footer, which stays desktop-only.
  */
 export default function ConditionalFooter() {
     const pathname = usePathname();
-    if (!isStorefrontRoute(pathname)) return <Footer />;
+    if (!isStorefrontRoute(pathname)) {
+        return (
+            <div className="hidden sm:block">
+                <Footer />
+            </div>
+        );
+    }
 
     return (
-        <footer className="flex items-center justify-between border-t border-[#E9E6E0] bg-white px-7 pb-[26px] pt-[18px] text-[12.5px] text-[#6E675E]">
+        <footer className="flex flex-col items-start gap-1.5 border-t border-[#E9E6E0] bg-white px-5 pb-[84px] pt-[18px] text-[12.5px] text-[#6E675E] sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:pb-[26px]">
             <span>
                 <b className="font-bold text-[#191612]">AuctionsGH</b> &middot; Accra, Ghana
             </span>
