@@ -11,7 +11,7 @@ interface WinnerBannerProps {
 
 export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId }: WinnerBannerProps) {
     return (
-        <div className="mb-6 p-6 bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-6 rounded-2xl p-6 bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <div className="flex items-center gap-3 mb-2">
                     <Trophy className="w-6 h-6 text-white" />
