@@ -21,13 +21,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref
     ) => {
         const baseStyles =
-            'inline-flex items-center justify-center font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed';
+            'inline-flex items-center justify-center rounded-xl font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed';
 
         const variants = {
             primary:
-                'bg-black text-white hover:bg-gray-900',
+                'bg-amber-400 text-black font-extrabold hover:bg-amber-500',
             secondary:
-                'bg-white text-black border border-gray-900 hover:bg-gray-50',
+                'bg-white text-black border border-gray-300 hover:bg-gray-50',
             destructive:
                 'bg-black text-white hover:bg-gray-900 border border-black',
             ghost:
