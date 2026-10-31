@@ -195,8 +195,8 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const visibleListingHistory = profile.show_past_sales ? listingHistory : [];
 
     return (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <div className="border border-gray-200 bg-white p-6 sm:p-8 mb-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-24 sm:pb-12">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 mb-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-start gap-4">
                         <Avatar src={profile.avatar_url} name={profileName} size="lg" className="shrink-0 ring-0" />
@@ -204,7 +204,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Public Profile</p>
                                 {isSeller && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
                                         Seller
                                     </span>
                                 )}
@@ -212,7 +212,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-3xl font-black tracking-tight text-black">{profileLabel || 'User'}</h1>
                                 {profile.is_verified && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                         <ShieldCheck className="h-3 w-3" />
                                         Verified
                                     </span>
@@ -276,7 +276,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                 {activeListings.map((auction) => {
                                     const preview = listingPreview(auction);
                                     return (
-                                        <Link key={auction.id} href={`/auctions/${auction.id}`} className="border border-gray-200 bg-white overflow-hidden hover:border-black transition-colors">
+                                        <Link key={auction.id} href={`/auctions/${auction.id}`} className="rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-gray-300 transition-colors">
                                             <div className="aspect-[4/3] bg-gray-100">
                                                 {preview ? (
                                                     <img src={preview} alt="" className="w-full h-full object-cover" />
@@ -288,7 +288,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                             </div>
                                             <div className="p-4">
                                                 <div className="flex items-center justify-between gap-3 mb-3">
-                                                    <span className={`inline-flex px-2 py-1 border text-[10px] font-black uppercase tracking-widest ${statusTone(auction.status)}`}>
+                                                    <span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${statusTone(auction.status)}`}>
                                                         {auction.status}
                                                     </span>
                                                     <span className="text-xs text-gray-400">{timeAgo(auction.created_at)}</span>
@@ -314,7 +314,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         {visibleListingHistory.length === 0 ? (
                             <EmptyState message="No public past sales yet." />
                         ) : (
-                            <div className="border border-gray-200 bg-white divide-y divide-gray-100">
+                            <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
                                 {visibleListingHistory.map((auction) => (
                                     <Link key={auction.id} href={`/auctions/${auction.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-gray-50 transition-colors">
                                         <div className="min-w-0">
@@ -324,7 +324,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                             </p>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <span className={`inline-flex px-2 py-1 border text-[10px] font-black uppercase tracking-widest ${statusTone(auction.status)}`}>
+                                            <span className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${statusTone(auction.status)}`}>
                                                 {auction.status}
                                             </span>
                                             <p className="text-sm font-black text-black mt-2">{formatCurrency(auction.current_price)}</p>
@@ -353,7 +353,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                             : null;
 
                                         return (
-                                            <Link key={order.id} href={`/orders/${order.id}`} className="border border-gray-200 bg-white overflow-hidden hover:border-black transition-colors">
+                                            <Link key={order.id} href={`/orders/${order.id}`} className="rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-gray-300 transition-colors">
                                                 <div className="aspect-[4/3] bg-gray-100">
                                                     {preview ? (
                                                         <img src={preview} alt="" className="w-full h-full object-cover" />
@@ -365,7 +365,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                                 </div>
                                                 <div className="p-4">
                                                     <div className="flex items-center justify-between gap-3 mb-3">
-                                                        <span className="inline-flex px-2 py-1 border text-[10px] font-black uppercase tracking-widest bg-black text-white border-black">
+                                                        <span className="inline-flex px-2 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest bg-black text-white border-black">
                                                             Bought
                                                         </span>
                                                         <span className="text-xs text-gray-400">{timeAgo(order.created_at)}</span>
@@ -386,7 +386,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                 </div>
 
                 <aside className="space-y-6">
-                    <section className="border border-gray-200 bg-white p-5">
+                    <section className="rounded-2xl border border-gray-200 bg-white p-5">
                         <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Profile Details</h2>
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start justify-between gap-4">
@@ -400,7 +400,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         </div>
                     </section>
 
-                    <section className="border border-gray-200 bg-white p-5">
+                    <section className="rounded-2xl border border-gray-200 bg-white p-5">
                         <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Review Summary</h2>
                         {ratingAverage === null ? (
                             <p className="text-sm text-gray-500">No reviews yet.</p>
@@ -419,7 +419,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         )}
                     </section>
 
-                    <section className="border border-gray-200 bg-white p-5">
+                    <section className="rounded-2xl border border-gray-200 bg-white p-5">
                         <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Reviews</h2>
                         <ReviewsList
                             reviews={reviews}
@@ -434,7 +434,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
     return (
-        <div className="border border-gray-200 bg-gray-50 p-4">
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{label}</p>
             <p className="text-2xl font-black text-black">{value}</p>
         </div>
@@ -443,7 +443,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 function EmptyState({ message }: { message: string }) {
     return (
-        <div className="border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
             {message}
         </div>
     );
