@@ -128,3 +128,19 @@ html.dark textarea {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Homepage hero carousel progress bar */
+@keyframes hero-progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.hero-progress {
+  animation-name: hero-progress-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
