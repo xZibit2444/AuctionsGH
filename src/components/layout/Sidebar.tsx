@@ -151,7 +151,9 @@ export default function Sidebar() {
                 ? `/auctions/${n.auction_id}#offer-panel`
                 : n.auction_id
                     ? `/auctions/${n.auction_id}`
-                    : null;
+                    : n.title.startsWith('New support request')
+                        ? '/admin/support'
+                        : null;
 
         if (href) {
             router.push(href);
