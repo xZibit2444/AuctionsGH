@@ -69,7 +69,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     // A buyer whose offer was accepted on a permanent listing confirms their
     // order while the listing is still live (it only comes down when an order
     // is completed), so they check out without being the recorded winner yet.
-    const offersRaw = (auction as unknown as { auction_offers?: { id: string; buyer_id: string; amount: number; status: string }[] })?.auction_offers;
+    const offersRaw = (auction as unknown as { auction_offers?: { id: string; buyer_id: string; amount: number; counter_amount: number | null; status: string }[] })?.auction_offers;
     const offers = Array.isArray(offersRaw) ? offersRaw : [];
     const myAcceptedOffer = offers.find((o) => o.buyer_id === user?.id && o.status === 'accepted');
     const isPermanentActive = getListingType(auction) === 'permanent' && auction.status === 'active';
@@ -91,7 +91,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }
 
     // Accepted-offer buyers pay the agreed offer amount, not the listed price
-    const subtotal = isOfferBuyer ? Number(myAcceptedOffer.amount) : auction.current_price;
+    // Agreed price: the counter amount when the buyer accepted a counter-offer.
+    const subtotal = isOfferBuyer ? Number(myAcceptedOffer.counter_amount ?? myAcceptedOffer.amount) : auction.current_price;
     const isDelivery = form.delivery === 'delivery';
     const total = subtotal;
 
