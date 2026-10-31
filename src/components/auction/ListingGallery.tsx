@@ -92,7 +92,7 @@ export default function ListingGallery({
                                     alt={title}
                                     loading={i === 0 ? 'eager' : 'lazy'}
                                     draggable={false}
-                                    className="w-full aspect-[4/3.4] sm:aspect-[4/3] object-cover select-none"
+                                    className="w-full aspect-[4/3.4] sm:aspect-[4/3] object-contain select-none"
                                 />
                             ) : (
                                 <video
