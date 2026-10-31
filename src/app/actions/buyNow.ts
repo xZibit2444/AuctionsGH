@@ -63,7 +63,7 @@ export async function buyNowAction(
         .from('auction_offers')
         .select('id, buyer_id, status')
         .eq('auction_id', auctionId)
-        .in('status', ['pending', 'accepted']) as { data: { id: string; buyer_id: string; status: string }[] | null };
+        .in('status', ['pending', 'accepted', 'countered']) as { data: { id: string; buyer_id: string; status: string }[] | null };
 
     if (openOffers && openOffers.length > 0) {
         await supabaseAdmin
