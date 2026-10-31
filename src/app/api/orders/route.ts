@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
             if (existingOrder) {
                 if (!FAILED_ORDER_STATUSES.includes(existingOrder.status as typeof FAILED_ORDER_STATUSES[number])) {
                     return NextResponse.json(
-                        { error: 'Another buyer is confirming this purchase right now. If it falls through, you can try again.' },
+                        { error: 'A deal for this item is already open with another buyer. If that deal falls through, you can try again.' },
                         { status: 409 }
                     );
                 }
