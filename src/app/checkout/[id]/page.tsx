@@ -59,7 +59,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <p className="text-gray-500 mb-6 font-medium">
                     {error || 'We could not load this auction right now. Please refresh and try again.'}
                 </p>
-                <Link href="/dashboard" className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Return to Dashboard
                 </Link>
             </div>
@@ -83,7 +83,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h1 className="text-xl font-bold mb-2 text-black">Access Denied</h1>
                 <p className="text-gray-500 mb-6 font-medium">You do not have permission to checkout for this auction.</p>
-                <Link href="/dashboard" className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Return to Dashboard
                 </Link>
             </div>
@@ -104,7 +104,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <p className="text-gray-500 mb-6 font-medium">
                     A deal for this item is already open with another buyer. The listing stays available until an order is completed, so if that deal falls through you can confirm then.
                 </p>
-                <Link href={`/auctions/${auction.id}`} className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                <Link href={`/auctions/${auction.id}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Back to Listing
                 </Link>
             </div>
@@ -119,7 +119,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <p className="text-gray-500 mb-6 font-medium">
                     This checkout has already been completed. Redirecting you to the order now.
                 </p>
-                <Link href={`/orders/${order.id}`} className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                <Link href={`/orders/${order.id}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Open Order
                 </Link>
             </div>
@@ -140,7 +140,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <p className="text-gray-500 mb-8 font-medium italic">
                     The 30-minute window to confirm this order has passed. This winning bid has been marked as VOID.
                 </p>
-                <Link href="/dashboard" className="inline-block px-8 py-4 bg-black text-white font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition-colors">
+                <Link href="/dashboard" className="inline-block px-8 py-4 rounded-xl bg-amber-400 text-black font-extrabold text-sm uppercase tracking-widest hover:bg-amber-500 transition-colors">
                     Return to Dashboard
                 </Link>
             </div>
@@ -203,7 +203,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <p className="text-gray-500 font-medium">
                     Please wait while we set up your order details.
                 </p>
-                <div className="mt-8 flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 border border-emerald-100">
+                <div className="mt-8 flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
                     <ShieldCheck className="w-4 h-4" />
                     Secure Connection
                 </div>
@@ -215,7 +215,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             {/* Header */}
             {headerError && (
-                <div className="mb-6 p-4 bg-red-50 text-red-600 border border-red-100 font-bold text-sm">
+                <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-600 border border-red-100 font-bold text-sm">
                     {headerError}
                 </div>
             )}
@@ -237,7 +237,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <div className="lg:col-span-7 space-y-10">
 
                     {/* FAQ SECTION */}
-                    <div className="bg-gray-50 border border-gray-200 p-6">
+                    <div className="rounded-2xl bg-gray-50 border border-gray-200 p-6">
                         <div className="flex items-center gap-2 mb-6 text-black">
                             <ShieldCheck className="w-5 h-5 text-emerald-600" />
                             <h2 className="text-lg font-bold tracking-tight">Buyer Protection FAQ</h2>
@@ -245,7 +245,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
                         <div className="space-y-3">
                             {faqs.map((faq, idx) => (
-                                <div key={idx} className="bg-white border border-gray-200">
+                                <div key={idx} className="rounded-xl bg-white border border-gray-200">
                                     <button
                                         onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
                                         className="w-full flex items-center justify-between p-4 text-left"
@@ -299,7 +299,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Delivery Method</label>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <label className={`cursor-pointer border p-4 flex flex-col items-center justify-center text-center gap-2 transition-colors ${form.delivery === 'pickup' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                    <label className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-center text-center gap-2 transition-colors ${form.delivery === 'pickup' ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'}`}>
                                         <input
                                             type="radio"
                                             name="delivery"
@@ -308,12 +308,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                             checked={form.delivery === 'pickup'}
                                             onChange={(e) => setForm({ ...form, delivery: e.target.value })}
                                         />
-                                        <div className={`w-3 h-3 rounded-full mb-1 ${form.delivery === 'pickup' ? 'bg-black' : 'bg-gray-200'}`} />
+                                        <div className={`w-3 h-3 rounded-full mb-1 ${form.delivery === 'pickup' ? 'bg-amber-400' : 'bg-gray-200'}`} />
                                         <span className={`text-sm font-bold ${form.delivery === 'pickup' ? 'text-black' : 'text-gray-500'}`}>Meet & Inspect</span>
                                         <span className="text-xs text-gray-400">Free</span>
                                     </label>
 
-                                    <label className={`cursor-pointer border p-4 flex flex-col items-center justify-center text-center gap-2 transition-colors ${form.delivery === 'delivery' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                    <label className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-center text-center gap-2 transition-colors ${form.delivery === 'delivery' ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'}`}>
                                         <input
                                             type="radio"
                                             name="delivery"
@@ -322,7 +322,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                             checked={form.delivery === 'delivery'}
                                             onChange={(e) => setForm({ ...form, delivery: e.target.value })}
                                         />
-                                        <div className={`w-3 h-3 rounded-full mb-1 ${form.delivery === 'delivery' ? 'bg-black' : 'bg-gray-200'}`} />
+                                        <div className={`w-3 h-3 rounded-full mb-1 ${form.delivery === 'delivery' ? 'bg-amber-400' : 'bg-gray-200'}`} />
                                         <div className="flex items-center gap-1.5 justify-center">
                                             <Truck className={`w-4 h-4 ${form.delivery === 'delivery' ? 'text-black' : 'text-gray-400'}`} />
                                             <span className={`text-sm font-bold ${form.delivery === 'delivery' ? 'text-black' : 'text-gray-500'}`}>Delivery</span>
@@ -350,13 +350,13 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
                 {/* Right Column - Order Summary (Right 5 cols) */}
                 <div className="lg:col-span-5">
-                    <div className="bg-white border border-gray-200 sticky top-24">
+                    <div className="rounded-2xl bg-white border border-gray-200 sticky top-24">
                         <div className="p-6">
                             <h3 className="text-xs font-black text-black uppercase tracking-widest mb-6">Order Summary</h3>
 
                             {/* Item */}
                             <div className="flex gap-4 pb-6 border-b border-gray-100 mb-6">
-                                <div className="w-16 h-16 bg-gray-100 shrink-0 border border-gray-200">
+                                <div className="w-16 h-16 bg-gray-100 shrink-0 rounded-xl overflow-hidden">
                                     {auction.auction_images && auction.auction_images.length > 0 && (
                                         <img src={auction.auction_images[0].url} alt="" className="w-full h-full object-cover" />
                                     )}
@@ -367,7 +367,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 </div>
                             </div>
 
-                            <div className="mb-6 border border-gray-200 p-3 bg-gray-50">
+                            <div className="mb-6 rounded-xl border border-gray-200 p-3 bg-gray-50">
                                 <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Payment Method</h4>
                                 <p className="text-sm font-semibold text-black">Paid directly to the seller</p>
                             </div>
@@ -381,7 +381,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 {isDelivery && (
                                     <div className="flex justify-between text-gray-600">
                                         <span className="font-medium">Delivery Fee</span>
-                                        <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Agreed with seller</span>
+                                        <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Agreed with seller</span>
                                     </div>
                                 )}
                             </div>
@@ -396,7 +396,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                                 form="checkout-form"
                                 type="submit"
                                 disabled={isProcessing}
-                                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-amber-400 text-black text-sm font-black hover:bg-amber-300 focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
+                                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-amber-400 text-black text-sm font-black hover:bg-amber-500 focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 disabled:opacity-50 transition-all uppercase tracking-widest mb-4"
                             >
                                 {isProcessing ? 'Confirming...' : 'Confirm Order'}
                             </button>
@@ -410,4 +410,4 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             </div>
         </div>
     );
-            }
+}
