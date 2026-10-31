@@ -26,8 +26,8 @@ export function useAuction(auctionId: string) {
           profiles!auctions_seller_id_fkey (
             id, username, full_name, avatar_url, location, is_verified
           ),
-          orders(id, status),
-          auction_offers(status)
+          orders(id, status, buyer_id),
+          auction_offers(id, buyer_id, amount, status)
         `
                 )
                 .eq('id', auctionId)
