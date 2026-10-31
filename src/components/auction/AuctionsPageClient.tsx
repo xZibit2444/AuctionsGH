@@ -50,9 +50,9 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const { auctions, loading, error } = useAuctions({
         status: 'visible',
         listingType,
-        // No pagination yet: keep the cap well above the catalog size so the
-        // default All view really shows every listing (cap raised from 40).
-        limit: 200,
+        // No fixed cap: page through every matching row so the default All
+        // view always includes all listings, however large the catalog grows.
+        fetchAll: true,
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
         condition: condition === 'All' ? undefined : condition,
@@ -362,4 +362,5 @@ export function PermanentListingsPageClient() {
         </Suspense>
     );
                                                           }
+
 
