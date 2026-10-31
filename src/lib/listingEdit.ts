@@ -23,6 +23,35 @@ export type SpecFieldVisibility = {
 const FULL_SPEC_CATEGORIES: ReadonlySet<string> = new Set(['Phones & Tablets', 'Apple']);
 const STORAGE_BATTERY_CATEGORIES: ReadonlySet<string> = new Set(['Computers & Laptops']);
 
+/** Placeholder examples that match the category being listed, so sellers are
+ *  not shown iPhone examples while listing furniture. */
+export type CategoryPlaceholders = {
+    title: string;
+    model: string;
+    batteryLabel: string;
+};
+
+const CATEGORY_PLACEHOLDERS: Record<string, { title: string; model: string }> = {
+    'Phones & Tablets': { title: 'iPhone 14 Pro Max 256GB Deep Purple', model: 'e.g. Apple iPhone 15 Pro, Samsung Galaxy S24…' },
+    Apple: { title: 'iPhone 14 Pro Max 256GB Deep Purple', model: 'e.g. Apple iPhone 15 Pro, iPad Air…' },
+    Electronics: { title: 'e.g. Samsung 55" Smart TV', model: 'e.g. Samsung, LG, Sony…' },
+    'Computers & Laptops': { title: 'e.g. HP Pavilion 15, 16GB RAM', model: 'e.g. HP, Dell, MacBook Air M2…' },
+    Vehicles: { title: 'e.g. 2015 Toyota Corolla', model: 'e.g. Toyota Corolla, Honda Civic…' },
+    'Home & Garden': { title: 'e.g. 3-seater fabric sofa', model: 'e.g. IKEA, Ashfoam…' },
+    'Fashion & Clothing': { title: "e.g. Men's leather jacket, size L", model: 'e.g. Nike, Zara…' },
+};
+
+const DEFAULT_PLACEHOLDERS = { title: 'e.g. Item name with key detail', model: 'e.g. Brand or model…' };
+
+export function placeholdersForCategory(category: string | null | undefined): CategoryPlaceholders {
+    const specific = (category && CATEGORY_PLACEHOLDERS[category]) || DEFAULT_PLACEHOLDERS;
+    return {
+        ...specific,
+        // Desktops have no battery to report; make clear this is for laptops.
+        batteryLabel: category === 'Computers & Laptops' ? 'Laptop battery health (%)' : 'Battery health (%)',
+    };
+}
+
 export function specFieldsForCategory(category: string | null | undefined): SpecFieldVisibility {
     if (category && FULL_SPEC_CATEGORIES.has(category)) {
         return { storage: true, battery: true, sim: true, lock: true };
