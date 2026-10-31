@@ -159,7 +159,7 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[var(--surface)] border-r border-[var(--border-color)] flex flex-col z-40 transition-[width] duration-200 ease-in-out overflow-hidden`}>
+        <aside className={`fixed top-0 left-0 h-screen ${collapsed ? 'w-14' : 'w-55'} bg-[var(--surface)] border-r border-[var(--border-color)] flex flex-col z-50 transition-[width] duration-200 ease-in-out overflow-hidden`}>
 
             {/* Brand + collapse toggle */}
             <div className="h-15 flex items-center border-b border-[var(--border-color)] shrink-0 relative">
@@ -285,7 +285,7 @@ export default function Sidebar() {
                                             <div className="mt-0.5 shrink-0">{typeIcon(n.type)}</div>
                                             <div className="min-w-0 flex-1">
                                                 <p className={`text-xs font-semibold leading-snug ${n.is_read ? 'text-gray-500' : 'text-[var(--foreground)]'}`}>{n.title}</p>
-                                                {n.body && <p className="text-[11px] text-gray-400 mt-0.5 leading-snug line-clamp-2">{n.body}</p>}
+                                                {n.body && <p className="text-[11px] text-gray-400 mt-0.5 leading-snug break-words whitespace-pre-line">{n.body}</p>}
                                                 <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
                                             </div>
                                             {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />}
