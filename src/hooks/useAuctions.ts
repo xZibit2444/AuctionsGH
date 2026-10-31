@@ -16,6 +16,9 @@ interface UseAuctionsOptions {
     search?: string;
     condition?: string;
     minStorage?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    deliveryAvailable?: boolean;
     limit?: number;
     orderBy?: 'created_at' | 'ends_at' | 'current_price';
     ascending?: boolean;
@@ -32,6 +35,9 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         search,
         condition,
         minStorage,
+        minPrice,
+        maxPrice,
+        deliveryAvailable = false,
         limit = 40,
         orderBy = 'ends_at',
         ascending = true,
@@ -119,6 +125,15 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 if (minStorage && minStorage > 0) {
                     query = query.gte('storage_gb', minStorage);
                 }
+                if (minPrice != null && minPrice > 0) {
+                    query = query.gte('current_price', minPrice);
+                }
+                if (maxPrice != null && maxPrice > 0) {
+                    query = query.lte('current_price', maxPrice);
+                }
+                if (deliveryAvailable) {
+                    query = query.eq('delivery_available', true);
+                }
                 if (sellerId) {
                     query = query.eq('seller_id', sellerId);
                 }
@@ -199,7 +214,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, listingType, brand, sellerId, debouncedSearch, condition, minStorage, limit, orderBy, ascending]);
+    }, [status, listingType, brand, sellerId, debouncedSearch, condition, minStorage, minPrice, maxPrice, deliveryAvailable, limit, orderBy, ascending]);
 
     return { auctions, loading, error };
 }
