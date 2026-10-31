@@ -491,7 +491,7 @@ export async function sendNewSellerApplicationAdminEmail(
         const { data, error } = await resend.emails.send({
             from: SENDER_EMAIL,
             to,
-            subject: `New seller application — ${applicant.fullName}`,
+            subject: `New seller application â ${applicant.fullName}`,
             html: `
 <!DOCTYPE html>
 <html>
@@ -533,8 +533,8 @@ export async function sendReceiptEmail(
         return { success: false, error: 'API key missing' };
     }
     const subject = props.role === 'buyer'
-        ? `Purchase Receipt #${props.receiptNumber} — ${props.auctionTitle}`
-        : `Sale Receipt #${props.receiptNumber} — ${props.auctionTitle}`;
+        ? `Purchase Receipt #${props.receiptNumber} â ${props.auctionTitle}`
+        : `Sale Receipt #${props.receiptNumber} â ${props.auctionTitle}`;
     try {
         const { data, error } = await resend.emails.send({
             from: SENDER_EMAIL,
@@ -613,3 +613,59 @@ export async function sendBanNotificationEmail(
         return { success: false, error };
     }
         }
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+export async function sendNewSupportRequestAdminEmail(
+    to: string,
+    request: { name: string; email: string; topic: string; message: string }
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Support request notification not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    const inboxUrl = `${SITE_URL}/admin/support`;
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `New support request - ${request.topic}`,
+            html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;max-width:560px;margin:40px auto;color:#111;">
+  <h2 style="margin:0 0 16px;">New Support Request</h2>
+  <p>A new support request has been submitted on AuctionsGH.</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;width:130px;">Topic</td><td style="font-weight:700;">${escapeHtml(request.topic)}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;">Name</td><td>${escapeHtml(request.name)}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;">Email</td><td>${escapeHtml(request.email)}</td></tr>
+    <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;vertical-align:top;">Message</td><td style="white-space:pre-line;">${escapeHtml(request.message)}</td></tr>
+  </table>
+  <a href="${inboxUrl}" style="display:inline-block;margin:8px 0 24px;padding:12px 24px;background:#000;color:#fff;text-decoration:none;font-weight:700;border-radius:4px;">
+    Open Support Inbox
+  </a>
+  <p style="color:#9ca3af;font-size:12px;">AuctionsGH Admin</p>
+</body>
+</html>`,
+        });
+
+        if (error) {
+            console.error('Failed to send admin support request email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending admin support request email:', error);
+        return { success: false, error };
+    }
+}
