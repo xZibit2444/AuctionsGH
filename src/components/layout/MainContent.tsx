@@ -12,9 +12,8 @@ export default function MainContent({ children }: { children: React.ReactNode })
     const isAuth = AUTH_ROUTES.includes(pathname);
     const isHome = pathname === '/';
     const isListing = /^\/auctions\/(?!create$)[^/]+$/.test(pathname);
-    const plain = isAuth || isHome || isListing;
     return (
-        <div className={plain ? (isListing ? 'pt-14 sm:pt-0' : '') : 'sidebar-offset'}>
+        <div className={isAuth ? '' : 'sidebar-offset'}>
             {isListing && <HomeHeader />}
             {!isAuth && !isHome && !isListing && (
                 <div className="hidden sm:flex justify-end items-center gap-1 px-6 pt-1.5 -mb-1 relative z-30">
