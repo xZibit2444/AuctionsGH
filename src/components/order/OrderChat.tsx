@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -153,12 +153,12 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
     }
 
     return (
-        <div className="flex flex-col border border-gray-200 bg-white" style={{ height: '520px' }}>
+        <div className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 bg-white" style={{ height: '520px' }}>
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 bg-black text-white shrink-0">
-                <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-white shrink-0">
+                <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                 <div>
-                    <p className="text-sm font-black uppercase tracking-widest">Order Chat</p>
+                    <p className="text-sm font-black uppercase tracking-widest text-black">Order Chat</p>
                     <p className="text-[10px] text-gray-400">with {otherPartyName}</p>
                 </div>
             </div>
@@ -250,7 +250,7 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
                     <button
                         type="submit"
                         disabled={!body.trim() || sending}
-                        className="shrink-0 w-10 h-10 flex items-center justify-center bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="shrink-0 w-10 h-10 flex items-center justify-center bg-amber-400 text-black rounded-xl hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         aria-label="Send message"
                     >
                         {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
