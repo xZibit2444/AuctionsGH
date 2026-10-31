@@ -41,7 +41,7 @@ function ConfirmButton({
     const toneClasses = {
         red: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
         amber: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
-        black: 'border-gray-800 bg-black text-white hover:bg-gray-800',
+        black: 'rounded-lg border-gray-800 bg-black text-white hover:bg-gray-800',
         green: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
     }[tone];
 
@@ -193,7 +193,7 @@ function AuctionRow({
                                         'Title updated',
                                         { title: titleDraft }
                                     )}
-                                    className="inline-flex items-center gap-1 bg-black text-white px-3 py-1.5 text-xs font-black disabled:opacity-50"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-black text-white px-3 py-1.5 text-xs font-black disabled:opacity-50"
                                 >
                                     <Check className="h-3 w-3" /> Save
                                 </button>
@@ -377,7 +377,7 @@ export default function AdminAuctionsClient({
                             key={s}
                             type="button"
                             onClick={() => setStatusFilter(s)}
-                            className={`border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${statusFilter === s ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
+                            className={`rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-colors ${statusFilter === s ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500 hover:text-black hover:border-gray-400'}`}
                         >
                             {s}
                         </button>
