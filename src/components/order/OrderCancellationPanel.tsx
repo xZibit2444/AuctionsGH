@@ -24,6 +24,7 @@ interface OrderCancellationPanelProps {
     orderId: string;
     status: string;
     isBuyer: boolean;
+    isPermanent?: boolean;
     canCancel: boolean;
     cancellationReason?: string | null;
 }
@@ -32,6 +33,7 @@ export default function OrderCancellationPanel({
     orderId,
     status,
     isBuyer,
+    isPermanent = false,
     canCancel,
     cancellationReason,
 }: OrderCancellationPanelProps) {
@@ -93,7 +95,9 @@ export default function OrderCancellationPanel({
                     ) : canCancel ? (
                         <>
                             <p className="mt-2 text-sm text-gray-600 leading-6">
-                                Cancel is only allowed before fulfillment starts. Buyer cancellations reopen the listing for 24 hours. Seller cancellations take the listing down.
+                                {isPermanent
+                            ? 'Cancel is only allowed before fulfillment starts. Buyer cancellations reopen the listing. Seller cancellations take the listing down.'
+                            : 'Cancel is only allowed before fulfillment starts. Buyer cancellations reopen the listing for 24 hours. Seller cancellations take the listing down.'}
                             </p>
 
                             <div className="mt-4 grid gap-4">
