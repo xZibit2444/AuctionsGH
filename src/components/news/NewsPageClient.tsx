@@ -197,7 +197,7 @@ export default function NewsPageClient({ initialNews, error }: NewsPageClientPro
                                             </span>
                                         )}
                                         <time dateTime={item.created_at} className="ml-auto text-[11px] font-semibold text-gray-400">
-                                            {new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            {new Date(item.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </time>
                                     </div>
                                     <h2 className="text-lg sm:text-xl font-black tracking-tight text-black leading-snug">{getDisplayTitle(item.title)}</h2>
