@@ -4,6 +4,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { isCompletedOrderStatus, isCancelledOrderStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
+import { PERMANENT_LISTING_ENDS_AT } from '@/lib/listings';
 import { getPrimaryDelivery } from '@/lib/delivery';
 
 const supabaseAdmin = createClient(
@@ -61,7 +62,7 @@ export async function cancelOrderAction(
             status,
             fulfillment_type,
             created_at,
-            auction:auctions ( id, title, status, winner_id, ends_at ),
+            auction:auctions ( id, title, status, winner_id, ends_at, bid_count ),
             deliveries!deliveries_order_id_fkey ( id, status )
         `)
         .eq('id', args.orderId)
@@ -128,13 +129,19 @@ export async function cancelOrderAction(
     const auctionRow = Array.isArray(order.auction) ? order.auction[0] : order.auction;
 
     if (auctionRow?.id && auctionRow.status === 'sold') {
+        // A sold listing with no bids is a permanent ('live until sold') listing:
+        // when its sale falls through it must reopen as permanent, not as a
+        // 24-hour timed auction.
+        const wasPermanent = (auctionRow.bid_count ?? 0) === 0;
         if (isBuyer) {
             const { error: reopenError } = await supabaseAdmin
                 .from('auctions')
                 .update({
                     status: 'active',
                     winner_id: null,
-                    ends_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                    ends_at: wasPermanent
+                        ? PERMANENT_LISTING_ENDS_AT
+                        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                     updated_at: nowIso,
                 })
                 .eq('id', auctionRow.id);
