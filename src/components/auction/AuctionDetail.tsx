@@ -387,7 +387,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <button
                         type="button"
                         onClick={clickBuyNow}
-                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold sm:text-[15px] text-white transition-colors hover:bg-stone-800"
+                        className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:bg-amber-500"
                     >
                         Buy now
                     </button>
@@ -396,7 +396,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     <button
                         type="button"
                         onClick={scrollToBid}
-                        className="flex-1 rounded-xl bg-black px-4 py-3.5 text-sm font-bold sm:text-[15px] text-white transition-colors hover:bg-stone-800"
+                        className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:bg-amber-500"
                     >
                         Place a bid
                     </button>
@@ -528,7 +528,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             {/* Accepted-offer banner: permanent listings stay live until an order
                 is completed, so the accepted buyer confirms from here */}
             {!isSeller && isPermanent && auction.status === 'active' && myAcceptedOffer && (
-                <div className="mb-6 p-6 bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="mb-6 p-6 rounded-2xl bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-xl font-bold mb-2">Your offer was accepted!</h2>
                         <p className="text-gray-300">
@@ -541,7 +541,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                     </div>
                     <Link
                         href={myOrder ? `/orders/${myOrder.id}` : `/checkout/${auction.id}`}
-                        className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
+                        className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
                     >
                         {myOrder ? 'Track Your Order' : 'Confirm Order'}
                         <ArrowRight className="w-4 h-4" />
@@ -679,7 +679,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         <button
                             type="button"
                             onClick={clickBuyNow}
-                            className="shrink-0 rounded-xl bg-black px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                            className="shrink-0 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-500"
                         >
                             Buy now
                         </button>
@@ -688,7 +688,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                         <button
                             type="button"
                             onClick={scrollToBid}
-                            className="shrink-0 rounded-xl bg-black px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                            className="shrink-0 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-500"
                         >
                             Bid
                         </button>
@@ -748,7 +748,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <div className="flex flex-col gap-3 sm:flex-row">
                                 <button
                                     onClick={() => router.push(`/checkout/${auction.id}`)}
-                                    className="inline-flex w-full items-center justify-center gap-2 bg-black px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-gray-900"
+                                    className="inline-flex w-full items-center justify-center gap-2 bg-amber-400 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-amber-500"
                                 >
                                     Confirm Order
                                     <ArrowRight className="h-4 w-4" />
@@ -766,4 +766,4 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
             )}
         </div>
     );
-            }
+}
