@@ -12,15 +12,16 @@ import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGua
 import { validateImageFile } from '@/lib/validators';
 import {
     User, Bell, LogOut, Check, Eye, EyeOff, Shield,
-    AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin, ImagePlus, Loader2
+    AlertTriangle, BadgeCheck, Pencil, X, ChevronDown, MapPin, ImagePlus, Loader2,
+    Gavel, Timer, Trophy, MessageCircle, Sparkles, Lock
 } from 'lucide-react';
 
-type Tab = 'profile' | 'notifications' | 'security';
+type Section = 'profile' | 'notifications' | 'security';
 
-const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
+const sections: { id: Section; label: string; sub: string; icon: React.ElementType }[] = [
+    { id: 'profile', label: 'Profile', sub: 'Identity & privacy', icon: User },
+    { id: 'notifications', label: 'Notifications', sub: 'Email & in-app alerts', icon: Bell },
+    { id: 'security', label: 'Security', sub: 'Devices & password', icon: Shield },
 ];
 
 /* ─── Toggle ─── */
@@ -29,11 +30,39 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
         <button
             type="button"
             onClick={onToggle}
-            className={`relative h-5 w-9 shrink-0 transition-colors ${on ? 'bg-black' : 'bg-gray-200'}`}
+            className={`relative h-6.5 w-11 shrink-0 rounded-full transition-colors ${on ? 'bg-amber-400' : 'bg-gray-200'}`}
+            style={{ height: 26, width: 46 }}
             aria-pressed={on}
         >
-            <span className={`absolute top-0.5 h-4 w-4 bg-white block transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            <span
+                className={`absolute top-[3px] h-5 w-5 rounded-full transition-all ${on ? 'left-[23px] bg-black' : 'left-[3px] bg-white shadow'}`}
+            />
         </button>
+    );
+}
+
+/* ─── Icon tile ─── */
+function IconTile({ icon: Icon }: { icon: React.ElementType }) {
+    return (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 text-amber-700">
+            <Icon className="h-4 w-4" strokeWidth={1.9} />
+        </span>
+    );
+}
+
+/* ─── Toggle row ─── */
+function ToggleRow({ icon, title, sub, on, onToggle, trailing }: {
+    icon: React.ElementType; title: string; sub: string; on?: boolean; onToggle?: () => void; trailing?: React.ReactNode;
+}) {
+    return (
+        <div className="flex items-center gap-4 px-6 sm:px-7 py-5 border-b border-gray-100 last:border-0">
+            <IconTile icon={icon} />
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-black">{title}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+            </div>
+            {trailing ?? (on !== undefined && onToggle ? <Toggle on={on} onToggle={onToggle} /> : null)}
+        </div>
     );
 }
 
@@ -58,15 +87,15 @@ function EditField({
 }) {
     return (
         <div>
-            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">{label}</label>
+            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">{label}</label>
             <input
                 type={type}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors"
             />
-            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+            {hint && <p className="text-[11px] text-gray-400 mt-1.5">{hint}</p>}
         </div>
     );
 }
@@ -92,13 +121,13 @@ function SelectField({
 
     return (
         <div>
-            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">{label}</label>
+            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">{label}</label>
             <div className="relative" ref={ref}>
                 <button
                     type="button"
                     onClick={() => setOpen(o => !o)}
-                    className={`w-full border px-4 py-3 text-sm text-left flex items-center justify-between transition-colors ${open ? 'border-black' : 'border-gray-200 hover:border-gray-400'
-                        } bg-white`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-left flex items-center justify-between transition-colors ${open ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-gray-200 hover:border-gray-400'
+                        } bg-gray-50`}
                 >
                     <div className="flex items-center gap-2">
                         {value ? (
@@ -111,29 +140,24 @@ function SelectField({
                 </button>
 
                 {open && (
-                    <div className="absolute left-0 right-0 top-full z-50 bg-white border border-black shadow-sm -mt-px">
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1.5 rounded-xl bg-white border border-gray-200 shadow-lg max-h-72 overflow-y-auto">
                         {REGIONS.map((region) => (
                             <button
                                 key={region}
                                 type="button"
                                 onClick={() => { onChange(region); setOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-gray-50 ${value === region ? 'font-black text-black bg-gray-50' : 'font-medium text-gray-700'
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-gray-50 ${value === region ? 'font-black text-black bg-amber-400/10' : 'font-medium text-gray-700'
                                     }`}
                             >
-                                <MapPin className={`h-4 w-4 shrink-0 ${value === region ? 'text-black' : 'text-gray-300'}`} />
-                                <div>
-                                    <p className="leading-none">{region}</p>
-                                    <p className="text-[10px] text-gray-400 mt-0.5">
-                                        {region}
-                                    </p>
-                                </div>
-                                {value === region && <Check className="h-3.5 w-3.5 ml-auto shrink-0" />}
+                                <MapPin className={`h-4 w-4 shrink-0 ${value === region ? 'text-amber-600' : 'text-gray-300'}`} />
+                                <span className="leading-none">{region}</span>
+                                {value === region && <Check className="h-3.5 w-3.5 ml-auto shrink-0 text-amber-600" />}
                             </button>
                         ))}
                     </div>
                 )}
             </div>
-            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+            {hint && <p className="text-[11px] text-gray-400 mt-1.5">{hint}</p>}
         </div>
     );
 }
@@ -153,9 +177,9 @@ function PhoneField({
 
     return (
         <div>
-            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Phone Number</label>
-            <div className="flex border border-gray-200 focus-within:border-black transition-colors">
-                <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-50 border-r border-gray-200 shrink-0">
+            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Phone Number</label>
+            <div className="flex rounded-xl border border-gray-200 bg-gray-50 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/30 transition-colors overflow-hidden">
+                <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100 border-r border-gray-200 shrink-0">
                     <span className="text-sm font-bold text-black">GH</span>
                     <span className="text-sm font-semibold text-black">+233</span>
                 </div>
@@ -165,35 +189,33 @@ function PhoneField({
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder="XX XXX XXXX"
                     maxLength={12}
-                    className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                    className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-transparent focus:outline-none"
                 />
             </div>
-            {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
+            {hint && <p className="text-[11px] text-gray-400 mt-1.5">{hint}</p>}
         </div>
     );
 }
 
-function SectionIntro({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+function SectionHeader({ eyebrow, title, subtitle, action }: { eyebrow: string; title: string; subtitle: string; action?: React.ReactNode }) {
     return (
-        <div className="px-6 sm:px-7 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">{eyebrow}</p>
-            <h2 className="mt-2 text-lg font-black tracking-tight text-black">{title}</h2>
-            <p className="text-sm text-gray-500 mt-1.5 max-w-2xl leading-6">{subtitle}</p>
+        <div className="flex items-start justify-between gap-4 px-6 sm:px-7 py-6 border-b border-gray-100">
+            <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-700">{eyebrow}</p>
+                <h2 className="mt-1.5 text-lg font-black tracking-tight text-black">{title}</h2>
+                <p className="text-sm text-gray-500 mt-1 max-w-2xl leading-6">{subtitle}</p>
+            </div>
+            {action}
         </div>
     );
 }
 
-function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'strong' }) {
+function SubHeading({ children }: { children: React.ReactNode }) {
     return (
-        <div className={`min-w-0 min-h-[96px] border px-5 py-5 flex flex-col justify-between gap-3 ${tone === 'strong' ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-black'}`}>
-            <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${tone === 'strong' ? 'text-white/65' : 'text-gray-400'}`}>{label}</p>
-            <p
-                title={value}
-                className="min-w-0 break-words [overflow-wrap:anywhere] text-[15px] sm:text-base font-black tracking-tight leading-snug"
-            >
-                {value}
-            </p>
-        </div>
+        <p className="flex items-center gap-3 text-[11px] font-black text-gray-400 uppercase tracking-[0.18em] mt-2 mb-1">
+            {children}
+            <span className="flex-1 h-px bg-gray-100" />
+        </p>
     );
 }
 
@@ -223,7 +245,12 @@ export default function SettingsPage() {
         }
     };
 
-    const [activeTab, setActiveTab] = useState<Tab>('profile');
+    const [activeSection, setActiveSection] = useState<Section>('profile');
+
+    const scrollToSection = (id: Section) => {
+        setActiveSection(id);
+        document.getElementById(`settings-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     /* ── Profile ── */
     const [editing, setEditing] = useState(false);
@@ -448,11 +475,6 @@ export default function SettingsPage() {
     const toggleNotif = (key: keyof typeof notifSettings) =>
         setNotifSettings((s) => ({ ...s, [key]: !s[key] }));
 
-    const profileDisplayName = profile?.full_name || profile?.username || user?.email || 'Your account';
-    const publicProfileSummary = visibilitySettingsAvailable
-        ? `${profile?.show_past_sales ? 'Sales shown' : 'Sales hidden'}${!profile?.is_admin ? ` • ${profile?.show_past_buys ? 'Buys shown' : 'Buys hidden'}` : ''}`
-        : 'Privacy migration pending';
-
     const handleSaveNotifications = async () => {
         if (!user) return;
         setNotifError('');
@@ -473,92 +495,102 @@ export default function SettingsPage() {
     /* ── Security ── */
     return (
         <AuthGuard>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-10">
-                {/* Header */}
-                <div className="mb-6 sm:mb-8 border border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#f3f4f6_100%)] p-6 sm:p-8 lg:p-10">
-                    <div className="flex flex-col gap-8">
-                        <div className="max-w-2xl">
-                            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-gray-400">Account Center</p>
-                            <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-black">Settings</h1>
-                            <p className="mt-3 text-sm sm:text-base text-gray-500">
-                                Update your public profile, control notifications, and manage device access from one place.
-                            </p>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 min-w-0 w-full items-stretch">
-                            <SummaryStat label="Profile" value={profileDisplayName} tone="strong" />
-                            <SummaryStat label="Privacy" value={publicProfileSummary} />
-                            <SummaryStat label="Signed In" value={user?.email ?? 'No email'} />
+            <div className="bg-gray-50 min-h-screen">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 sm:pb-12">
+
+                    {/* Hero */}
+                    <div className="relative overflow-hidden mb-8 sm:mb-10">
+                        <div className="pointer-events-none absolute -inset-x-10 -top-24 h-56 bg-[radial-gradient(closest-side,rgba(251,191,36,0.28),transparent_70%)]" />
+                        <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                            <div className="max-w-2xl">
+                                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Account Center</p>
+                                <h1 className="mt-2.5 text-3xl sm:text-4xl font-black tracking-tight text-black">Settings</h1>
+                                <p className="mt-2.5 text-sm sm:text-[15px] text-gray-500 leading-6">
+                                    Your identity, alerts and account access - all in one place. Changes apply when you save.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shrink-0">
+                                <Avatar
+                                    src={avatarUrl || profile?.avatar_url}
+                                    name={profile?.full_name || profile?.username || user?.email || 'User'}
+                                    size="md"
+                                    className="rounded-full"
+                                />
+                                <div className="min-w-0">
+                                    <p className="flex items-center gap-1.5 text-sm font-black text-black break-words">
+                                        {profile?.full_name || profile?.username || 'Your account'}
+                                        {profile?.is_verified && <BadgeCheck className="h-4 w-4 text-amber-500 shrink-0" />}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5 break-words [overflow-wrap:anywhere]">
+                                        {profile?.username ? `@${profile.username}` : (user?.email ?? '')}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] gap-6 lg:gap-8">
-                    {/* Tab Nav */}
-                    <nav className="border border-gray-200 bg-white p-3 sm:p-4 h-fit">
-                        <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-col lg:gap-2.5">
-                        {tabs.map(({ id, label, icon: Icon }) => (
-                            <button
-                                key={id}
-                                onClick={() => { setActiveTab(id); setEditing(false); }}
-                                className={`group flex min-w-0 items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3 lg:py-3.5 text-sm font-semibold transition-all text-center lg:text-left lg:w-full border ${activeTab === id ? 'bg-black text-white border-black shadow-[6px_6px_0_0_rgba(0,0,0,0.08)]' : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200 hover:bg-gray-50'}`}
-                            >
-                                <span className={`hidden sm:flex h-9 w-9 shrink-0 items-center justify-center border ${activeTab === id ? 'border-white/20 bg-white/10' : 'border-gray-200 bg-white text-gray-400 group-hover:text-black'}`}>
-                                    <Icon className="h-4 w-4" strokeWidth={1.8} />
-                                </span>
-                                <span>
-                                    <span className="block">{label}</span>
-                                    <span className={`hidden sm:block text-[10px] font-bold uppercase tracking-[0.2em] ${activeTab === id ? 'text-white/60' : 'text-gray-300 group-hover:text-gray-400'}`}>
-                                        {id === 'profile' ? 'Identity' : id === 'notifications' ? 'Alerts' : 'Access'}
-                                    </span>
-                                </span>
-                            </button>
-                        ))}
-                        </div>
-                        <div className="hidden lg:block pt-5 border-t border-gray-100 mt-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] gap-6 lg:gap-8">
+                        {/* Section Nav */}
+                        <nav className="lg:sticky lg:top-6 h-fit">
+                            <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-col lg:gap-2">
+                                {sections.map(({ id, label, sub, icon: Icon }) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => scrollToSection(id)}
+                                        className={`flex flex-col lg:flex-row items-center gap-2.5 lg:gap-3 rounded-2xl border px-3 lg:px-4 py-3 text-center lg:text-left transition-all ${activeSection === id
+                                            ? 'bg-amber-400/15 border-amber-400/60'
+                                            : 'bg-white border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${activeSection === id ? 'bg-amber-400 text-black' : 'bg-gray-50 border border-gray-200 text-gray-400'}`}>
+                                            <Icon className="h-4 w-4" strokeWidth={1.9} />
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className={`block text-sm font-bold ${activeSection === id ? 'text-amber-700' : 'text-black'}`}>{label}</span>
+                                            <span className="hidden lg:block text-[11px] text-gray-400">{sub}</span>
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                             <button
                                 onClick={handleSignOut}
-                                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-left text-gray-500 hover:text-black hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
+                                className="hidden lg:flex w-full items-center gap-2.5 mt-4 px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-gray-500 hover:text-black hover:border-gray-300 transition-colors"
                             >
                                 <LogOut className="h-4 w-4" strokeWidth={1.5} />
                                 Sign out
                             </button>
-                        </div>
-                    </nav>
+                        </nav>
 
-                    {/* Content Panel */}
-                    <div className="min-w-0 border border-gray-200 bg-white shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)]">
+                        {/* Sections */}
+                        <div className="min-w-0 space-y-6">
 
-                        {/* ══ PROFILE TAB ══ */}
-                        {activeTab === 'profile' && (
-                            <div>
-                                {/* Section header */}
-                                <div className="flex items-start justify-between gap-4 border-b border-gray-200">
-                                    <SectionIntro eyebrow="Profile" title="Public profile" subtitle="The identity and contact details buyers see across the marketplace." />
-                                    <div className="px-6 sm:px-7 py-6">
-                                        <div>
-                                            {!editing ? (
-                                                <button
-                                                    onClick={() => setEditing(true)}
-                                                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-xs font-semibold text-black hover:border-black transition-colors"
-                                                >
-                                                    <Pencil className="h-3 w-3" />
-                                                    Edit
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={handleEditCancel}
-                                                    className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-xs font-semibold text-gray-500 hover:border-black hover:text-black transition-colors"
-                                                >
-                                                    <X className="h-3 w-3" />
-                                                    Cancel
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                            {/* ══ PROFILE ══ */}
+                            <section id="settings-profile" className="scroll-mt-6 rounded-[20px] border border-gray-200 bg-white overflow-hidden">
+                                <SectionHeader
+                                    eyebrow="Profile"
+                                    title="Public profile"
+                                    subtitle="The identity and contact details buyers see across the marketplace."
+                                    action={!editing ? (
+                                        <button
+                                            onClick={() => setEditing(true)}
+                                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-bold text-black hover:border-gray-400 transition-colors shrink-0"
+                                        >
+                                            <Pencil className="h-3 w-3" />
+                                            Edit
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleEditCancel}
+                                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:border-gray-400 hover:text-black transition-colors shrink-0"
+                                        >
+                                            <X className="h-3 w-3" />
+                                            Cancel
+                                        </button>
+                                    )}
+                                />
 
                                 {/* Avatar identity */}
-                                <div className="px-6 sm:px-7 py-7 border-b border-gray-200 flex flex-col gap-6 md:flex-row md:items-center bg-gray-50/70">
+                                <div className="px-6 sm:px-7 py-6 border-b border-gray-100 flex flex-col gap-5 sm:flex-row sm:items-center bg-gray-50/60">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -570,30 +602,27 @@ export default function SettingsPage() {
                                         src={avatarUrl || profile?.avatar_url}
                                         name={profile?.full_name || profile?.username || user?.email || 'User'}
                                         size="lg"
-                                        className="shrink-0 ring-0"
+                                        className="shrink-0 rounded-3xl"
                                     />
                                     <div className="min-w-0 flex-1 space-y-1">
                                         <div className="flex items-center gap-1.5">
                                             <p className="text-sm font-black text-black break-words">
                                                 {profile?.full_name || profile?.username || 'No name set'}
                                             </p>
-                                            {profile?.is_verified && <BadgeCheck className="h-4 w-4 text-black shrink-0" />}
+                                            {profile?.is_verified && <BadgeCheck className="h-4 w-4 text-amber-500 shrink-0" />}
                                         </div>
                                         <p className="text-xs text-gray-400 break-words [overflow-wrap:anywhere]">{user?.email}</p>
-                                        <p className="text-[11px] text-gray-400 mt-0.5">
-                                            Member since {new Date(profile?.created_at ?? Date.now()).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                                        </p>
                                     </div>
                                     {editing && (
-                                        <div className="space-y-2.5 shrink-0">
+                                        <div className="space-y-2 shrink-0">
                                             <button
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={avatarUploading}
-                                                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors disabled:opacity-50"
+                                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold text-black hover:border-gray-400 transition-colors disabled:opacity-50"
                                             >
                                                 {avatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-                                                {avatarUploading ? 'Uploading...' : 'Upload Photo'}
+                                                {avatarUploading ? 'Uploading...' : 'Upload photo'}
                                             </button>
                                             <p className="text-[11px] text-gray-400">JPEG, PNG, or WebP. Max 5 MB.</p>
                                         </div>
@@ -633,8 +662,8 @@ export default function SettingsPage() {
 
                                 {/* EDIT view */}
                                 {editing && (
-                                    <div className="px-6 sm:px-7 py-7 space-y-6">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="px-6 sm:px-7 py-7">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <EditField
                                                 label="First Name"
                                                 value={firstName}
@@ -653,25 +682,23 @@ export default function SettingsPage() {
                                                 }}
                                                 placeholder="Mensah"
                                             />
-                                        </div>
-                                        <EditField
-                                            label="Username"
-                                            value={profileForm.username}
-                                            onChange={(v) => setProfileForm({ ...profileForm, username: v })}
-                                            placeholder="kwame_m"
-                                            hint="Shown publicly on listings"
-                                        />
+                                            <EditField
+                                                label="Username"
+                                                value={profileForm.username}
+                                                onChange={(v) => setProfileForm({ ...profileForm, username: v })}
+                                                placeholder="kwame_m"
+                                                hint="Shown publicly on listings"
+                                            />
 
-                                        {/* Email — read only, no edit */}
-                                        <div>
-                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Email</label>
-                                            <div className="w-full border border-gray-100 px-4 py-3 text-sm text-gray-400 bg-gray-50 flex items-center justify-between">
-                                                <span>{user?.email}</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 ml-2 shrink-0">Cannot change</span>
+                                            {/* Email — read only, no edit */}
+                                            <div>
+                                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Email</label>
+                                                <div className="w-full rounded-xl border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400 bg-gray-50">
+                                                    <span className="break-all">{user?.email}</span>
+                                                </div>
+                                                <span className="mt-1.5 inline-flex text-[10px] font-black uppercase tracking-widest text-gray-400 border border-gray-200 rounded-full px-2 py-0.5">Cannot change</span>
                                             </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <PhoneField
                                                 value={profileForm.phone_number}
                                                 onChange={(v) => setProfileForm({ ...profileForm, phone_number: v })}
@@ -681,100 +708,98 @@ export default function SettingsPage() {
                                                 label="Region"
                                                 value={profileForm.location}
                                                 onChange={(v) => setProfileForm({ ...profileForm, location: v })}
-
                                                 hint="Helps buyers know your location"
                                             />
                                         </div>
 
-                                        {visibilitySettingsAvailable ? (
-                                            <div className="space-y-4">
-                                                <div className="border border-gray-200 bg-gray-50 px-5 py-4 flex items-start justify-between gap-4">
-                                                    <div>
-                                                        <p className="text-sm font-semibold text-black">Show past sales on public profile</p>
-                                                        <p className="text-xs text-gray-400 mt-0.5">
-                                                            When enabled, your public profile can show past listing history and completed sales.
-                                                        </p>
-                                                    </div>
-                                                    <Toggle
-                                                        on={profileForm.show_past_sales}
-                                                        onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_sales: !prev.show_past_sales }))}
-                                                    />
-                                                </div>
-
-                                                {!profile?.is_admin && (
-                                                    <div className="border border-gray-200 bg-gray-50 px-5 py-4 flex items-start justify-between gap-4">
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-black">Show past buys on public profile</p>
+                                        <div className="mt-7">
+                                            <SubHeading>Public profile privacy</SubHeading>
+                                            {visibilitySettingsAvailable ? (
+                                                <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                                                    <div className="flex items-center gap-4 px-5 py-4">
+                                                        <IconTile icon={Eye} />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-sm font-bold text-black">Show past sales on public profile</p>
                                                             <p className="text-xs text-gray-400 mt-0.5">
-                                                                When enabled, completed purchases can appear on your public member profile.
+                                                                When enabled, your public profile can show past listing history and completed sales.
                                                             </p>
                                                         </div>
                                                         <Toggle
-                                                            on={profileForm.show_past_buys}
-                                                            onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                            on={profileForm.show_past_sales}
+                                                            onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_sales: !prev.show_past_sales }))}
                                                         />
                                                     </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className="border border-amber-200 bg-amber-50 px-4 py-4">
-                                                <p className="text-sm font-semibold text-amber-900">Public visibility toggles are not available yet</p>
-                                                <p className="text-xs text-amber-700 mt-0.5">
-                                                    The latest profile-privacy database migration has not been applied yet, so these settings are temporarily hidden.
-                                                </p>
-                                            </div>
-                                        )}
+
+                                                    {!profile?.is_admin && (
+                                                        <div className="flex items-center gap-4 px-5 py-4">
+                                                            <IconTile icon={Check} />
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-sm font-bold text-black">Show past buys on public profile</p>
+                                                                <p className="text-xs text-gray-400 mt-0.5">
+                                                                    When enabled, completed purchases can appear on your public member profile.
+                                                                </p>
+                                                            </div>
+                                                            <Toggle
+                                                                on={profileForm.show_past_buys}
+                                                                onToggle={() => setProfileForm((prev) => ({ ...prev, show_past_buys: !prev.show_past_buys }))}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+                                                    <p className="text-sm font-semibold text-amber-900">Public visibility toggles are not available yet</p>
+                                                    <p className="text-xs text-amber-700 mt-0.5">
+                                                        The latest profile-privacy database migration has not been applied yet, so these settings are temporarily hidden.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {profileError && (
-                                            <div className="flex items-center gap-2 text-red-500 text-xs">
+                                            <div className="flex items-center gap-2 text-red-500 text-xs mt-5">
                                                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                                                 {profileError}
                                             </div>
                                         )}
 
-                                        <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                                        <div className="pt-6 flex flex-col sm:flex-row gap-3">
                                             <button
                                                 onClick={handleProfileSave}
-                                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto"
+                                                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors w-full sm:w-auto"
                                             >
-                                                {profileSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Changes'}
+                                                {profileSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save changes'}
                                             </button>
                                             <button
                                                 onClick={handleEditCancel}
-                                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-200 text-sm font-semibold text-black hover:border-black transition-colors w-full sm:w-auto"
+                                                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-sm font-bold text-black hover:border-gray-400 transition-colors w-full sm:w-auto"
                                             >
                                                 Cancel
                                             </button>
                                         </div>
                                     </div>
                                 )}
-                            </div>
-                        )}
+                            </section>
 
-                        {/* ══ NOTIFICATIONS TAB ══ */}
-                        {activeTab === 'notifications' && (
-                            <div>
-                                <SectionIntro eyebrow="Notifications" title="Alert preferences" subtitle="Control what reaches you by email and in-app updates." />
-                                <div className="divide-y divide-gray-100">
-                                    {([
-                                        { key: 'new_bid', label: 'New bid on your listing', sub: 'When someone places a bid on an item you listed' },
-                                        { key: 'auction_ending', label: 'Auction ending soon', sub: '1 hour reminder before your active auction closes' },
-                                        { key: 'auction_won', label: 'Auction won', sub: 'Confirmation when your bid wins an auction' },
-                                        { key: 'new_message', label: 'New messages', sub: 'When a buyer or seller sends you a message' },
-                                        { key: 'promotions', label: 'Promotions & tips', sub: 'Platform updates, featured listings, and seller tips' },
-                                    ] as { key: keyof typeof notifSettings; label: string; sub: string }[]).map(({ key, label, sub }) => (
-                                        <div key={key} className="flex items-center justify-between px-6 sm:px-7 py-5 gap-5">
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-semibold text-black">{label}</p>
-                                                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-                                            </div>
-                                            <Toggle on={notifSettings[key]} onToggle={() => toggleNotif(key)} />
-                                        </div>
-                                    ))}
+                            {/* ══ NOTIFICATIONS ══ */}
+                            <section id="settings-notifications" className="scroll-mt-6 rounded-[20px] border border-gray-200 bg-white overflow-hidden">
+                                <SectionHeader eyebrow="Notifications" title="Alert preferences" subtitle="Control what reaches you by email and in-app updates." />
+                                <div>
+                                    <ToggleRow icon={Gavel} title="New bid on your listing" sub="When someone places a bid on an item you listed" on={notifSettings.new_bid} onToggle={() => toggleNotif('new_bid')} />
+                                    <ToggleRow icon={Timer} title="Auction ending soon" sub="1 hour reminder before your active auction closes" on={notifSettings.auction_ending} onToggle={() => toggleNotif('auction_ending')} />
+                                    <ToggleRow icon={Trophy} title="Auction won" sub="Confirmation when your bid wins an auction" on={notifSettings.auction_won} onToggle={() => toggleNotif('auction_won')} />
+                                    <ToggleRow icon={MessageCircle} title="New messages" sub="When a buyer or seller sends you a message" on={notifSettings.new_message} onToggle={() => toggleNotif('new_message')} />
+                                    <ToggleRow icon={Sparkles} title="Promotions & tips" sub="Platform updates, featured listings, and seller tips" on={notifSettings.promotions} onToggle={() => toggleNotif('promotions')} />
                                 </div>
-                                <div className="px-6 sm:px-7 py-5 border-t border-gray-200 space-y-4">
+                                <div className="px-6 sm:px-7 py-5 border-t border-gray-100 bg-gray-50/60 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+                                    <button
+                                        onClick={handleSaveNotifications}
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
+                                    >
+                                        {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save preferences'}
+                                    </button>
                                     <p className="text-xs text-gray-400">
-                                        Sent to <span className="font-semibold text-black">{user?.email}</span>
+                                        Sent to <span className="font-semibold text-black break-words [overflow-wrap:anywhere]">{user?.email}</span>
                                     </p>
                                     {notifError && (
                                         <div className="flex items-center gap-2 text-red-500 text-xs">
@@ -782,118 +807,127 @@ export default function SettingsPage() {
                                             {notifError}
                                         </div>
                                     )}
-                                    <button
-                                        onClick={handleSaveNotifications}
-                                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
-                                    >
-                                        {notifSaved ? <><Check className="h-4 w-4" /> Saved</> : 'Save Preferences'}
-                                    </button>
                                 </div>
-                            </div>
-                        )}
+                            </section>
 
-                        {/* ══ SECURITY TAB ══ */}
-                        {activeTab === 'security' && (
-                            <div>
-                                <SectionIntro eyebrow="Security" title="Account access" subtitle="Review signed-in devices and keep control of where your account stays open." />
-                                <div className="px-6 sm:px-7 py-7 space-y-6">
-                                    <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
-
-                                    <div className="border-t border-gray-200 pt-6">
-                                        <h3 className="text-xs font-black text-black uppercase tracking-widest mb-4">Change Password</h3>
-                                        <div>
-                                            <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Current Password</label>
-                                            <div className="relative">
-                                                <input type={showCurrent ? 'text' : 'password'} value={pwForm.current}
-                                                    onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
-                                                    placeholder="Enter current password"
-                                                    className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
-                                                <button type="button" onClick={() => setShowCurrent(v => !v)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
-                                                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </button>
+                            {/* ══ SECURITY ══ */}
+                            <section id="settings-security" className="scroll-mt-6 rounded-[20px] border border-gray-200 bg-white overflow-hidden">
+                                <SectionHeader eyebrow="Security" title="Account access" subtitle="Review signed-in devices and keep control of where your account stays open." />
+                                <div className="px-6 sm:px-7 py-7 space-y-8">
+                                    <div>
+                                        <SubHeading>Active sessions</SubHeading>
+                                        <ActiveSessionsPanel onSignedOutEverywhere={handleSignOutAll} />
+                                        {sessionsError && (
+                                            <div className="flex items-center gap-2 text-red-500 text-xs mt-3">
+                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                {sessionsError}
                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">New Password</label>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <SubHeading>Change password</SubHeading>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
+                                            <div className="sm:col-span-2">
+                                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Current Password</label>
                                                 <div className="relative">
-                                                    <input type={showNew ? 'text' : 'password'} value={pwForm.newPw}
-                                                        onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
-                                                        placeholder="Min. 8 characters"
-                                                        className="w-full border border-gray-200 px-4 py-3 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
-                                                    <button type="button" onClick={() => setShowNew(v => !v)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
-                                                        {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    <input type={showCurrent ? 'text' : 'password'} value={pwForm.current}
+                                                        onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                                                        placeholder="Enter current password"
+                                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
+                                                    <button type="button" onClick={() => setShowCurrent(v => !v)}
+                                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+                                                        {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                     </button>
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-[11px] font-black text-black uppercase tracking-widest mb-1.5">Confirm Password</label>
+                                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">New Password</label>
+                                                <div className="relative">
+                                                    <input type={showNew ? 'text' : 'password'} value={pwForm.newPw}
+                                                        onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
+                                                        placeholder="Min. 8 characters"
+                                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
+                                                    <button type="button" onClick={() => setShowNew(v => !v)}
+                                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+                                                        {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
+                                                {pwForm.newPw.length > 0 && (
+                                                    <div className="mt-2.5">
+                                                        <div className="flex gap-1.5 mb-1.5">
+                                                            {[...Array(4)].map((_, i) => {
+                                                                const strength = Math.min(Math.floor(pwForm.newPw.length / 3), 4);
+                                                                return <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < strength ? 'bg-amber-400' : 'bg-gray-200'}`} />;
+                                                            })}
+                                                        </div>
+                                                        <p className="text-[11px] font-bold text-amber-700">
+                                                            {pwForm.newPw.length < 8 ? 'Too short' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
                                                 <input type="password" value={pwForm.confirm}
                                                     onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
                                                     placeholder="Repeat new password"
-                                                    className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors" />
+                                                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
                                             </div>
                                         </div>
 
-                                        {pwForm.newPw.length > 0 && (
-                                            <div>
-                                                <div className="flex gap-1 mb-1">
-                                                    {[...Array(4)].map((_, i) => {
-                                                        const strength = Math.min(Math.floor(pwForm.newPw.length / 3), 4);
-                                                        return <div key={i} className={`h-1 flex-1 transition-colors ${i < strength ? 'bg-black' : 'bg-gray-200'}`} />;
-                                                    })}
-                                                </div>
-                                                <p className="text-[11px] text-gray-400">
-                                                    {pwForm.newPw.length < 8 ? 'Too short' : pwForm.newPw.length < 12 ? 'Good' : 'Strong'}
-                                                </p>
-                                            </div>
-                                        )}
-
                                         {pwError && (
-                                            <div className="flex items-center gap-2 text-red-500 text-xs">
+                                            <div className="flex items-center gap-2 text-red-500 text-xs mt-4">
                                                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                                                 {pwError}
                                             </div>
                                         )}
                                         <button onClick={handlePasswordChange}
-                                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors w-full sm:w-auto">
-                                            {pwSaved ? <><Check className="h-4 w-4" /> Updated</> : 'Update Password'}
+                                            className="mt-5 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors w-full sm:w-auto">
+                                            {pwSaved ? <><Check className="h-4 w-4" /> Updated</> : 'Update password'}
                                         </button>
                                     </div>
 
-                                    <div className="border-t border-gray-200 pt-6 space-y-4">
-                                        <h3 className="text-xs font-black text-black uppercase tracking-widest">Account</h3>
-                                        <div className="flex items-center justify-between py-1">
-                                            <div>
-                                                <p className="text-sm font-semibold text-black">Two-Factor Authentication</p>
-                                                <p className="text-xs text-gray-400">Extra layer of security</p>
+                                    <div>
+                                        <SubHeading>More protection</SubHeading>
+                                        <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100 mt-2">
+                                            <div className="flex items-center gap-4 px-5 py-4">
+                                                <IconTile icon={Lock} />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-bold text-black">Two-factor authentication</p>
+                                                    <p className="text-xs text-gray-400 mt-0.5">Extra layer of security on sign-in</p>
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 shrink-0">Coming soon</span>
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-gray-100 text-gray-500">Coming soon</span>
-                                        </div>
-                                        <div className="flex items-center justify-between py-1">
-                                            <div>
-                                                <p className="text-sm font-semibold text-black">Current device</p>
-                                                <p className="text-xs text-gray-400">Sign out of this device only</p>
-                                            </div>
-                                            <button onClick={handleSignOut} className="text-xs font-semibold text-black underline underline-offset-2 hover:no-underline">Sign out</button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
 
-                {/* Mobile sign out */}
-                <div className="sm:hidden mt-6 border-t border-gray-200 pt-4">
-                    <button onClick={handleSignOut} className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-black transition-colors">
-                        <LogOut className="h-4 w-4" strokeWidth={1.5} />
-                        Sign out
-                    </button>
+                                    <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-bold text-black">Sign out of this device</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">Ends this session only. You can sign back in anytime.</p>
+                                        </div>
+                                        <button
+                                            onClick={handleSignOut}
+                                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-red-300 bg-white text-sm font-bold text-red-600 hover:bg-red-100 transition-colors shrink-0"
+                                        >
+                                            Sign out
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    {/* Mobile sign out */}
+                    <div className="lg:hidden mt-6">
+                        <button onClick={handleSignOut} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-gray-500 hover:text-black transition-colors">
+                            <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                            Sign out
+                        </button>
+                    </div>
                 </div>
             </div>
         </AuthGuard>
     );
-                }
+}
