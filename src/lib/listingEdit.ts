@@ -11,6 +11,28 @@ export const SIM_TYPE_OPTIONS = [
     { value: 'esim', label: 'eSIM only' },
 ] as const;
 
+/** Which optional spec fields apply to a listing category, so the form
+ *  matches what is being listed (no network lock on Home & Garden, etc.). */
+export type SpecFieldVisibility = {
+    storage: boolean;
+    battery: boolean;
+    sim: boolean;
+    lock: boolean;
+};
+
+const FULL_SPEC_CATEGORIES: ReadonlySet<string> = new Set(['Phones & Tablets', 'Apple']);
+const STORAGE_BATTERY_CATEGORIES: ReadonlySet<string> = new Set(['Computers & Laptops']);
+
+export function specFieldsForCategory(category: string | null | undefined): SpecFieldVisibility {
+    if (category && FULL_SPEC_CATEGORIES.has(category)) {
+        return { storage: true, battery: true, sim: true, lock: true };
+    }
+    if (category && STORAGE_BATTERY_CATEGORIES.has(category)) {
+        return { storage: true, battery: true, sim: false, lock: false };
+    }
+    return { storage: false, battery: false, sim: false, lock: false };
+}
+
 export const NETWORK_LOCK_OPTIONS = [
     { value: 'unlocked', label: 'Factory unlocked' },
     { value: 'locked', label: 'Network locked' },
