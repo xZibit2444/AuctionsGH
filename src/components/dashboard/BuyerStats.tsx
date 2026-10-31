@@ -120,33 +120,33 @@ export default function BuyerStats() {
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Stat Cards */}
-            <div className="border border-gray-200">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-200">
-                    {statCards.map(({ label, value, icon: Icon }) => (
-                        <div key={label} className="bg-white p-5 sm:p-6">
-                            <Icon className="h-4 w-4 text-gray-400 mb-4" strokeWidth={1.5} />
-                            <p className="text-2xl sm:text-3xl font-black text-black tracking-tight mb-1">
-                                {loading ? <span className="inline-block w-12 h-7 bg-gray-100 skeleton-pulse" /> : value}
-                            </p>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{label}</p>
-                        </div>
-                    ))}
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {statCards.map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/20 text-amber-700 mb-4">
+                            <Icon className="h-4 w-4" strokeWidth={1.9} />
+                        </span>
+                        <p className="text-2xl sm:text-3xl font-black text-black tracking-tight mb-1">
+                            {loading ? <span className="inline-block w-12 h-7 bg-gray-100 skeleton-pulse rounded" /> : value}
+                        </p>
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+                    </div>
+                ))}
             </div>
 
             {/* Recent Bids */}
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xs font-black text-black uppercase tracking-widest">Recent Bids</h2>
+                    <h2 className="text-[12px] font-black text-gray-400 uppercase tracking-[0.16em]">Recent Bids</h2>
                     <Link
                         href="/auctions"
-                        className="text-xs font-semibold text-gray-400 hover:text-black transition-colors uppercase tracking-widest"
+                        className="text-xs font-bold text-amber-700 hover:text-amber-800 transition-colors"
                     >
                         Browse more
                     </Link>
                 </div>
 
-                <div className="border border-gray-200 overflow-hidden">
+                <div className="rounded-[20px] border border-gray-200 bg-white overflow-hidden">
                     {loading ? (
                         <div className="divide-y divide-gray-100">
                             {[...Array(4)].map((_, i) => (
@@ -165,7 +165,7 @@ export default function BuyerStats() {
                             </p>
                             <Link
                                 href="/auctions"
-                                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors"
                             >
                                 Browse Auctions
                             </Link>
@@ -184,8 +184,8 @@ export default function BuyerStats() {
 
                                 let badge = '';
                                 let badgeColor = '';
-                                if (status === 'sold' && isWinner) { badge = 'WON'; badgeColor = 'text-black bg-black/10'; }
-                                else if (status === 'sold') { badge = 'OUTBID'; badgeColor = 'text-red-500 bg-red-50'; }
+                                if (status === 'sold' && isWinner) { badge = 'WON'; badgeColor = 'text-black bg-amber-400'; }
+                                else if (status === 'sold') { badge = 'OUTBID'; badgeColor = 'text-red-600 bg-red-50'; }
                                 else if (status === 'active') { badge = 'ACTIVE'; badgeColor = 'text-gray-600 bg-gray-100'; }
                                 else { badge = 'ENDED'; badgeColor = 'text-gray-400 bg-gray-50'; }
 
@@ -210,31 +210,31 @@ export default function BuyerStats() {
                                                 <div className="flex items-center gap-2">
                                                     <Link
                                                         href={`/orders/${order.id}`}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors"
                                                     >
                                                         Order
                                                     </Link>
                                                     <Link
                                                         href={`/orders/${order.id}#chat`}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-colors"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-colors"
                                                     >
                                                         <MessageCircle className="w-3 h-3" />
                                                         Chat
                                                     </Link>
                                                 </div>
                                             ) : order?.status === 'void' || (status === 'sold' && isWinner && isExpired) ? (
-                                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 text-red-600 bg-red-50">
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-red-600 bg-red-50">
                                                     VOID
                                                 </span>
                                             ) : status === 'sold' && isWinner ? (
                                                 <Link
                                                     href={`/checkout/${bid.auctions?.id}`}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                                                 >
                                                     Confirm Order
                                                 </Link>
                                             ) : (
-                                                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 ${badgeColor}`}>
+                                                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${badgeColor}`}>
                                                     {badge}
                                                 </span>
                                             )}
