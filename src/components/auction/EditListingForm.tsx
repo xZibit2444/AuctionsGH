@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { updateListingAction } from '@/app/actions/updateListing';
+import { updateListingAction, getListingDealState } from '@/app/actions/updateListing';
 import { isPermanentListing } from '@/lib/listings';
 import {
     CONDITION_LABELS,
@@ -58,6 +58,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
     const [status, setStatus] = useState<string>('');
     const [bidCount, setBidCount] = useState(0);
     const [permanent, setPermanent] = useState(false);
+    const [agreedPrice, setAgreedPrice] = useState<number | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -102,6 +103,8 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 delivery_available: Boolean(data.delivery_available),
                 inspection_available: Boolean(data.inspection_available),
             });
+            const deal = await getListingDealState(auctionId);
+            if (!cancelled && deal.dealPending) setAgreedPrice(deal.agreedPrice);
         })();
         return () => {
             cancelled = true;
@@ -128,6 +131,8 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
 
     const priceLocked = bidCount > 0 && !permanent;
     const blocked = status === 'sold';
+    const dealPending = agreedPrice !== null;
+    const dealLocked = dealPending && !blocked;
     const areaOptions = getLocationsForRegion(form.listing_city).filter(
         (a) => !a.startsWith('Other')
     );
@@ -207,10 +212,18 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 </div>
             )}
 
+            {dealLocked && (
+                <div className="mb-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    A deal is in progress on this listing{agreedPrice ? ` at GH₵${agreedPrice.toLocaleString()}` : ''}.
+                    Title, condition and price are locked so the buyer&apos;s agreed order doesn&apos;t change.
+                    They unlock if the deal falls through.
+                </div>
+            )}
+
             <fieldset disabled={blocked || saving} className="space-y-5">
                 <div>
                     <Label>Listing Title</Label>
-                    <input value={form.title} onChange={(e) => set('title', e.target.value)} className={inputClass} />
+                    <input value={form.title} onChange={(e) => set('title', e.target.value)} className={inputClass} disabled={dealLocked} />
                     {err('title')}
                 </div>
 
@@ -254,6 +267,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                             value={form.condition}
                             onChange={(e) => set('condition', e.target.value as Condition)}
                             className={inputClass}
+                            disabled={dealLocked}
                         >
                             {Object.entries(CONDITION_LABELS).map(([k, label]) => (
                                 <option key={k} value={k}>{label}</option>
@@ -270,11 +284,14 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         step="any"
                         value={form.price}
                         onChange={(e) => set('price', e.target.value)}
-                        disabled={priceLocked}
+                        disabled={priceLocked || dealLocked}
                         className={inputClass}
                     />
-                    {priceLocked && (
+                    {priceLocked && !dealLocked && (
                         <p className="text-[11px] text-gray-500 mt-1">Price is locked because bids have been placed.</p>
+                    )}
+                    {dealLocked && (
+                        <p className="text-[11px] text-gray-500 mt-1">Price is locked while a deal is in progress - the buyer already agreed to it.</p>
                     )}
                     {err('price')}
                 </div>
