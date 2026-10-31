@@ -5,6 +5,7 @@ import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
 import NewOfferEmail from '@/emails/NewOfferEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
+import CounterOfferEmail from '@/emails/CounterOfferEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
 import OrderConfirmedBuyerEmail from '@/emails/OrderConfirmedBuyerEmail';
 import OrderConfirmedSellerEmail from '@/emails/OrderConfirmedSellerEmail';
@@ -268,6 +269,45 @@ export async function sendOfferDeclinedEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending offer declined email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendCounterOfferEmail(
+    to: string,
+    buyerName: string,
+    auctionTitle: string,
+    amount: number,
+    counterAmount: number,
+    auctionId: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `Counter-offer for ${auctionTitle}: GHS ${counterAmount.toLocaleString()}`,
+            react: CounterOfferEmail({
+                buyerName,
+                auctionTitle,
+                amount,
+                counterAmount,
+                auctionUrl: `${SITE_URL}/auctions/${auctionId}`,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send counter-offer email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending counter-offer email:', error);
         return { success: false, error };
     }
 }
