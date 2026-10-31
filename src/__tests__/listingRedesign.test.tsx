@@ -43,7 +43,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 vi.mock('@/hooks/useAuction', () => ({
-    useAuction: () => ({ auction: fx.state.auction, loading: false, error: null, setAuction: vi.fn() }),
+    useAuction: () => ({ auction: fx.state.auction, loading: false, error: (fx.state as { error?: string | null }).error ?? null, setAuction: vi.fn() }),
 }));
 
 vi.mock('@/hooks/useBids', () => ({
@@ -512,5 +512,25 @@ describe('HomeHero photo fan', () => {
         ]);
         expect(el.textContent).toContain('2');
         expect(el.textContent).toContain('live listings');
+    });
+});
+
+describe('AuctionDetail load failure', () => {
+    it('shows an error state with retry instead of an infinite spinner', async () => {
+        fx.state.auction = null;
+        (fx.state as { error?: string | null }).error = 'column does not exist';
+        const el = await renderDetail();
+        expect(el.querySelector('.animate-spin')).toBeNull();
+        expect(el.textContent).toContain("couldn't be loaded");
+        expect(el.textContent).toContain('column does not exist');
+        expect(el.textContent).toContain('Retry');
+        delete (fx.state as { error?: string | null }).error;
+    });
+
+    it('missing listing without an error still shows the fallback, not a spinner', async () => {
+        fx.state.auction = null;
+        const el = await renderDetail();
+        expect(el.querySelector('.animate-spin')).toBeNull();
+        expect(el.textContent).toContain('Please check your connection and try again.');
     });
 });
