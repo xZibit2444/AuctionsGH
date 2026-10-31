@@ -35,13 +35,13 @@ export default function OwnerStatusControls({ auctionId, status, isPermanent, bi
         router.refresh();
     };
 
-    const btn = 'flex-1 border border-black px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-50';
+    const btn = 'flex-1 rounded-xl border px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-50';
 
     return (
         <div className="mb-3 space-y-2">
             <div className="flex gap-2">
                 {canPause && (
-                    <button type="button" disabled={busy !== null} onClick={() => run('pause')} className={`${btn} bg-white text-black hover:bg-gray-100`}>
+                    <button type="button" disabled={busy !== null} onClick={() => run('pause')} className={`${btn} border-gray-300 bg-white text-black hover:bg-gray-50`}>
                         {busy === 'pause' ? 'Pausing…' : 'Pause listing'}
                     </button>
                 )}
@@ -50,13 +50,13 @@ export default function OwnerStatusControls({ auctionId, status, isPermanent, bi
                         type="button"
                         disabled={busy !== null}
                         onClick={() => run('sold_elsewhere', 'Mark this listing as sold? It will be hidden from buyers. You can resume it later.')}
-                        className={`${btn} bg-white text-black hover:bg-gray-100`}
+                        className={`${btn} border-gray-300 bg-white text-black hover:bg-gray-50`}
                     >
                         {busy === 'sold_elsewhere' ? 'Saving…' : 'Mark sold'}
                     </button>
                 )}
                 {canResume && (
-                    <button type="button" disabled={busy !== null} onClick={() => run('resume')} className={`${btn} bg-black text-white hover:bg-gray-800`}>
+                    <button type="button" disabled={busy !== null} onClick={() => run('resume')} className={`${btn} border-amber-400 bg-amber-400 text-black hover:bg-amber-500`}>
                         {busy === 'resume' ? 'Resuming…' : status === 'draft' ? 'Resume listing' : 'Relist'}
                     </button>
                 )}
