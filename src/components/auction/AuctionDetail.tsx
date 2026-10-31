@@ -25,6 +25,7 @@ import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import ShareButton from '@/components/ui/ShareButton';
+import ReportListingButton from '@/components/auction/ReportListingButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
 import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X, ChevronRight } from 'lucide-react';
@@ -56,7 +57,7 @@ type AuctionDetailData = {
 };
 
 export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
-    const { auction, loading, setAuction } = useAuction(auctionId);
+    const { auction, loading, error, setAuction } = useAuction(auctionId);
     const { bids, setBids, loading: bidsLoading } = useBids(auctionId);
     const { user, profile } = useAuth();
     const { savedIds, toggleSave } = useSavedAuctions();
@@ -165,10 +166,27 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
         }
     }, [auction, bids, user?.id, setAuction, auctionId]);
 
-    if (loading || !auction) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+            </div>
+        );
+    }
+
+    if (!auction) {
+        // A failed fetch must not masquerade as a perpetual loading state.
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3 text-center px-4">
+                <p className="text-gray-900 font-semibold">This listing couldn&apos;t be loaded</p>
+                <p className="text-sm text-gray-500">{error ?? 'Please check your connection and try again.'}</p>
+                <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="mt-2 rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
@@ -244,6 +262,11 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                 url={`/auctions/${auction.id}`}
                 compact
                 label=""
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-stone-700 shadow-sm backdrop-blur transition hover:text-black"
+            />
+            <ReportListingButton
+                auctionId={auction.id}
+                auctionTitle={auction.title}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-stone-700 shadow-sm backdrop-blur transition hover:text-black"
             />
             <button
