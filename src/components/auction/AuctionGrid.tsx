@@ -23,7 +23,7 @@ export default function AuctionGrid({ auctions, loading, emptyNoun = 'auctions' 
 
     if (auctions.length === 0) {
         return (
-            <div className="text-center py-20 border border-gray-200">
+            <div className="text-center py-20 rounded-[20px] border border-gray-200 bg-white">
                 <Package className="mx-auto h-10 w-10 text-gray-300 mb-4" strokeWidth={1} />
                 <h3 className="text-sm font-bold text-black uppercase tracking-widest">
                     No {emptyNoun} found
