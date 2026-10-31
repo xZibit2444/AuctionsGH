@@ -59,7 +59,7 @@ export async function createOrderAction(data: CheckoutFormData) {
 
             const { data: acceptedOffer } = await supabaseAdmin
                 .from('auction_offers')
-                .select('id, amount')
+                .select('id, amount, counter_amount')
                 .eq('auction_id', data.auctionId)
                 .eq('buyer_id', data.buyerId)
                 .eq('status', 'accepted')
@@ -86,7 +86,8 @@ export async function createOrderAction(data: CheckoutFormData) {
                 await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
             }
 
-            orderAmount = Number(acceptedOffer.amount);
+            // Agreed price: the counter amount when the buyer accepted a counter-offer.
+            orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
         }
 
         const fulfillment_type = 'meet_and_inspect';
