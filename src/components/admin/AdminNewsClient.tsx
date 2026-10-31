@@ -152,7 +152,7 @@ function NewsItemRow({
                                     type="button"
                                     disabled={isPending}
                                     onClick={() => { saveEdit(); setEditing(false); }}
-                                    className="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-gray-900 disabled:opacity-50"
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-black text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-gray-900 disabled:opacity-50"
                                 >
                                     {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                                     Save Changes
@@ -231,7 +231,7 @@ function CreateNewsForm({ onCreated }: { onCreated: (item: AdminNewsItem) => voi
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-2 bg-black text-white px-5 py-3 text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors mb-6"
+                className="inline-flex items-center gap-2 rounded-xl bg-black text-white px-5 py-3 text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors mb-6"
             >
                 <Plus className="h-4 w-4" /> New News Item
             </button>
@@ -310,7 +310,7 @@ function CreateNewsForm({ onCreated }: { onCreated: (item: AdminNewsItem) => voi
                     type="button"
                     onClick={handleSubmit}
                     disabled={isPending || !title.trim() || !content.trim()}
-                    className="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-gray-900 disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-xl bg-black text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest hover:bg-gray-900 disabled:opacity-50 transition-colors"
                 >
                     {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                     {isPending ? 'Saving...' : published ? 'Publish Now' : 'Save Draft'}
