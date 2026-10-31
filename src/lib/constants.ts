@@ -57,6 +57,7 @@ export const CONDITION_LABELS: Record<string, string> = {
     good: 'Good',
     fair: 'Fair',
     poor: 'Poor',
+    unspecified: 'Unspecified',
 };
 
 /** Auction duration presets */
