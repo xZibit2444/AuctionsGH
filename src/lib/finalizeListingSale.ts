@@ -35,7 +35,7 @@ export async function finalizeListingSaleIfActive(auctionId: string, buyerId: st
         .from('auction_offers')
         .select('id, buyer_id, status')
         .eq('auction_id', auctionId)
-        .in('status', ['pending', 'accepted'])
+        .in('status', ['pending', 'accepted', 'countered'])
         .neq('buyer_id', buyerId) as { data: OpenOffer[] | null };
 
     if (!openOffers || openOffers.length === 0) return;
