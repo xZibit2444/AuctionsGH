@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { useAuctions } from '@/hooks/useAuctions';
 import { createClient } from '@/lib/supabase/client';
 import AuctionGrid from '@/components/auction/AuctionGrid';
@@ -12,6 +14,10 @@ interface HomeStats {
     liveCount: number | null;
     categoryCount: number | null;
 }
+
+// Homepage shows a compact preview of the listings; the full set lives on
+// the Permanent Listings tab (/listings), reached through "See more".
+const PREVIEW_COUNT = 6;
 
 export default function HomePageClient() {
     const [search, setSearch] = useState('');
@@ -53,6 +59,10 @@ export default function HomePageClient() {
     }, []);
 
     const isFiltering = search !== '' || brand !== 'All';
+    // Search and category results stay complete; only the default homepage
+    // view is capped at the preview count.
+    const visibleAuctions = isFiltering ? auctions : auctions.slice(0, PREVIEW_COUNT);
+    const hasMore = !isFiltering && !loading && auctions.length > PREVIEW_COUNT;
 
     return (
         <div className="min-h-screen bg-[#F5F4F0]">
@@ -89,8 +99,28 @@ export default function HomePageClient() {
                                 ? `${auctions.length} found`
                                 : `${stats.liveCount ?? auctions.length} listings`}
                     </span>
+                    {hasMore && (
+                        <Link
+                            href="/listings"
+                            className="ml-auto inline-flex items-center gap-1 text-[13px] font-bold text-[#191612] transition-colors hover:text-black sm:text-sm"
+                        >
+                            See more
+                            <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                        </Link>
+                    )}
                 </div>
-                <AuctionGrid auctions={auctions} loading={loading} />
+                <AuctionGrid auctions={visibleAuctions} loading={loading} />
+                {hasMore && (
+                    <div className="mt-6 flex justify-center sm:mt-8">
+                        <Link
+                            href="/listings"
+                            className="inline-flex items-center gap-2 rounded-[10px] bg-amber-400 px-6 py-[13px] text-[15px] font-bold leading-[1.2] text-black transition-colors hover:bg-amber-300"
+                        >
+                            See more
+                            <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                        </Link>
+                    </div>
+                )}
             </section>
         </div>
     );
