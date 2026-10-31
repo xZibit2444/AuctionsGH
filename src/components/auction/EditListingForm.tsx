@@ -13,7 +13,7 @@ import {
     ITEM_CATEGORIES,
     getLocationsForRegion,
 } from '@/lib/constants';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 
 type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
 
@@ -137,6 +137,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
 
     // Only the spec fields that apply to the selected category are shown and saved.
     const specFields = specFieldsForCategory(form.brand);
+    const placeholders = placeholdersForCategory(form.brand);
 
     const handleCategoryChange = (category: string) => {
         const visible = specFieldsForCategory(category);
@@ -227,7 +228,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         <input
                             value={form.model}
                             onChange={(e) => set('model', e.target.value)}
-                            placeholder="e.g. Samsung A16"
+                            placeholder={placeholders.model}
                             className={inputClass}
                         />
                         {err('model')}
@@ -282,7 +283,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 <div className={`grid gap-4 ${specFields.battery && specFields.sim ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {specFields.battery && (
                     <div>
-                        <Label optional>Battery health (%)</Label>
+                        <Label optional>{placeholders.batteryLabel}</Label>
                         <input
                             type="number"
                             min={0}
