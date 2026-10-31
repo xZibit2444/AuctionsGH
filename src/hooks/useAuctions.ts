@@ -24,6 +24,8 @@ interface UseAuctionsOptions {
     ascending?: boolean;
     /** Set true only when you need order + delivery status (e.g. seller ListingTable). Adds a JOIN overhead. */
     includeOrders?: boolean;
+    /** Browse pages: fetch every matching row in 1k chunks instead of a hard cap. */
+    fetchAll?: boolean;
 }
 
 export function useAuctions(options: UseAuctionsOptions = {}) {
@@ -42,6 +44,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         orderBy = 'ends_at',
         ascending = true,
         includeOrders = false,
+        fetchAll = false,
     } = options;
 
     const [auctions, setAuctions] = useState<Auction[]>([]);
@@ -174,9 +177,34 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 }
 
                 // Apply ordering AFTER filters
-                query = query.order(orderBy, { ascending }).limit(limit);
+                query = query.order(orderBy, { ascending });
+                if (fetchAll) {
+                    // Stable tie-breaker so range paging cannot skip or
+                    // duplicate rows when many rows share the same ends_at.
+                    query = query.order('id', { ascending: true });
+                }
 
-                const { data, error: fetchError } = await query;
+                let data: unknown[] | null = null;
+                let fetchError: { message: string } | null = null;
+                if (fetchAll) {
+                    // No silent cap: page through every matching row.
+                    const PAGE = 1000;
+                    const allRows: unknown[] = [];
+                    for (let fromIdx = 0; ; fromIdx += PAGE) {
+                        const { data: pageRows, error: pageError } = await query.range(fromIdx, fromIdx + PAGE - 1);
+                        if (pageError) {
+                            fetchError = pageError;
+                            break;
+                        }
+                        allRows.push(...((pageRows as unknown[]) ?? []));
+                        if (!pageRows || pageRows.length < PAGE) break;
+                    }
+                    data = allRows;
+                } else {
+                    const { data: limitedRows, error: limitedError } = await query.limit(limit);
+                    data = limitedRows;
+                    fetchError = limitedError;
+                }
 
                 if (!isMounted) return;
 
@@ -194,7 +222,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         return Date.now() - soldAt <= SOLD_BROWSE_RETENTION_MS;
                     });
 
-                    setAuctions(nextAuctions.slice(0, limit));
+                    setAuctions(fetchAll ? nextAuctions : nextAuctions.slice(0, limit));
                 }
             } catch (err) {
                 if (!isMounted) return;
@@ -242,8 +270,9 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
             supabase.removeChannel(channel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, listingType, brand, sellerId, debouncedSearch, condition, minStorage, minPrice, maxPrice, deliveryAvailable, limit, orderBy, ascending]);
+    }, [status, listingType, brand, sellerId, debouncedSearch, condition, minStorage, minPrice, maxPrice, deliveryAvailable, limit, orderBy, ascending, fetchAll]);
 
     return { auctions, loading, error };
 }
+
 
