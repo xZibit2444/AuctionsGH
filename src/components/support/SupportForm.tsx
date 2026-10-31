@@ -43,7 +43,7 @@ export default function SupportForm() {
                 <p className="mt-3 text-sm text-gray-500 leading-relaxed">
                     We will reply to {shownEmail}. Keep an eye on your inbox and spam folder.
                 </p>
-                <Link href="/" className="inline-flex mt-6 px-5 py-2.5 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors">
+                <Link href="/" className="inline-flex mt-6 px-5 py-2.5 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Back to home
                 </Link>
             </div>
@@ -80,7 +80,7 @@ export default function SupportForm() {
                 <input id="sp-website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
             </div>
             {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
-            <button type="submit" disabled={sending} className="px-6 py-3 bg-black text-white text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50">
+            <button type="submit" disabled={sending} className="px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors disabled:opacity-50">
                 {sending ? 'Sending...' : 'Send request'}
             </button>
         </form>
