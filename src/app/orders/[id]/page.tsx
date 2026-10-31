@@ -18,7 +18,7 @@ import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import ShareButton from '@/components/ui/ShareButton';
 import type { DeliveryStatus } from '@/types/delivery';
 import { formatOrderStatusLabel, getOrderSurfaceStatus, isCancelledOrderStatus, isCompletedOrderStatus, isTerminalOrderStatus } from '@/lib/orderStatus';
-import { isPermanentListing } from '@/lib/listings';
+import { getListingType } from '@/lib/listings';
 
 interface OrderPageProps {
     params: Promise<{ id: string }>;
@@ -54,6 +54,8 @@ type OrderPageData = {
         current_price: number;
         condition: string | null;
         ends_at: string | null;
+        status: string | null;
+        bid_count: number | null;
         auction_images: { url: string }[] | null;
         auction_winner_notes?: { note: string }[] | { note: string } | null;
     } | null;
@@ -166,7 +168,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                 .from('orders')
                 .select(`
                     *,
-                    auction:auctions ( id, title, current_price, condition, ends_at, auction_images(url), auction_winner_notes(note) ),
+                    auction:auctions ( id, title, current_price, condition, ends_at, status, bid_count, auction_images(url), auction_winner_notes(note) ),
                     buyer:profiles!orders_buyer_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
                     seller:profiles!orders_seller_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
                     deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
@@ -543,7 +545,7 @@ export default function OrderPage({ params }: OrderPageProps) {
                         orderId={order.id}
                         status={order.status}
                         isBuyer={isBuyer}
-                        isPermanent={isPermanentListing(order.auction?.ends_at)}
+                        isPermanent={getListingType({ ends_at: order.auction?.ends_at, status: order.auction?.status as import('@/types/database').AuctionStatus | null | undefined, bid_count: order.auction?.bid_count }) === 'permanent'}
                         canCancel={!isClosed && (deliveryStatus === 'pending' || order.status === 'pending_meetup' || order.status === 'pending_payment')}
                         cancellationReason={order.cancellation_reason}
                     />
