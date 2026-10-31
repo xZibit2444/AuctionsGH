@@ -7,7 +7,6 @@ import { useAuctions } from '@/hooks/useAuctions';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import { formatCurrency } from '@/lib/utils';
-import AuctionStatusBadge from '@/components/auction/AuctionStatusBadge';
 import Skeleton from '@/components/ui/Skeleton';
 import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
@@ -17,6 +16,34 @@ import { setListingStatusAction, type ListingStatusChange } from '@/app/actions/
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 import { useRouter } from 'next/navigation';
+
+const chip = 'inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full transition-colors';
+const chipNeutral = chip + ' bg-gray-100 text-black hover:bg-gray-200 disabled:opacity-50';
+const chipOrder = chip + ' bg-emerald-600 text-white hover:bg-emerald-700';
+const chipChat = chip + ' bg-blue-50 text-blue-700 hover:bg-blue-100';
+const chipDark = chip + ' bg-black text-white hover:bg-gray-900 disabled:opacity-50';
+const chipDanger = chip + ' bg-red-50 text-red-600 hover:bg-red-100';
+const chipDangerSolid = chip + ' bg-red-600 text-white disabled:opacity-50';
+const chipMuted = chip + ' bg-gray-50 text-gray-500';
+
+function StatusPill({ status }: { status: string }) {
+    const st = (status || '').toLowerCase();
+    const styles: Record<string, string> = {
+        active: 'text-emerald-700 bg-emerald-50',
+        live: 'text-emerald-700 bg-emerald-50',
+        sold: 'text-white bg-black',
+        ended: 'text-gray-500 bg-gray-100',
+        draft: 'text-gray-500 bg-gray-100',
+        paused: 'text-gray-500 bg-gray-100',
+        won: 'text-black bg-amber-400',
+    };
+    const label = st === 'active' ? 'LIVE' : st.toUpperCase();
+    return (
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${styles[st] ?? 'text-gray-500 bg-gray-100'}`}>
+            {label}
+        </span>
+    );
+}
 
 type ListingDelivery = {
     status: string;
@@ -224,6 +251,20 @@ export default function ListingTable({
                                 className="hover:bg-gray-50 transition-colors group"
                             >
                                 <td className="py-4 px-5">
+                                    <div className="flex items-start gap-3">
+                                        {(() => {
+                                            const imgs = (auction as ListingAuction & { auction_images?: { url: string }[] }).auction_images;
+                                            const imgUrl = Array.isArray(imgs) && imgs.length > 0 ? imgs[0]?.url : null;
+                                            return imgUrl ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={imgUrl} alt="" className="h-11 w-11 rounded-xl object-cover flex-shrink-0" />
+                                            ) : (
+                                                <div className="h-11 w-11 rounded-xl flex-shrink-0 flex items-center justify-center text-amber-300 font-black text-lg" style={{ background: 'linear-gradient(135deg,#1E1A14,#3A332A)' }}>
+                                                    {(auction.title || '?').charAt(0).toUpperCase()}
+                                                </div>
+                                            );
+                                        })()}
+                                        <div className="min-w-0">
                                     <Link
                                         href={`/auctions/${auction.id}`}
                                         className="font-semibold text-black hover:underline underline-offset-2 line-clamp-1"
@@ -241,12 +282,12 @@ export default function ListingTable({
                                         </p>
                                     )}
                                     <span className="sm:hidden block mt-1.5">
-                                        <AuctionStatusBadge status={auction.status} />
+                                        <StatusPill status={auction.status} />
                                     </span>
                                     <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
                                         <Link
                                             href={`/auctions/${auction.id}`}
-                                            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                            className={chipNeutral}
                                         >
                                             View
                                             <ArrowUpRight className="h-3 w-3" />
@@ -255,26 +296,26 @@ export default function ListingTable({
                                             <>
                                                 <Link
                                                     href={`/orders/${order.id}`}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-1"
+                                                    className={chipOrder}
                                                 >
                                                     Order
                                                 </Link>
                                                 <Link
                                                     href={`/orders/${order.id}#chat`}
-                                                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1"
+                                                    className={chipChat}
                                                 >
                                                     <MessageCircle className="w-3 h-3" />
                                                     Chat
                                                 </Link>
                                                 {sentOrderIds.has(order.id) || isSentInDb ? (
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-1">
+                                                    <span className={chipChat}>
                                                         Sent
                                                     </span>
                                                 ) : (
                                                     <button
                                                         onClick={() => void handleMarkSent(order.id)}
                                                         disabled={markingId === order.id}
-                                                        className="text-[10px] font-black uppercase tracking-widest text-white bg-black px-2 py-1 disabled:opacity-50"
+                                                        className={chipDark}
                                                     >
                                                         {markingId === order.id ? 'Saving...' : 'Mark Sent'}
                                                     </button>
@@ -287,13 +328,13 @@ export default function ListingTable({
                                                     <button
                                                         onClick={() => void handleDelete(auction.id)}
                                                         disabled={deletingId === auction.id}
-                                                        className="text-[10px] font-black uppercase tracking-widest text-white bg-red-600 px-2 py-1 disabled:opacity-50"
+                                                        className={chipDangerSolid}
                                                     >
                                                         {deletingId === auction.id ? 'Deleting...' : 'Confirm'}
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteConfirmId(null)}
-                                                        className="text-[10px] font-black uppercase tracking-widest text-gray-500 border border-gray-200 px-2 py-1"
+                                                        className={chipMuted}
                                                     >
                                                         Cancel
                                                     </button>
@@ -301,7 +342,7 @@ export default function ListingTable({
                                             ) : (
                                                 <button
                                                     onClick={() => setDeleteConfirmId(auction.id)}
-                                                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-200 px-2 py-1"
+                                                    className={chipDanger}
                                                     title={deleteTitle}
                                                     aria-label={deleteTitle}
                                                 >
@@ -314,13 +355,13 @@ export default function ListingTable({
                                             <>
                                                 <Link
                                                     href={`/auctions/${auction.id}/edit`}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                    className={chipNeutral}
                                                 >
                                                     Edit
                                                 </Link>
                                                 <Link
                                                     href={`/auctions/create?from=${auction.id}`}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                    className={chipNeutral}
                                                 >
                                                     Duplicate
                                                 </Link>
@@ -331,14 +372,14 @@ export default function ListingTable({
                                                                 <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'pause')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Pause
                                                                 </button>
                                                                 <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Mark sold
                                                                 </button>
@@ -348,7 +389,7 @@ export default function ListingTable({
                                                             <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'resume')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Resume
                                                                 </button>
@@ -361,24 +402,26 @@ export default function ListingTable({
                                             <button
                                                 onClick={() => void handleRelist(auction.id)}
                                                 disabled={relistingId === auction.id}
-                                                className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                className={chipNeutral}
                                             >
                                                 {relistingId === auction.id ? 'Relisting...' : 'Relist'}
                                             </button>
                                         )}
                                     </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="py-4 px-5 hidden sm:table-cell">
                                     {!adminMode && order ? (
                                         delivery?.status === 'completed' ? (
-                                            <AuctionStatusBadge status={auction.status} />
+                                            <StatusPill status={auction.status} />
                                         ) : (
-                                            <span className="inline-block text-[10px] font-black tracking-widest uppercase px-2 py-0.5 bg-amber-100 text-amber-700">
+                                            <span className="inline-flex items-center text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
                                                 PENDING
                                             </span>
                                         )
                                     ) : (
-                                        <AuctionStatusBadge status={auction.status} />
+                                        <StatusPill status={auction.status} />
                                     )}
                                 </td>
                                 <td className="py-4 px-5 text-right font-black text-black font-mono">
@@ -395,27 +438,27 @@ export default function ListingTable({
                                                     <div className="flex items-center gap-2">
                                                         <Link
                                                             href={`/orders/${order.id}`}
-                                                            className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors px-2 py-1"
+                                                            className={chipOrder}
                                                         >
                                                             Order
                                                         </Link>
                                                         <Link
                                                             href={`/orders/${order.id}#chat`}
-                                                            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1"
+                                                            className={chipChat}
                                                             title="Open chat"
                                                         >
                                                             <MessageCircle className="w-3 h-3" />
                                                             Chat
                                                         </Link>
                                                         {sentOrderIds.has(order.id) || isSentInDb ? (
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-1">
+                                                            <span className={chipChat}>
                                                                 Sent
                                                             </span>
                                                         ) : (
                                                             <button
                                                                 onClick={() => void handleMarkSent(order.id)}
                                                                 disabled={markingId === order.id}
-                                                                className="text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-gray-900 transition-colors px-2 py-1 disabled:opacity-50"
+                                                                className={chipDark}
                                                             >
                                                                 {markingId === order.id ? 'Saving...' : 'Mark Sent'}
                                                             </button>
@@ -426,7 +469,7 @@ export default function ListingTable({
 
                                             if (auction.status === 'sold' && isExpired) {
                                                 return (
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-1">
+                                                    <span className={chipDanger}>
                                                         VOID
                                                     </span>
                                                 );
@@ -441,13 +484,13 @@ export default function ListingTable({
                                             <>
                                                 <Link
                                                     href={`/auctions/${auction.id}/edit`}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                    className={chipNeutral}
                                                 >
                                                     Edit
                                                 </Link>
                                                 <Link
                                                     href={`/auctions/create?from=${auction.id}`}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1"
+                                                    className={chipNeutral}
                                                 >
                                                     Duplicate
                                                 </Link>
@@ -458,14 +501,14 @@ export default function ListingTable({
                                                                 <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'pause')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Pause
                                                                 </button>
                                                                 <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Mark sold
                                                                 </button>
@@ -475,7 +518,7 @@ export default function ListingTable({
                                                             <button
                                                                     onClick={() => void handleStatusChange(auction.id, 'resume')}
                                                                     disabled={statusBusyId === auction.id}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                                    className={chipNeutral}
                                                                 >
                                                                     Resume
                                                                 </button>
@@ -488,7 +531,7 @@ export default function ListingTable({
                                             <button
                                                 onClick={() => void handleRelist(auction.id)}
                                                 disabled={relistingId === auction.id}
-                                                className="text-[10px] font-black uppercase tracking-widest text-black border border-gray-200 px-2 py-1 disabled:opacity-50"
+                                                className={chipNeutral}
                                             >
                                                 {relistingId === auction.id ? 'Relisting...' : 'Relist'}
                                             </button>
