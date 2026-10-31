@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { Suspense, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { ITEM_CATEGORIES } from '@/lib/constants';
+import { CONDITION_LABELS, ITEM_CATEGORIES } from '@/lib/constants';
 import { useAuctions } from '@/hooks/useAuctions';
 import { shuffled } from '@/lib/rotation';
+import { buildBrowseSearch, normalizePriceRange } from '@/lib/browseParams';
 import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 
@@ -26,6 +27,17 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
     const [category, setCategory] = useState(searchParams.get('brand') ?? 'All');
     const [sort, setSort] = useState(searchParams.get('sort') ?? 'ends_at:asc');
+    const [condition, setCondition] = useState(searchParams.get('cond') ?? 'All');
+    const [minPrice, setMinPrice] = useState(searchParams.get('min') ?? '');
+    const [maxPrice, setMaxPrice] = useState(searchParams.get('max') ?? '');
+    const [deliveryOnly, setDeliveryOnly] = useState(searchParams.get('delivery') === '1');
+    const [priceDraft, setPriceDraft] = useState({
+        min: searchParams.get('min') ?? '',
+        max: searchParams.get('max') ?? '',
+    });
+    const [showFilters, setShowFilters] = useState(
+        Boolean(searchParams.get('cond') ?? searchParams.get('min') ?? searchParams.get('max') ?? searchParams.get('delivery')),
+    );
 
     const [orderBy, ascending] = sort.split(':') as [
         'ends_at' | 'created_at' | 'current_price',
@@ -37,6 +49,10 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
         listingType,
         brand: category === 'All' ? undefined : category,
         search: query || undefined,
+        condition: condition === 'All' ? undefined : condition,
+        minPrice: minPrice !== '' && !Number.isNaN(Number(minPrice)) ? Number(minPrice) : undefined,
+        maxPrice: maxPrice !== '' && !Number.isNaN(Number(maxPrice)) ? Number(maxPrice) : undefined,
+        deliveryAvailable: deliveryOnly,
         orderBy,
         ascending: ascending === 'asc',
     });
@@ -55,35 +71,68 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
         ? 'Browse fixed-price style permanent listings separately from timed auctions.'
         : 'Browse timed auctions separately from permanent listings.';
 
-    const syncUrl = useCallback((q: string, b: string, s: string) => {
-        const params = new URLSearchParams();
-        if (q) params.set('q', q);
-        if (b && b !== 'All') params.set('brand', b);
-        if (s && s !== 'ends_at:asc') params.set('sort', s);
-        const qs = params.toString();
+    const syncUrl = useCallback((over: { q?: string; b?: string; s?: string; cond?: string; min?: string; max?: string; del?: boolean }) => {
+        const q = over.q ?? query;
+        const b = over.b ?? category;
+        const s = over.s ?? sort;
+        const cd = over.cond ?? condition;
+        const mn = over.min ?? minPrice;
+        const mx = over.max ?? maxPrice;
+        const dl = over.del ?? deliveryOnly;
+        const qs = buildBrowseSearch({ q, brand: b, sort: s, cond: cd, min: mn, max: mx, del: dl });
         router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
-    }, [basePath, router]);
+    }, [basePath, router, query, category, sort, condition, minPrice, maxPrice, deliveryOnly]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setQuery(inputVal);
-        syncUrl(inputVal, category, sort);
+        syncUrl({ q: inputVal });
     };
 
     const handleCategory = (nextCategory: string) => {
         setCategory(nextCategory);
-        syncUrl(query, nextCategory, sort);
+        syncUrl({ b: nextCategory });
     };
 
     const handleSort = (nextSort: string) => {
         setSort(nextSort);
-        syncUrl(query, category, nextSort);
+        syncUrl({ s: nextSort });
     };
+
+    const handleCondition = (c: string) => {
+        setCondition(c);
+        syncUrl({ cond: c });
+    };
+
+    const applyPriceRange = (min: string, max: string) => {
+        const normalized = normalizePriceRange(min, max);
+        setMinPrice(normalized.min);
+        setMaxPrice(normalized.max);
+        setPriceDraft(normalized);
+        syncUrl(normalized);
+    };
+
+    const handleDeliveryOnly = (v: boolean) => {
+        setDeliveryOnly(v);
+        syncUrl({ del: v });
+    };
+
+    const clearFilters = () => {
+        setCondition('All');
+        setMinPrice('');
+        setMaxPrice('');
+        setPriceDraft({ min: '', max: '' });
+        setDeliveryOnly(false);
+        syncUrl({ cond: 'All', min: '', max: '', del: false });
+    };
+
+    const activeFilterCount =
+        (condition !== 'All' ? 1 : 0) + (minPrice || maxPrice ? 1 : 0) + (deliveryOnly ? 1 : 0);
 
     const clearSearch = () => {
         setInputVal('');
         setQuery('');
-        syncUrl('', category, sort);
+        syncUrl({ q: '' });
     };
 
     useEffect(() => {
@@ -109,7 +158,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                             setInputVal('');
                             setQuery('');
                             setCategory('All');
-                            syncUrl('', 'All', sort);
+                            syncUrl({ q: '', b: 'All' });
                         }}
                         className="text-xs font-semibold text-gray-400 hover:text-black transition-colors flex items-center gap-1"
                     >
@@ -193,7 +242,18 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     {query && <span className="ml-1">for <span className="font-semibold text-black">&quot;{query}&quot;</span></span>}
                 </p>
                 <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                    <button
+                        type="button"
+                        onClick={() => setShowFilters((v) => !v)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold border transition-colors ${
+                            showFilters || activeFilterCount > 0
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-black hover:text-black'
+                        }`}
+                    >
+                        <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
+                        Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                    </button>
                     <select
                         value={sort}
                         onChange={(e) => handleSort(e.target.value)}
@@ -205,6 +265,74 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
                     </select>
                 </div>
             </div>
+
+            {showFilters && (
+                <div className="mb-5 border border-gray-200 bg-white p-3 flex flex-wrap items-end gap-3">
+                    <label className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Condition</span>
+                        <select
+                            value={condition}
+                            onChange={(e) => handleCondition(e.target.value)}
+                            className="border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                        >
+                            <option value="All">Any</option>
+                            {Object.entries(CONDITION_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>{label}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Min price (GH₵)</span>
+                        <input
+                            type="number"
+                            min={0}
+                            inputMode="numeric"
+                            placeholder="0"
+                            value={priceDraft.min}
+                            onChange={(e) => setPriceDraft((d) => ({ ...d, min: e.target.value }))}
+                            onBlur={() => applyPriceRange(priceDraft.min, priceDraft.max)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') applyPriceRange(priceDraft.min, priceDraft.max);
+                            }}
+                            className="w-24 border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                        />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Max price (GH₵)</span>
+                        <input
+                            type="number"
+                            min={0}
+                            inputMode="numeric"
+                            placeholder="Any"
+                            value={priceDraft.max}
+                            onChange={(e) => setPriceDraft((d) => ({ ...d, max: e.target.value }))}
+                            onBlur={() => applyPriceRange(priceDraft.min, priceDraft.max)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') applyPriceRange(priceDraft.min, priceDraft.max);
+                            }}
+                            className="w-24 border border-gray-200 px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-black"
+                        />
+                    </label>
+                    <label className="flex items-center gap-2 pb-2">
+                        <input
+                            type="checkbox"
+                            checked={deliveryOnly}
+                            onChange={(e) => handleDeliveryOnly(e.target.checked)}
+                            className="h-3.5 w-3.5 accent-black"
+                        />
+                        <span className="text-xs font-semibold text-gray-600">Delivery available</span>
+                    </label>
+                    {activeFilterCount > 0 && (
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="pb-2 text-xs font-semibold text-gray-400 underline hover:text-black"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            )}
 
             <AuctionGrid auctions={visibleAuctions} loading={loading} />
         </div>
