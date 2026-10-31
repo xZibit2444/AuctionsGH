@@ -679,7 +679,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                 <div className="border-t border-gray-100 px-4 py-2.5">
 
-                    <p className="text-[10px] text-gray-400 text-center">You can only respond Yes or No to each offer.</p>
+                    <p className="text-[10px] text-gray-400 text-center">Respond Yes or No to each offer, or send a counter price.</p>
 
                 </div>
 
