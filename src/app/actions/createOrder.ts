@@ -81,7 +81,7 @@ export async function createOrderAction(data: CheckoutFormData) {
 
             if (existingOrder) {
                 if (!FAILED_ORDER_STATUSES.includes(existingOrder.status as typeof FAILED_ORDER_STATUSES[number])) {
-                    return { success: false, error: 'Another buyer is confirming this purchase right now. If it falls through, you can try again.' };
+                    return { success: false, error: 'A deal for this item is already open with another buyer. If that deal falls through, you can try again.' };
                 }
                 await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
             }
