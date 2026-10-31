@@ -4,6 +4,9 @@ export type ListingType = 'auction' | 'permanent';
 
 const PERMANENT_LISTING_YEAR_THRESHOLD = 2090;
 
+/** Far-future ends_at used for permanent ('live until sold') listings. */
+export const PERMANENT_LISTING_ENDS_AT = '2099-12-31T23:59:59.000Z';
+
 export function isPermanentListing(endsAt?: string | null) {
     if (!endsAt) return false;
 
@@ -20,7 +23,8 @@ export function getListingType(listing: {
         return 'permanent';
     }
 
-    // Accepted offers on permanent listings currently overwrite ends_at.
+    // Buy-now purchases (and offer acceptances before 2026-10-31) on permanent
+    // listings overwrite ends_at with the sale time, so detect those too.
     if (listing.status === 'sold' && (listing.bid_count ?? 0) === 0) {
         return 'permanent';
     }
