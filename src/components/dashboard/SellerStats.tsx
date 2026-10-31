@@ -79,16 +79,17 @@ export default function SellerStats() {
     const cards = statCards(stats);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-200">
-
-            {cards.map(({ label, value, icon: Icon }) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {cards.map(({ label, value, icon: Icon }, index) => (
                 <div
                     key={label}
-                    className="bg-white p-6"
+                    className={`rounded-2xl border p-5 sm:p-6 ${index === 0 ? 'bg-black border-black' : 'bg-white border-gray-200'}`}
                 >
-                    <Icon className="h-4 w-4 text-gray-400 mb-4" strokeWidth={1.5} />
-                    <p className="text-3xl font-black text-black tracking-tight mb-1">{value}</p>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{label}</p>
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-xl mb-4 ${index === 0 ? 'bg-amber-400/20 text-amber-400' : 'bg-amber-400/20 text-amber-700'}`}>
+                        <Icon className="h-4 w-4" strokeWidth={1.9} />
+                    </span>
+                    <p className={`text-2xl sm:text-3xl font-black tracking-tight mb-1 ${index === 0 ? 'text-white' : 'text-black'}`}>{value}</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-widest ${index === 0 ? 'text-gray-400' : 'text-gray-400'}`}>{label}</p>
                 </div>
             ))}
         </div>
