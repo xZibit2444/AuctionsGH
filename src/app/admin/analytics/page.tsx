@@ -238,7 +238,7 @@ function KpiCard({
                     <p className="mt-3 text-2xl font-black text-black tracking-tight">{value}</p>
                     <p className="mt-2 text-xs text-gray-500 leading-5">{help}</p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center bg-black text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white">
                     <Icon className="h-4 w-4" />
                 </div>
             </div>
@@ -630,7 +630,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                         </select>
                     </label>
                     <div className="xl:col-span-6 flex flex-wrap gap-3">
-                        <button type="submit" className="inline-flex items-center gap-2 bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 transition-colors">
+                        <button type="submit" className="inline-flex items-center gap-2 rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 transition-colors">
                             <BarChart3 className="h-4 w-4" />
                             Apply Filters
                         </button>
@@ -760,7 +760,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                                     <tr key={seller.seller_id}>
                                         <td className="py-4 pr-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center bg-black text-xs font-black text-white">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xs font-black text-white">
                                                     {initialBadge(name, 'S')}
                                                 </div>
                                                 <div>
@@ -829,4 +829,4 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
             </div>
         </div>
     );
-}
+                                                                                                           }
