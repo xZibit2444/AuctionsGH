@@ -286,10 +286,10 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                     <textarea
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
-                        rows={2}
+                        rows={3}
                         maxLength={2000}
                         placeholder="Ask a question, leave a comment, or discuss the listing..."
-                        className="flex-1 resize-none border border-gray-200 px-3 py-2.5 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-black"
+                        className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
                     />
                     <button
                         type="submit"
