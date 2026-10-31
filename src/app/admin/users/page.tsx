@@ -196,7 +196,7 @@ function UsersContent() {
                                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            <div className="h-10 w-10 bg-black text-white flex items-center justify-center font-black text-sm shrink-0">
+                                            <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center font-black text-sm shrink-0">
                                                 {(user.full_name || user.username).slice(0, 2).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
@@ -220,7 +220,7 @@ function UsersContent() {
                                                 </span>
                                             )}
                                             {user.is_super_admin && (
-                                                <span className="inline-flex items-center gap-1 border border-black bg-black px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-black bg-black px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">
                                                     Super Admin
                                                 </span>
                                             )}
