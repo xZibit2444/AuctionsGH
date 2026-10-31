@@ -3,7 +3,7 @@
  * Controlled-fixture tests for the listing-page redesign and home hero.
  * Hooks and server actions are mocked; fixtures drive every
  * status/type/role combination so eligibility is verified locally
- * without touching live data.
+ * without touching live data. Run with: npx vitest run
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
