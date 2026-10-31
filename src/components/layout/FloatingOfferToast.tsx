@@ -260,7 +260,7 @@ export default function FloatingOfferToast() {
                                 <button
                                     onClick={() => handleRespond(toast, 'accepted')}
                                     disabled={!!responding}
-                                    className="flex-1 py-2.5 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                    className="flex-1 rounded-xl py-2.5 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                                 >
                                     {isLoading
                                         ? <Loader2 className="h-3 w-3 animate-spin" />
