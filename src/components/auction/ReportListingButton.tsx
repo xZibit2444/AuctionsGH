@@ -141,7 +141,7 @@ export default function ReportListingButton({ auctionId, auctionTitle, className
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="inline-flex items-center justify-center gap-2 bg-black px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-gray-900 disabled:opacity-50"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-black hover:bg-amber-500 disabled:opacity-50"
                                 >
                                     {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                                     {submitting ? 'Sending...' : 'Send report'}
