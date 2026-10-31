@@ -62,7 +62,7 @@ export default function CheckoutTimer({ endsAt }: CheckoutTimerProps) {
     const isWarning = timeLeft.minutes < 5;
 
     return (
-        <div className={`flex flex-col items-center justify-center p-4 border-2 ${isWarning ? 'border-red-500 bg-red-50 text-red-600' : 'border-black bg-black text-white'}`}>
+        <div className={`flex flex-col items-center justify-center rounded-2xl p-4 border-2 ${isWarning ? 'border-red-500 bg-red-50 text-red-600' : 'border-black bg-black text-white'}`}>
             <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
                 Time Remaining to Confirm
             </div>
