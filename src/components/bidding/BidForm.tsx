@@ -97,7 +97,7 @@ export default function BidForm({
             )}
 
             {success && (
-                <div className="p-3 border border-black bg-black text-white font-medium text-sm">
+                <div className="rounded-xl p-3 border border-black bg-black text-white font-medium text-sm">
                     ✓ Bid placed successfully!
                 </div>
             )}
