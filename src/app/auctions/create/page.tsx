@@ -10,7 +10,7 @@ export default async function CreateAuctionPage({ searchParams }: { searchParams
     return (
         <SellerGuard>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                <h1 className="text-2xl font-black tracking-tight text-black mb-6">
                     Sell Your Item
                 </h1>
                 <CreateAuctionForm copyFromId={typeof from === 'string' && /^[0-9a-f-]{36}$/i.test(from) ? from : undefined} />
