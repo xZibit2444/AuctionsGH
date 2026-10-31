@@ -5,6 +5,7 @@ import { useAuction } from '@/hooks/useAuction';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
 import { getListingType } from '@/lib/listings';
+import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import CheckoutTimer from '@/components/checkout/CheckoutTimer';
 import { ShieldCheck, Truck, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
@@ -31,15 +32,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         address: '',
     });
 
-    const orderRaw = (auction as any)?.orders;
+    const orderRaw = (auction as unknown as { orders?: { id: string; status: string; buyer_id?: string }[] })?.orders;
     const order = Array.isArray(orderRaw) ? orderRaw[0] : orderRaw;
+    const isOwnOrder = !!order && !!user && order.buyer_id === user.id;
 
     // Always declare hooks before any early returns to keep hook order stable.
     useEffect(() => {
-        if (order?.id) {
+        if (isOwnOrder && order?.id) {
             router.replace(`/orders/${order.id}`);
         }
-    }, [order?.id, router]);
+    }, [isOwnOrder, order?.id, router]);
 
     if (loading) {
         return (
@@ -64,8 +66,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         );
     }
 
-    // Protection: Only the winner can access this page
-    if (!user || user.id !== auction.winner_id || auction.status !== 'sold') {
+    // A buyer whose offer was accepted on a permanent listing confirms their
+    // order while the listing is still live (it only comes down when an order
+    // is completed), so they check out without being the recorded winner yet.
+    const offersRaw = (auction as unknown as { auction_offers?: { id: string; buyer_id: string; amount: number; status: string }[] })?.auction_offers;
+    const offers = Array.isArray(offersRaw) ? offersRaw : [];
+    const myAcceptedOffer = offers.find((o) => o.buyer_id === user?.id && o.status === 'accepted');
+    const isPermanentActive = getListingType(auction) === 'permanent' && auction.status === 'active';
+    const isOfferBuyer = isPermanentActive && !!myAcceptedOffer;
+
+    // Protection: only the winner (timed auctions, Buy-now) or the accepted-offer
+    // buyer (permanent listings) can access this page
+    if (!user || (!isOfferBuyer && (user.id !== auction.winner_id || auction.status !== 'sold'))) {
         return (
             <div className="max-w-xl mx-auto py-20 px-4 text-center">
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -78,11 +90,27 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         );
     }
 
-    const subtotal = auction.current_price;
+    // Accepted-offer buyers pay the agreed offer amount, not the listed price
+    const subtotal = isOfferBuyer ? Number(myAcceptedOffer.amount) : auction.current_price;
     const isDelivery = form.delivery === 'delivery';
     const total = subtotal;
 
-    if (order) {
+    if (order && !isOwnOrder && !isTerminalOrderStatus(order.status)) {
+        return (
+            <div className="max-w-xl mx-auto py-20 px-4 text-center">
+                <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h1 className="text-xl font-bold mb-2 text-black">Another Buyer Is Confirming</h1>
+                <p className="text-gray-500 mb-6 font-medium">
+                    Another buyer is confirming this purchase right now. The listing stays live until an order is completed, so if it falls through you can confirm again.
+                </p>
+                <Link href={`/auctions/${auction.id}`} className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
+                    Back to Listing
+                </Link>
+            </div>
+        );
+    }
+
+    if (isOwnOrder) {
         return (
             <div className="max-w-xl mx-auto py-20 px-4 text-center">
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
