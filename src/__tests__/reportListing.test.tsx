@@ -66,9 +66,12 @@ describe('ReportListingButton', () => {
         await render();
         const btn = container!.querySelector('button[aria-label="Report listing"]')!;
         await click(btn);
-        expect(container!.textContent).toContain('Report this listing');
+        // Dialog is portaled to document.body so page stacking contexts cannot cover it.
+        const dialog = document.body.querySelector('[role="dialog"]')!;
+        expect(dialog).toBeTruthy();
+        expect(dialog.textContent).toContain('Report this listing');
 
-        const form = container!.querySelector('form')!;
+        const form = dialog.querySelector('form')!;
         await act(async () => {
             form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         });
@@ -83,7 +86,7 @@ describe('ReportListingButton', () => {
         expect(msg).toContain('Listing: iPhone 15 Pro');
         expect(msg).toContain('/auctions/a1');
         expect(msg).toContain('Reason: Scam or fraud');
-        expect(container!.textContent).toContain('Report sent');
+        expect(document.body.querySelector('[role="dialog"]')!.textContent).toContain('Report sent');
     });
 
     it('logged-out user must supply name and email', async () => {
@@ -91,7 +94,7 @@ describe('ReportListingButton', () => {
         h.profile = null;
         await render();
         await click(container!.querySelector('button[aria-label="Report listing"]')!);
-        const inputs = [...container!.querySelectorAll('form input')];
+        const inputs = [...document.body.querySelectorAll('[role="dialog"] form input')];
         expect(inputs.some((i) => (i as HTMLInputElement).type === 'email')).toBe(true);
     });
 });
