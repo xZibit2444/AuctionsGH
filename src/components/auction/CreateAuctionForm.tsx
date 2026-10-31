@@ -19,7 +19,7 @@ import {
     getLocationsForRegion,
 } from '@/lib/constants';
 import { formatAuctionLocation } from '@/lib/utils';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity, Video
 } from 'lucide-react';
@@ -150,6 +150,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
 
     // Only the spec fields that apply to the selected category are shown and saved.
     const specFields = specFieldsForCategory(formData.brand);
+    const placeholders = placeholdersForCategory(formData.brand);
 
     const handleCategoryChange = (category: string) => {
         update('brand', category as CreateAuctionInput['brand']);
@@ -467,7 +468,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         <input
                             value={formData.title}
                             onChange={(e) => update('title', e.target.value)}
-                            placeholder="iPhone 14 Pro Max 256GB Deep Purple"
+                            placeholder={placeholders.title}
                             className={`w-full border px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
                         />
                         {errors.title && <p className="text-[11px] text-red-500 mt-1">{errors.title}</p>}
@@ -486,7 +487,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             <input
                                 value={formData.model ?? ''}
                                 onChange={(e) => update('model', e.target.value)}
-                                placeholder="e.g. Apple iPhone 15 Pro, Samsung Galaxy S24…"
+                                placeholder={placeholders.model}
                                 className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors"
                             />
                         </div>
@@ -524,7 +525,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         )}
                         {specFields.battery && (
                         <div>
-                            <FieldLabel optional>Battery health (%)</FieldLabel>
+                            <FieldLabel optional>{placeholders.batteryLabel}</FieldLabel>
                             <input type="number" min={0} max={100} value={specs.battery} onChange={(e) => setSpecs((p) => ({ ...p, battery: e.target.value }))} placeholder="e.g. 92" className="w-full border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-black transition-colors" />
                             {errors.spec_battery && <p className="text-[11px] text-red-500 mt-1">{errors.spec_battery}</p>}
                         </div>
