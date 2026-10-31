@@ -19,9 +19,10 @@ interface OrderChatProps {
     otherPartyName: string;
     /** When true, the input is hidden and a delivery-complete notice is shown */
     isCompleted?: boolean;
+    closedReason?: 'completed' | 'cancelled' | 'closed';
 }
 
-export default function OrderChat({ orderId, userId, otherPartyName, isCompleted = false }: OrderChatProps) {
+export default function OrderChat({ orderId, userId, otherPartyName, isCompleted = false, closedReason = 'completed' }: OrderChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [body, setBody] = useState('');
     const [sending, setSending] = useState(false);
@@ -220,7 +221,11 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
             {isCompleted ? (
                 <div className="shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-center">
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                        Chat closed · delivery completed
+                        {closedReason === 'completed'
+                            ? 'Chat closed · order completed'
+                            : closedReason === 'cancelled'
+                                ? 'Chat closed · order cancelled'
+                                : 'Chat closed'}
                     </p>
                 </div>
             ) : (
