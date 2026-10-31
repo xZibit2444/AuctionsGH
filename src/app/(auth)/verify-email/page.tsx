@@ -36,7 +36,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
                         We sent a verification link to your inbox. Click it to activate your account and start bidding.
                     </p>
                 </div>
-                <p className="relative z-10 text-[11px] text-gray-700">© 2025 AuctionsGH · All rights reserved</p>
+                <p className="relative z-10 text-[11px] text-gray-700">© {new Date().getFullYear()} AuctionsGH · All rights reserved</p>
             </div>
 
             {/* Right content panel */}
