@@ -56,7 +56,7 @@ export default function HomePageClient() {
 
     return (
         <div className="min-h-screen bg-[#F5F4F0]">
-            <HomeHeader search={search} setSearch={setSearch} />
+            <HomeHeader search={search} setSearch={setSearch} hideLogo />
 
             <HomeHero
                 auctions={auctions}
