@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { getListingType } from '@/lib/listings';
+import { getListingType, PERMANENT_LISTING_ENDS_AT_THRESHOLD } from '@/lib/listings';
 import type { Auction } from '@/types/auction';
 import type { AuctionStatus } from '@/types/database';
 
@@ -116,6 +116,34 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 } else if (status !== 'all') {
                     query = query.eq('status', status);
                 }
+                // Classify permanent vs auction (and, for 'visible', the 48h
+                // sold-retention) in the DB rather than only client-side:
+                // .limit() below runs before any client filter, so excluded
+                // rows used to consume the window and hide valid listings
+                // from the default All view. The client-side checks further
+                // down stay as a backstop.
+                if (status === 'visible') {
+                    const soldCutoffIso = new Date(Date.now() - SOLD_BROWSE_RETENTION_MS).toISOString();
+                    if (listingType === 'permanent') {
+                        query = query.or(
+                            `and(status.eq.active,or(ends_at.gte.${PERMANENT_LISTING_ENDS_AT_THRESHOLD},and(status.eq.sold,bid_count.eq.0))),and(status.eq.sold,updated_at.gte.${soldCutoffIso},or(ends_at.gte.${PERMANENT_LISTING_ENDS_AT_THRESHOLD},and(bid_count.eq.0)))`
+                        );
+                    } else if (listingType === 'auction') {
+                        query = query.or(
+                            `and(status.eq.active,ends_at.lt.${PERMANENT_LISTING_ENDS_AT_THRESHOLD}),and(status.eq.sold,updated_at.gte.${soldCutoffIso},ends_at.lt.${PERMANENT_LISTING_ENDS_AT_THRESHOLD},bid_count.gt.0)`
+                        );
+                    } else {
+                        query = query.or(`status.eq.active,and(status.eq.sold,updated_at.gte.${soldCutoffIso})`);
+                    }
+                } else if (listingType === 'permanent') {
+                    query = query.or(
+                        `ends_at.gte.${PERMANENT_LISTING_ENDS_AT_THRESHOLD},and(status.eq.sold,bid_count.eq.0)`
+                    );
+                } else if (listingType === 'auction') {
+                    query = query
+                        .lt('ends_at', PERMANENT_LISTING_ENDS_AT_THRESHOLD)
+                        .or('status.neq.sold,bid_count.gt.0');
+                }
                 if (brand && brand !== 'All') {
                     query = query.eq('brand', brand);
                 }
@@ -218,3 +246,4 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
 
     return { auctions, loading, error };
 }
+
