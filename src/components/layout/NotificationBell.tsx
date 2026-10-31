@@ -173,11 +173,11 @@ export default function NotificationBell() {
                                     <div className={`flex gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 ${!n.is_read ? 'bg-amber-50' : ''}`}>
                                         <div className="mt-0.5 shrink-0">{typeIcon(n.type)}</div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm leading-snug truncate ${n.is_read ? 'text-gray-600' : 'font-semibold text-black'}`}>
+                                            <p className={`text-sm leading-snug break-words ${n.is_read ? 'text-gray-600' : 'font-semibold text-black'}`}>
                                                 {n.title}
                                             </p>
                                             {n.body && (
-                                                <p className="text-xs text-gray-500 mt-0.5 truncate">{n.body}</p>
+                                                <p className="text-xs text-gray-500 mt-0.5 break-words whitespace-pre-line">{n.body}</p>
                                             )}
                                             <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
                                         </div>
