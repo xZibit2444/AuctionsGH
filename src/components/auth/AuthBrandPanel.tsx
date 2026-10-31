@@ -52,7 +52,7 @@ export default function AuthBrandPanel({ variant }: Props) {
                 )}
             </div>
 
-            <p className="text-[11px] text-gray-300">&copy; 2025 AuctionsGH &middot; All rights reserved</p>
+            <p className="text-[11px] text-gray-300">&copy; {new Date().getFullYear()} AuctionsGH &middot; All rights reserved</p>
         </div>
     );
 }
