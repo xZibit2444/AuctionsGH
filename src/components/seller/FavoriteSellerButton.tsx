@@ -47,7 +47,7 @@ export default function FavoriteSellerButton({
             disabled={pending}
             aria-label={isFavorited ? `Remove ${sellerName} from favorites` : `Favorite ${sellerName}`}
             className={cn(
-                'inline-flex items-center justify-center gap-2 border transition-colors disabled:opacity-50',
+                'inline-flex items-center justify-center gap-2 rounded-full border transition-colors disabled:opacity-50',
                 compact
                     ? 'h-9 w-9 border-gray-200 bg-white text-gray-500 hover:border-black hover:text-black'
                     : isFavorited
