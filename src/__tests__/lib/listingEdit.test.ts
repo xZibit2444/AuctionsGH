@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { updateListingSchema, specFieldsForCategory } from '@/lib/listingEdit';
+import { updateListingSchema, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 import { getLocationsForRegion } from '@/lib/constants';
 
 const base = {
@@ -80,5 +80,19 @@ describe('specFieldsForCategory', () => {
             expect(specFieldsForCategory(c)).toEqual(none);
         }
         expect(specFieldsForCategory(undefined)).toEqual(none);
+    });
+});
+
+describe('placeholdersForCategory', () => {
+    it('uses phone examples for phone categories only', () => {
+        expect(placeholdersForCategory('Phones & Tablets').title).toContain('iPhone');
+        expect(placeholdersForCategory('Home & Garden').title).not.toContain('iPhone');
+        expect(placeholdersForCategory('Home & Garden').model).not.toContain('iPhone');
+        expect(placeholdersForCategory('Vehicles').title).toContain('Toyota');
+    });
+
+    it('labels battery health as laptop-specific for computers', () => {
+        expect(placeholdersForCategory('Computers & Laptops').batteryLabel).toBe('Laptop battery health (%)');
+        expect(placeholdersForCategory('Phones & Tablets').batteryLabel).toBe('Battery health (%)');
     });
 });
