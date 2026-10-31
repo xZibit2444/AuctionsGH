@@ -10,7 +10,7 @@ export interface BrowseFilterState {
     del: boolean;
 }
 
-export const DEFAULT_BROWSE_SORT = 'ends_at:asc';
+export const DEFAULT_BROWSE_SORT = 'shuffled';
 
 /** Serialize browse state to a query string, omitting defaults. */
 export function buildBrowseSearch(st: BrowseFilterState): string {
