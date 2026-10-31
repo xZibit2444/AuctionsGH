@@ -99,9 +99,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         return (
             <div className="max-w-xl mx-auto py-20 px-4 text-center">
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h1 className="text-xl font-bold mb-2 text-black">Another Buyer Is Confirming</h1>
+                <h1 className="text-xl font-bold mb-2 text-black">A Deal Is Already Open</h1>
                 <p className="text-gray-500 mb-6 font-medium">
-                    Another buyer is confirming this purchase right now. The listing stays live until an order is completed, so if it falls through you can confirm again.
+                    A deal for this item is already open with another buyer. The listing stays available until an order is completed, so if that deal falls through you can confirm then.
                 </p>
                 <Link href={`/auctions/${auction.id}`} className="px-6 py-3 bg-black text-white font-bold text-sm tracking-wide">
                     Back to Listing
