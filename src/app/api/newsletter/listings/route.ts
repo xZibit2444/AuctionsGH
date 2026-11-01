@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { LOGO_PNG_BASE64 } from '@/emails/logoData';
 import ListingsNewsletterEmail, { type NewsletterListing } from '@/emails/ListingsNewsletterEmail';
 import { greetingName, unsubscribeUrl } from '@/lib/newsletterToken';
+import { withNewsletterUtm } from '@/lib/emailLinks';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,7 @@ const IMG = 'https://bgzjkwwsjrdlsjvyosoa.supabase.co/storage/v1/object/public/a
 // Content approved by the owner on 2026-11-01 (listing set and wording).
 const SUBJECT = 'New on AuctionsGH: phones, laptops, TVs and more';
 const INTRO = '68 items are now live on AuctionsGH: phones, laptops, TVs, furniture and more, from sellers across Ghana. Here are six worth a look. Message the seller, agree a price, and collect or arrange delivery.';
+const UTM_CAMPAIGN = 'listings_newsletter';
 const LISTINGS: NewsletterListing[] = [
     { title: 'iPhone 15 Pro Max 256GB', detail: 'Good · Greater Accra', price: '₵7,300', url: `${SITE}/auctions/f96b67a1-eadf-43fa-a6f7-1588ced542b3`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/f96b67a1-eadf-43fa-a6f7-1588ced542b3/1793287551897.jpg` },
     { title: 'iPhone 14 Pro Max 128GB', detail: 'Greater Accra', price: '₵4,499', url: `${SITE}/auctions/b2551153-6d75-4b18-be78-c4f0724d3adc`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/b2551153-6d75-4b18-be78-c4f0724d3adc/1793451900393-nimemb.jpg` },
@@ -90,9 +92,10 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < recipients.length; i++) {
         const r = recipients[i];
         const unsub = unsubscribeUrl(r.id, SITE);
-        const props = { firstName: r.firstName, dateLabel, intro: INTRO, listings: LISTINGS, listingsUrl: `${SITE}/listings`, unsubscribeUrl: unsub, postalAddress: address };
+        const taggedListings = LISTINGS.map((l) => ({ ...l, url: withNewsletterUtm(l.url, UTM_CAMPAIGN) }));
+        const props = { firstName: r.firstName, dateLabel, intro: INTRO, listings: taggedListings, listingsUrl: withNewsletterUtm(`${SITE}/listings`, UTM_CAMPAIGN), unsubscribeUrl: unsub, postalAddress: address };
         const html = await render(ListingsNewsletterEmail(props));
-        const text = `${r.firstName ? `Hi ${r.firstName},` : 'Hi,'}\n\n${INTRO}\n\n${LISTINGS.map((l) => `${l.title} - ${l.price} (${l.detail})\n${l.url}`).join('\n\n')}\n\nAll listings: ${SITE}/listings\n\nThanks,\nJason T\nAuctionsGH\n\n---\n${address}\nUnsubscribe: ${unsub}\n`;
+        const text = `${r.firstName ? `Hi ${r.firstName},` : 'Hi,'}\n\n${INTRO}\n\n${taggedListings.map((l) => `${l.title} - ${l.price} (${l.detail})\n${l.url}`).join('\n\n')}\n\nAll listings: ${withNewsletterUtm(`${SITE}/listings`, UTM_CAMPAIGN)}\n\nThanks,\nJason T\nAuctionsGH\n\n---\n${address}\nUnsubscribe: ${unsub}\n`;
         const { error } = await resend.emails.send({
             from: FROM,
             replyTo: process.env.NEWSLETTER_REPLY_TO || undefined,
