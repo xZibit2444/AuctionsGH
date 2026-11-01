@@ -8,6 +8,7 @@ import { buildAuthRedirectUrl } from '@/lib/authRedirect';
 import { GHANA_REGIONS } from '@/lib/constants';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { trackEvent } from '@/lib/analytics';
 
 type SignupValues = {
     email: string;
@@ -84,6 +85,7 @@ export default function SignupForm() {
                 return;
             }
 
+            trackEvent('sign_up', { method: 'email' });
             setSuccessEmail(values.email);
         } catch {
             setFormError('Could not create your account.');
