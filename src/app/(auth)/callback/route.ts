@@ -28,6 +28,25 @@ export async function GET(request: NextRequest) {
     if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
+            // Flag brand-new OAuth accounts so the client can record a GA4 sign_up event.
+            // Guarded twice: a 2-minute account-age window plus a durable user_metadata flag,
+            // so a repeat login cannot be counted as a second sign-up.
+            const { data: { user } } = await supabase.auth.getUser();
+            const createdAt = user?.created_at ? Date.parse(user.created_at) : NaN;
+            const isNewUser =
+                Number.isFinite(createdAt) &&
+                Date.now() - createdAt < 2 * 60 * 1000 &&
+                !user?.user_metadata?.signup_recorded;
+            if (isNewUser) {
+                try {
+                    await supabase.auth.updateUser({ data: { signup_recorded: true } });
+                } catch {
+                    // Non-fatal: worst case the event is skipped or double-counted once.
+                }
+                const provider = (user?.app_metadata?.provider as string | undefined) || 'oauth';
+                const sep = next.includes('?') ? '&' : '?';
+                return NextResponse.redirect(`${origin}${next}${sep}signup=oauth&provider=${encodeURIComponent(provider)}`);
+            }
             return NextResponse.redirect(`${origin}${next}`);
         }
     }
