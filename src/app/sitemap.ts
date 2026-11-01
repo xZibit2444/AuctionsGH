@@ -46,10 +46,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.3,
         },
         {
-            url: `${SITE_URL}/seller-apply`,
+            url: `${SITE_URL}/listings`,
             lastModified: now,
-            changeFrequency: 'monthly',
-            priority: 0.7,
+            changeFrequency: 'daily',
+            priority: 0.9,
         },
     ];
 
