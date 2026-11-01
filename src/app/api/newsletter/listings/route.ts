@@ -10,7 +10,7 @@ import { greetingName, unsubscribeUrl } from '@/lib/newsletterToken';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
 const FROM = process.env.NEWSLETTER_FROM || 'Jason T at AuctionsGH <noreply@auctionsgh.com>';
 const IMG = 'https://bgzjkwwsjrdlsjvyosoa.supabase.co/storage/v1/object/public/auction-images/';
 
