@@ -13,6 +13,7 @@ import {
 } from '@react-email/components';
 
 import * as React from 'react';
+import { withNewsletterUtm } from '@/lib/emailLinks';
 
 
 interface NewsItem {
@@ -108,7 +109,7 @@ export default function NewsletterEmail({ items, date }: NewsletterEmailProps) {
                     })}
 
                     <Section style={ctaSection}>
-                        <Link href={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com'}/news`} style={ctaButton}>
+                        <Link href={withNewsletterUtm(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com'}/news`, 'news_digest')} style={ctaButton}>
                             View all listings
                         </Link>
                     </Section>
