@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const dryRun = !confirm || process.env.NEWSLETTER_SEND_ENABLED !== 'true';
 
     if (dryRun) {
-        return NextResponse.json({ dryRun: true, recipients: recipients.length, withName: recipients.filter((r) => r.firstName).length, addressConfigured: Boolean(address), sendEnabled: process.env.NEWSLETTER_SEND_ENABLED === 'true' });
+        return NextResponse.json({ dryRun: true, recipients: recipients.length, withName: recipients.filter((r) => r.firstName).length, addressConfigured: Boolean(address), sendEnabled: process.env.NEWSLETTER_SEND_ENABLED === 'true', from: FROM, replyToConfigured: Boolean(process.env.NEWSLETTER_REPLY_TO), postalAddress: address || null, ...(body?.selfUnsubscribeLink === true ? { selfUnsubscribeLink: unsubscribeUrl(user.id, SITE) } : {}) });
     }
     if (!address) return NextResponse.json({ error: 'NEWSLETTER_POSTAL_ADDRESS is not set' }, { status: 400 });
     const key = process.env.RESEND_API_KEY;
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
             html,
             text,
             attachments: [{ filename: 'auctionsgh-logo.png', content: LOGO_PNG_BASE64, contentType: 'image/png', contentId: 'auctionsgh-logo' }],
-            headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+            headers: { 'List-Unsubscribe': `<${unsub}>` },
         });
         if (error) failed.push(i + 1); else sent++;
         await new Promise((res) => setTimeout(res, 600)); // stay under the provider's per-second limit
