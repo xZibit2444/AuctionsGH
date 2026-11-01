@@ -22,6 +22,7 @@ export function verifyUnsubscribe(userId: string, token: string): boolean {
 }
 
 export function unsubscribeUrl(userId: string, site = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com'): string {
+    site = site.replace(/\/+$/, '');
     return `${site}/unsubscribe?u=${encodeURIComponent(userId)}&t=${signUnsubscribe(userId)}`;
 }
 
