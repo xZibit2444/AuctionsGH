@@ -1,5 +1,6 @@
 import { Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from '@react-email/components';
 import * as React from 'react';
+import { withNewsletterUtm } from '@/lib/emailLinks';
 
 export interface NewsletterListing {
     title: string;
@@ -28,7 +29,7 @@ export default function ListingsNewsletterEmail({ firstName, dateLabel, intro, l
             <Body style={main}>
                 <Container style={container}>
                     <Section style={logoWrap}>
-                        <Link href="https://auctionsgh.com">
+                        <Link href={withNewsletterUtm('https://auctionsgh.com', 'listings_newsletter')}>
                             <Img src="cid:auctionsgh-logo" alt="AuctionsGH" width="600" style={logo} />
                         </Link>
                     </Section>
