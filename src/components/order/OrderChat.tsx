@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { sendMessageAction } from '@/app/actions/chat';
 import { MessageCircle, Send, Loader2 } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
 
 interface Message {
     id: string;
@@ -114,6 +115,7 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
             setBody(trimmed);
             setSendError(result.error || 'Failed to send. Please try again.');
         } else if (result.messageId) {
+            trackEvent('send_message', { context: 'order_chat' });
             // Swap the temp ID for the real UUID so the incoming Realtime event deduplicates correctly
             setMessages((prev) =>
                 prev.map((m) => (m.id === optimisticId ? { ...m, id: result.messageId! } : m))
