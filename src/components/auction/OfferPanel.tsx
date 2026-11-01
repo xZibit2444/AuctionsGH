@@ -11,6 +11,7 @@ import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
 
 
 interface Offer {
@@ -163,7 +164,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
         if (!result.success) setFormError(result.error ?? 'Failed to send offer');
 
-        else { setAmount(''); void fetchOffers(); }
+        else { trackEvent('submit_offer', { currency: 'GHS', value: parsed }); setAmount(''); void fetchOffers(); }
 
     };
 
