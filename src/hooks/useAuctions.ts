@@ -9,6 +9,7 @@ import type { AuctionStatus } from '@/types/database';
 const SOLD_BROWSE_RETENTION_MS = 48 * 60 * 60 * 1000;
 
 interface UseAuctionsOptions {
+    initialAuctions?: Auction[];
     status?: AuctionStatus | 'all' | 'visible';
     listingType?: 'auction' | 'permanent' | 'all';
     brand?: string;
@@ -30,6 +31,7 @@ interface UseAuctionsOptions {
 
 export function useAuctions(options: UseAuctionsOptions = {}) {
     const {
+        initialAuctions,
         status = 'active',
         listingType = 'all',
         brand,
@@ -47,8 +49,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
         fetchAll = false,
     } = options;
 
-    const [auctions, setAuctions] = useState<Auction[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [auctions, setAuctions] = useState<Auction[]>(initialAuctions ?? []);
+    const [loading, setLoading] = useState(!initialAuctions);
     const [error, setError] = useState<string | null>(null);
 
     // Debounce search to avoid firing a DB query on every keystroke
@@ -64,7 +66,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
     useEffect(() => {
         let isMounted = true;
         const fetchAuctions = async () => {
-            setLoading(true);
+            if (!initialAuctions) setLoading(true);
             setError(null);
 
             try {

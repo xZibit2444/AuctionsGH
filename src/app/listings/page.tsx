@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getPublicBrowse } from '@/lib/publicBrowse';
 import { PermanentListingsPageClient } from '@/components/auction/AuctionsPageClient';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
@@ -51,6 +52,9 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
     };
 }
 
-export default function ListingsPage() {
-    return <PermanentListingsPageClient />;
+export default async function ListingsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+    const params = await searchParams;
+    // Seed the default browse grid only. Existing client filtering owns custom URLs.
+    const initialAuctions = Object.keys(params).length === 0 ? await getPublicBrowse('permanent') : undefined;
+    return <PermanentListingsPageClient initialAuctions={initialAuctions} />;
 }

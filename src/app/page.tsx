@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { getPublicBrowse } from '@/lib/publicBrowse';
+import { serializeJsonLd } from '@/lib/seo';
 import HomePageClient from '@/components/auction/HomePageClient';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
@@ -24,6 +26,10 @@ export const metadata: Metadata = {
     },
 };
 
-export default function HomePage() {
-    return <HomePageClient />;
+export default async function HomePage() {
+    const initialAuctions = await getPublicBrowse(undefined, true);
+    return <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'AuctionsGH', url: SITE_URL }) }} />
+        <HomePageClient initialAuctions={initialAuctions} />
+    </>;
 }

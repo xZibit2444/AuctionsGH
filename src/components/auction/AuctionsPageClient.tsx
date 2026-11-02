@@ -8,6 +8,7 @@ import { CONDITION_LABELS, ITEM_CATEGORIES } from '@/lib/constants';
 import { useAuctions } from '@/hooks/useAuctions';
 import { shuffled } from '@/lib/rotation';
 import { buildBrowseSearch, normalizePriceRange } from '@/lib/browseParams';
+import type { Auction } from '@/types/auction';
 import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 
@@ -20,7 +21,7 @@ const SORT_OPTIONS = [
     { label: 'Price: High to Low', value: 'current_price:desc' },
 ];
 
-function AuctionsContent({ listingType }: { listingType: ListingType }) {
+function AuctionsContent({ listingType, initialAuctions }: { listingType: ListingType; initialAuctions?: Auction[] }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -48,6 +49,7 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     ];
 
     const { auctions, loading, error } = useAuctions({
+        initialAuctions,
         status: 'visible',
         listingType,
         // No fixed cap: page through every matching row so the default All
@@ -67,8 +69,8 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     // same listings in the same order; an explicit sort choice is preserved.
     const isDefaultSort = sort === 'shuffled';
     const visibleAuctions = useMemo(
-        () => (isDefaultSort ? shuffled(auctions) : auctions),
-        [auctions, isDefaultSort]
+        () => (isDefaultSort && !(initialAuctions && auctions === initialAuctions) ? shuffled(auctions) : auctions),
+        [auctions, isDefaultSort, initialAuctions]
     );
 
     const basePath = listingType === 'permanent' ? '/listings' : '/auctions';
@@ -347,18 +349,18 @@ function AuctionsContent({ listingType }: { listingType: ListingType }) {
     );
 }
 
-export default function AuctionsPageClient() {
+export default function AuctionsPageClient({ initialAuctions }: { initialAuctions?: Auction[]; listingType?: ListingType }) {
     return (
         <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-amber-400 border-t-transparent rounded-full" /></div>}>
-            <AuctionsContent listingType="auction" />
+            <AuctionsContent listingType="auction" initialAuctions={initialAuctions} />
         </Suspense>
     );
 }
 
-export function PermanentListingsPageClient() {
+export function PermanentListingsPageClient({ initialAuctions }: { initialAuctions?: Auction[]; listingType?: ListingType }) {
     return (
         <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-amber-400 border-t-transparent rounded-full" /></div>}>
-            <AuctionsContent listingType="permanent" />
+            <AuctionsContent listingType="permanent" initialAuctions={initialAuctions} />
         </Suspense>
     );
                                                           }

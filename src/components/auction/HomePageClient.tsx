@@ -20,13 +20,16 @@ interface HomeStats {
 // the Permanent Listings tab (/listings), reached through "See more".
 const PREVIEW_COUNT = 6;
 
-export default function HomePageClient() {
+import type { Auction } from '@/types/auction';
+
+export default function HomePageClient({ initialAuctions }: { initialAuctions?: Auction[] }) {
     const [search, setSearch] = useState('');
     const [brand, setBrand] = useState('All');
     const [condition] = useState('All');
     const [stats, setStats] = useState<HomeStats>({ liveCount: null, categoryCount: null });
 
     const { auctions, loading, error } = useAuctions({
+        initialAuctions,
         status: 'active',
         search,
         brand,
@@ -63,7 +66,7 @@ export default function HomePageClient() {
     // Search and category results stay complete; only the default homepage
     // view is capped at the preview count. The preview pool rotates on every
     // open so returning visitors see different listings first.
-    const rotatedPool = useMemo(() => shuffled(auctions), [auctions]);
+    const rotatedPool = useMemo(() => initialAuctions && auctions === initialAuctions ? auctions : shuffled(auctions), [auctions, initialAuctions]);
     const visibleAuctions = isFiltering ? auctions : rotatedPool.slice(0, PREVIEW_COUNT);
     const hasMore = !isFiltering && !loading && auctions.length > PREVIEW_COUNT;
 
