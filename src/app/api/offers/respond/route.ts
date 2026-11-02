@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Auction is no longer active' }, { status: 409 });
         }
 
-        // Permanent listings stay live until an order is actually completed:
+        // Permanent listings stay live unless the seller takes them down:
         // an accepted offer does not reserve the item, because buyers can
         // accept-then-never-pay. Timed auctions close immediately as before.
         const isPermanent = isPermanentListing(auction.ends_at);
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
             body: isPermanent
-                ? `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live until an order is completed.`
+                ? `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live unless the seller takes it down.`
                 : `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
             user_id: user.id,
             type: 'new_offer',
             title: 'Offer Accepted - Awaiting Buyer',
-            body: `You accepted GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". The listing stays active until the order is completed.`,
+            body: `You accepted GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". The listing stays active unless you take it down.`,
             auction_id: offer.auction_id,
         });
 

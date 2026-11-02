@@ -525,8 +525,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                 />
             )}
 
-            {/* Accepted-offer banner: permanent listings stay live until an order
-                is completed, so the accepted buyer confirms from here */}
+            {/* Accepted-offer banner: permanent listings stay live unless the seller
+                takes them down, so the accepted buyer confirms from here */}
             {!isSeller && isPermanent && auction.status === 'active' && myAcceptedOffer && (
                 <div className="mb-6 p-6 rounded-2xl bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -536,7 +536,7 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
                             <strong>&quot;{auction.title}&quot;</strong>.{' '}
                             {myOrder
                                 ? 'Your order is confirmed - track its progress below.'
-                                : 'Confirm your order to secure it - this listing stays live until an order is completed.'}
+                                : 'Confirm your order to secure it - this listing stays live unless the seller takes it down.'}
                         </p>
                     </div>
                     <Link

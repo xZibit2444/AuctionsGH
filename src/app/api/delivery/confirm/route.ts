@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
             .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
             .eq('id', orderId);
 
-        // A completed order is what finally takes a permanent listing off the market
+        // Permanent listings stay live even after a completed order - only the seller takes one down. This finalizes only legacy non-permanent listings still marked active.
         await finalizeListingSaleIfActive(d.auction_id, d.buyer_id);
 
         await sendOrderCompletionEmails(orderId);

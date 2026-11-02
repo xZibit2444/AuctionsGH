@@ -75,7 +75,7 @@ describe('respondToOfferAction', () => {
         // Other buyers' pending offers stay open
         expect(db.offers.find((o) => o.id === 'offer2').status).toBe('pending');
         const buyerNote = db.notes.find((n) => n.user_id === 'b1');
-        expect(buyerNote.body).toMatch(/stays live until an order is completed/);
+        expect(buyerNote.body).toMatch(/stays live unless the seller takes it down/);
     });
 
     it('timed auction: accepting an offer closes the auction and declines other offers', async () => {

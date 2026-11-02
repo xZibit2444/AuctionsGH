@@ -146,8 +146,10 @@ describe('identity and authorization', () => {
         expect(db.offers[0].status).toBe('countered');
     });
 
-    it('a buyer without an accepted offer cannot create an order', async () => {
-        // b1's offer is merely pending; b3 has no offer at all.
+    it('a buyer without an accepted offer cannot create an order when Buy now is off', async () => {
+        // With Buy now disabled there is no listed-price path, so b1's merely
+        // pending offer and b3's missing offer both block checkout.
+        db.auction!.allow_buy_now = false;
         for (const buyer of ['b1', 'b3']) {
             const r = await createOrderAction(checkout(buyer));
             expect(r.success).toBe(false);
@@ -156,12 +158,24 @@ describe('identity and authorization', () => {
         expect(db.orders).toHaveLength(0);
     });
 
-    it('a buyer with only a countered (unanswered) offer cannot create an order', async () => {
+    it('a buyer with only a countered (unanswered) offer cannot create an order when Buy now is off', async () => {
+        db.auction!.allow_buy_now = false;
         db.offers[0].status = 'countered';
         db.offers[0].counter_amount = 6000;
         const r = await createOrderAction(checkout('b1'));
         expect(r.success).toBe(false);
         expect(db.orders).toHaveLength(0);
+    });
+
+    it('any non-seller can still Buy now at the listed price while offers are unanswered', async () => {
+        // Unanswered offers do not block the listed-price path: a countered or
+        // pending buyer (or any other buyer) can buy at full price instead.
+        db.offers[0].status = 'countered';
+        db.offers[0].counter_amount = 6000;
+        const r = await createOrderAction(checkout('b1'));
+        expect(r.success).toBe(true);
+        expect(db.orders[0].amount).toBe(9000);
+        expect(db.auction!.status).toBe('active');
     });
 });
 

@@ -5,37 +5,10 @@ let currentUser: { id: string } | null = null;
 
 function table(name: string) {
     const filters: [string, unknown][] = [];
-    const neqFilters: [string, unknown][] = [];
-    const inFilters: [string, unknown[]][] = [];
-    let patch: any = null;
-    let selectCols = '';
-    const matchOffer = (o: any) =>
-        filters.every(([k, v]) => !(k in o) || o[k] === v) &&
-        neqFilters.every(([k, v]) => o[k] !== v) &&
-        inFilters.every(([k, vals]) => vals.includes(o[k]));
     const q: any = {
-        select: (cols?: string) => { selectCols = cols ?? selectCols; return q; },
-        update: (p: any) => { patch = p; return q; },
+        select: () => q,
         eq: (k: string, v: unknown) => { filters.push([k, v]); return q; },
-        in: (k: string, vals: unknown[]) => { inFilters.push([k, vals]); return q; },
-        neq: (k: string, v: unknown) => { neqFilters.push([k, v]); return q; },
         maybeSingle: async () => ({ data: name === 'auctions' ? db.auction : null }),
-        then: (res: any) => {
-            if (name === 'auctions' && patch) {
-                const ok = filters.every(([k, v]) => db.auction[k] === v);
-                if (ok) { Object.assign(db.auction, patch); return res({ data: [{ id: db.auction.id }], error: null }); }
-                return res({ data: [], error: null });
-            }
-            if (name === 'auction_offers') {
-                if (patch) {
-                    const matched = db.offers.filter(matchOffer);
-                    matched.forEach(o => Object.assign(o, patch));
-                    return res({ data: matched, error: null });
-                }
-                if (selectCols) return res({ data: db.offers.filter(matchOffer).map((o) => ({ ...o })), error: null });
-            }
-            return res({ data: null, error: null });
-        },
     };
     return q;
 }
@@ -62,33 +35,28 @@ beforeEach(() => {
 });
 
 describe('buyNowAction', () => {
-    it('sells at the DB price to the buyer and declines pending offers', async () => {
+    it('lets the buyer proceed without taking the listing down', async () => {
         const r = await buyNowAction('a1');
         expect(r.success).toBe(true);
-        expect(db.auction).toMatchObject({ status: 'sold', winner_id: 'b1', current_price: 6600 });
-        expect(db.offers[0].status).toBe('declined');
-        expect(db.notes.map(n => n.user_id).sort()).toEqual(['b1', 's1']);
+        // Permanent rule: a Buy-now click never claims, reserves or hides the
+        // listing - only the seller takes it down.
+        expect(db.auction).toMatchObject({ status: 'active', winner_id: null, current_price: 6600, ends_at: PERM });
     });
-    it('also closes countered offers when the item sells', async () => {
-        db.offers = [
-            { id: 'o3', buyer_id: 'b4', status: 'countered', counter_amount: 6000 },
-        ];
-        const r = await buyNowAction('a1');
-        expect(r.success).toBe(true);
-        expect(db.offers[0].status).toBe('declined');
-    });
-    it('also closes accepted offers and notifies those buyers the item sold', async () => {
+    it('leaves every open offer untouched for the seller', async () => {
         db.offers = [
             { id: 'o1', buyer_id: 'b2', status: 'accepted' },
             { id: 'o2', buyer_id: 'b3', status: 'pending' },
         ];
         const r = await buyNowAction('a1');
         expect(r.success).toBe(true);
-        expect(db.offers.map(o => o.status)).toEqual(['declined', 'declined']);
-        const soldElsewhere = db.notes.filter(n => n.title === 'Item Sold to Another Buyer');
-        expect(soldElsewhere.map(n => n.user_id)).toEqual(['b2']);
+        expect(db.offers.map(o => o.status)).toEqual(['accepted', 'pending']);
     });
-    it('two simultaneous buyers: exactly one wins', async () => {
+    it('sends no sold/reserved notifications or emails at click time', async () => {
+        const r = await buyNowAction('a1');
+        expect(r.success).toBe(true);
+        expect(db.notes).toEqual([]);
+    });
+    it('two simultaneous buyers both proceed - the first confirmed order wins the deal slot at checkout', async () => {
         const users = ['b1', 'b2'];
         let i = 0;
         currentUser = null;
@@ -98,17 +66,11 @@ describe('buyNowAction', () => {
             return { auth: { getUser: async () => ({ data: { user: { id } } }) } };
         }) as any);
         const res = await Promise.all([buyNowAction('a1'), buyNowAction('a1')]);
-        expect(res.filter(r => r.success).length).toBe(1);
-        expect(res.find(r => !r.success)?.error).toMatch(/no longer available|just bought/);
-        expect(db.auction.status).toBe('sold');
+        expect(res.every(r => r.success)).toBe(true);
+        expect(db.auction.status).toBe('active');
         vi.restoreAllMocks();
     });
-    it('leaves no dangling offers when the item is bought', async () => {
-        const r = await buyNowAction('a1');
-        expect(r.success).toBe(true);
-        expect(db.offers.every(o => o.status === 'declined')).toBe(true);
-    });
-    it('rejects auctions, own listing, sold items, logged out', async () => {
+    it('rejects auctions, own listing, sold items, logged out, buy-now disabled, missing price', async () => {
         db.auction.ends_at = '2026-11-01T00:00:00Z';
         expect((await buyNowAction('a1')).success).toBe(false);
         expect(db.auction.status).toBe('active');
@@ -119,6 +81,12 @@ describe('buyNowAction', () => {
         expect((await buyNowAction('a1')).error).toMatch(/authenticated/);
         currentUser = { id: 'b1' };
         db.auction.status = 'sold';
+        expect((await buyNowAction('a1')).success).toBe(false);
+        db.auction.status = 'active';
+        db.auction.allow_buy_now = false;
+        expect((await buyNowAction('a1')).error).toMatch(/not available/);
+        db.auction.allow_buy_now = true;
+        db.auction.current_price = 0;
         expect((await buyNowAction('a1')).success).toBe(false);
     });
 });

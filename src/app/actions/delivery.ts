@@ -138,7 +138,7 @@ export async function confirmDeliveryAction(
         .update({ status: 'completed', updated_at: new Date().toISOString() } as never)
         .eq('id', orderId);
 
-    // A completed order is what finally takes a permanent listing off the market
+    // Permanent listings stay live even after a completed order - only the seller takes one down. This finalizes only legacy non-permanent listings still marked active.
     await finalizeListingSaleIfActive(delivery.auction_id, delivery.buyer_id);
 
     await sendOrderCompletionEmails(orderId);
@@ -188,7 +188,7 @@ export async function confirmDeliveredByBuyerAction(
         .update({ status: 'completed', updated_at: nowIso } as never)
         .eq('id', orderId);
 
-    // A completed order is what finally takes a permanent listing off the market
+    // Permanent listings stay live even after a completed order - only the seller takes one down. This finalizes only legacy non-permanent listings still marked active.
     await finalizeListingSaleIfActive(delivery.auction_id, delivery.buyer_id);
 
     await sendOrderCompletionEmails(orderId);

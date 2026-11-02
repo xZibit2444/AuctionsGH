@@ -1,20 +1,35 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { isPermanentListing } from '@/lib/listings';
 
 type OpenOffer = { id: string; buyer_id: string; status: string };
 
 /**
- * Mark a listing sold when one of its orders is completed.
+ * Close out a listing when one of its orders is completed.
  *
- * Permanent listings stay active and visible while offers are made and
- * accepted - an offer does not reserve the item and buyers can fail to pay.
- * Only a completed order takes the listing off the market. This helper is a
- * no-op for listings that are already sold (timed auctions and Buy-now
- * purchases are marked sold at claim time), so it is safe to call from every
- * order-completion path.
+ * Permanent listings are never taken down automatically - not by an accepted
+ * offer, not by a Buy-now click, and not by a completed order. Only the
+ * seller takes a listing down (pause, mark sold, delete), so for a permanent
+ * listing this helper is a no-op: it stays live and its other offers stay
+ * open for the seller to manage.
+ *
+ * Timed auctions are already marked sold at claim time, so the conditional
+ * update below only fires for legacy non-permanent listings that are somehow
+ * still active when an order completes.
  */
 export async function finalizeListingSaleIfActive(auctionId: string, buyerId: string): Promise<void> {
     const supabaseAdmin = createAdminClient();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: listing } = await (supabaseAdmin as any)
+        .from('auctions')
+        .select('id, status, ends_at')
+        .eq('id', auctionId)
+        .maybeSingle() as { data: { id: string; status: string; ends_at: string | null } | null };
+
+    if (!listing || listing.status !== 'active') return; // already sold/ended elsewhere
+    if (isPermanentListing(listing.ends_at)) return; // seller-controlled takedown only
+
     const now = new Date().toISOString();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

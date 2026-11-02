@@ -37,7 +37,7 @@ export async function createOrderAction(data: CheckoutFormData) {
     try {
         const { data: auction, error: fetchError } = await supabaseAdmin
             .from('auctions')
-            .select('id, title, seller_id, status, winner_id, current_price, ends_at')
+            .select('id, title, seller_id, status, winner_id, current_price, ends_at, allow_buy_now')
             .eq('id', data.auctionId)
             .single();
 
@@ -49,11 +49,14 @@ export async function createOrderAction(data: CheckoutFormData) {
         const isSoldWinner = auction.status === 'sold' && auction.winner_id === data.buyerId;
 
         if (!isSoldWinner) {
-            // Permanent listings stay live after an offer is accepted, so the
-            // accepted buyer confirms their order while the listing is still
-            // active. The agreed offer amount is read from the accepted offer,
-            // never from the client.
+            // Permanent listings stay live no matter what buyers do - only the
+            // seller takes one down. Two buyer paths confirm an order while the
+            // listing is still active: an accepted offer (priced from the
+            // offer, never the client) and Buy now (priced from the database).
             if (auction.status !== 'active' || !isPermanentListing(auction.ends_at)) {
+                return { success: false, error: 'Invalid auction state or unauthorized' };
+            }
+            if (auction.seller_id === data.buyerId) {
                 return { success: false, error: 'Invalid auction state or unauthorized' };
             }
 
@@ -65,7 +68,7 @@ export async function createOrderAction(data: CheckoutFormData) {
                 .eq('status', 'accepted')
                 .maybeSingle();
 
-            if (!acceptedOffer) {
+            if (!acceptedOffer && (auction as { allow_buy_now?: boolean }).allow_buy_now === false) {
                 return { success: false, error: 'Invalid auction state or unauthorized' };
             }
 
@@ -86,8 +89,16 @@ export async function createOrderAction(data: CheckoutFormData) {
                 await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
             }
 
-            // Agreed price: the counter amount when the buyer accepted a counter-offer.
-            orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
+            if (acceptedOffer) {
+                // Agreed price: the counter amount when the buyer accepted a counter-offer.
+                orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
+            } else {
+                // Buy now checkout on a live listing: listed price, read from the DB.
+                orderAmount = Number(auction.current_price);
+                if (!orderAmount || orderAmount <= 0) {
+                    return { success: false, error: 'Invalid auction state or unauthorized' };
+                }
+            }
         }
 
         const fulfillment_type = 'meet_and_inspect';

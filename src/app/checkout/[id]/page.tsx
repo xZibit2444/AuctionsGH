@@ -66,18 +66,24 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         );
     }
 
-    // A buyer whose offer was accepted on a permanent listing confirms their
-    // order while the listing is still live (it only comes down when an order
-    // is completed), so they check out without being the recorded winner yet.
+    // Permanent listings stay live no matter what buyers do - only the seller
+    // takes one down. Buyers therefore check out while the listing is still
+    // active: the accepted-offer buyer at the agreed price, and any signed-in
+    // non-seller via Buy now at the listed price (first confirmed order wins
+    // the deal slot; createOrderAction enforces one open order).
     const offersRaw = (auction as unknown as { auction_offers?: { id: string; buyer_id: string; amount: number; counter_amount: number | null; status: string }[] })?.auction_offers;
     const offers = Array.isArray(offersRaw) ? offersRaw : [];
     const myAcceptedOffer = offers.find((o) => o.buyer_id === user?.id && o.status === 'accepted');
     const isPermanentActive = getListingType(auction) === 'permanent' && auction.status === 'active';
     const isOfferBuyer = isPermanentActive && !!myAcceptedOffer;
+    const buyNowEnabled = (auction as unknown as { allow_buy_now?: boolean }).allow_buy_now !== false;
+    const isSeller = !!user && auction.seller_id === user.id;
+    const isBuyNowBuyer = isPermanentActive && buyNowEnabled && !!user && !isSeller;
 
-    // Protection: only the winner (timed auctions, Buy-now) or the accepted-offer
-    // buyer (permanent listings) can access this page
-    if (!user || (!isOfferBuyer && (user.id !== auction.winner_id || auction.status !== 'sold'))) {
+    // Protection: only the winner (timed auctions, legacy Buy-now claims), the
+    // accepted-offer buyer, or a Buy-now buyer (permanent listings) can access
+    // this page. The seller never checks out their own listing.
+    if (!user || isSeller || (!isOfferBuyer && !isBuyNowBuyer && (user.id !== auction.winner_id || auction.status !== 'sold'))) {
         return (
             <div className="max-w-xl mx-auto py-20 px-4 text-center">
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -102,7 +108,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h1 className="text-xl font-bold mb-2 text-black">A Deal Is Already Open</h1>
                 <p className="text-gray-500 mb-6 font-medium">
-                    A deal for this item is already open with another buyer. The listing stays available until an order is completed, so if that deal falls through you can confirm then.
+                    A deal for this item is already open with another buyer. The listing stays available, so if that deal falls through you can confirm then.
                 </p>
                 <Link href={`/auctions/${auction.id}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Back to Listing

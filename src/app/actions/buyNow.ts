@@ -3,8 +3,6 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { isPermanentListing } from '@/lib/listings';
-import { insertNotificationIfEnabled } from '@/lib/notifications';
-import { sendAuctionSoldEmail, sendAuctionWonEmail } from '@/lib/email/sender';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,16 +10,16 @@ const supabaseAdmin = createAdminClient(
     { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-function displayName(p: { full_name?: string | null; username?: string | null } | null, fallback: string) {
-    return p?.full_name?.trim() || p?.username?.trim() || fallback;
-}
-
 /**
- * Buy a fixed-price listing at its listed price. No seller confirmation.
- * The price is read from the database, never from the client. The listing is
- * claimed with one conditional update (status must still be 'active'), so only
- * one buyer can win. The buyer then completes the normal pay-on-meetup
- * checkout at /checkout/[id] (fixed-price listings have no checkout deadline).
+ * Start a fixed-price purchase at the listed price. No seller confirmation.
+ *
+ * Listings are permanent: only the seller takes one down (pause, mark sold,
+ * delete). Clicking Buy now does NOT claim or reserve the listing - buyers
+ * can click and never pay, and an automatic takedown would hide the item from
+ * every other buyer for nothing. The buyer proceeds to checkout; the order is
+ * created there at the database price, and the first confirmed order wins the
+ * single open-deal slot (enforced in createOrderAction). Open offers from
+ * other buyers are left untouched for the seller to manage.
  */
 export async function buyNowAction(
     auctionId: string
@@ -44,78 +42,6 @@ export async function buyNowAction(
 
     const price = Number(listing.current_price);
     if (!price || price <= 0) return { success: false, error: 'This listing has no price' };
-
-    const now = new Date().toISOString();
-    const { data: claimed, error: claimErr } = await supabaseAdmin
-        .from('auctions')
-        .update({ status: 'sold', winner_id: user.id, current_price: price, ends_at: now, updated_at: now })
-        .eq('id', auctionId)
-        .eq('status', 'active')
-        .select('id');
-
-    if (claimErr) return { success: false, error: 'Could not complete the purchase. Please try again.' };
-    if (!claimed || claimed.length === 0) return { success: false, error: 'Someone else just bought this item' };
-
-    // Close out every open offer (pending and accepted). Accepted-offer buyers
-    // are told explicitly: permanent listings stay live until a sale completes,
-    // so they may have been on their way to checkout.
-    const { data: openOffers } = await supabaseAdmin
-        .from('auction_offers')
-        .select('id, buyer_id, status')
-        .eq('auction_id', auctionId)
-        .in('status', ['pending', 'accepted', 'countered']) as { data: { id: string; buyer_id: string; status: string }[] | null };
-
-    if (openOffers && openOffers.length > 0) {
-        await supabaseAdmin
-            .from('auction_offers')
-            .update({ status: 'declined', updated_at: now })
-            .in('id', openOffers.map((o) => o.id));
-    }
-
-    const amountText = `GHS ${price.toLocaleString()}`;
-    await insertNotificationIfEnabled(supabaseAdmin as never, {
-        user_id: user.id,
-        type: 'auction_won',
-        title: 'Item Reserved For You',
-        body: `You bought "${listing.title}" at ${amountText}. Confirm your order, then agree with the seller how to pay and collect.`,
-        auction_id: auctionId,
-    });
-    await insertNotificationIfEnabled(supabaseAdmin as never, {
-        user_id: listing.seller_id,
-        type: 'new_offer',
-        title: 'Item Bought At Listed Price',
-        body: `A buyer bought "${listing.title}" at ${amountText}. They will confirm the order and contact you to arrange payment and collection.`,
-        auction_id: auctionId,
-    });
-
-    for (const o of (openOffers ?? []).filter((o) => o.status === 'accepted' && o.buyer_id !== user.id)) {
-        await insertNotificationIfEnabled(supabaseAdmin as never, {
-            user_id: o.buyer_id,
-            type: 'system',
-            title: 'Item Sold to Another Buyer',
-            body: `"${listing.title}" was bought at the listed price by another buyer. Your accepted offer no longer applies.`,
-            auction_id: auctionId,
-        });
-    }
-
-    try {
-        const [{ data: sp }, { data: bp }, sAuth, bAuth] = await Promise.all([
-            supabaseAdmin.from('profiles').select('full_name, username').eq('id', listing.seller_id).maybeSingle(),
-            supabaseAdmin.from('profiles').select('full_name, username').eq('id', user.id).maybeSingle(),
-            supabaseAdmin.auth.admin.getUserById(listing.seller_id),
-            supabaseAdmin.auth.admin.getUserById(user.id),
-        ]);
-        const sellerName = displayName(sp, 'Seller');
-        const buyerName = displayName(bp, 'Buyer');
-        if (bAuth.data.user?.email) {
-            await sendAuctionWonEmail(bAuth.data.user.email, buyerName, listing.title, price, auctionId, true);
-        }
-        if (sAuth.data.user?.email) {
-            await sendAuctionSoldEmail(sAuth.data.user.email, sellerName, listing.title, price, buyerName, true);
-        }
-    } catch (e) {
-        console.error('Buy-now emails failed:', e);
-    }
 
     return { success: true };
 }

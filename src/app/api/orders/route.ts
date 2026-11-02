@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     try {
         const { data: auction, error: fetchErr } = await supabaseAdmin
             .from('auctions')
-            .select('id, title, seller_id, status, winner_id, current_price, ends_at')
+            .select('id, title, seller_id, status, winner_id, current_price, ends_at, allow_buy_now')
             .eq('id', auctionId)
             .single();
 
@@ -73,10 +73,14 @@ export async function POST(req: NextRequest) {
         const isSoldWinner = auction.status === 'sold' && auction.winner_id === user.id;
 
         if (!isSoldWinner) {
-            // Permanent listings stay live after an offer is accepted, so the
-            // accepted buyer confirms while the listing is still active. The
-            // agreed amount comes from the accepted offer, not the client.
+            // Permanent listings stay live no matter what buyers do - only the
+            // seller takes one down. Two buyer paths confirm an order while the
+            // listing is still active: an accepted offer (priced from the
+            // offer, never the client) and Buy now (priced from the database).
             if (auction.status !== 'active' || !isPermanentListing(auction.ends_at)) {
+                return NextResponse.json({ error: 'You are not the winner of this auction' }, { status: 403 });
+            }
+            if (auction.seller_id === user.id) {
                 return NextResponse.json({ error: 'You are not the winner of this auction' }, { status: 403 });
             }
 
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
                 .eq('status', 'accepted')
                 .maybeSingle();
 
-            if (!acceptedOffer) {
+            if (!acceptedOffer && (auction as { allow_buy_now?: boolean }).allow_buy_now === false) {
                 return NextResponse.json({ error: 'You are not the winner of this auction' }, { status: 403 });
             }
 
@@ -108,8 +112,16 @@ export async function POST(req: NextRequest) {
                 await supabaseAdmin.from('orders').delete().eq('id', existingOrder.id);
             }
 
-            // Agreed price: the counter amount when the buyer accepted a counter-offer.
-            orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
+            if (acceptedOffer) {
+                // Agreed price: the counter amount when the buyer accepted a counter-offer.
+                orderAmount = Number(acceptedOffer.counter_amount ?? acceptedOffer.amount);
+            } else {
+                // Buy now checkout on a live listing: listed price, read from the DB.
+                orderAmount = Number(auction.current_price);
+                if (!orderAmount || orderAmount <= 0) {
+                    return NextResponse.json({ error: 'You are not the winner of this auction' }, { status: 403 });
+                }
+            }
         }
 
         const { data: order, error: orderErr } = await supabaseAdmin

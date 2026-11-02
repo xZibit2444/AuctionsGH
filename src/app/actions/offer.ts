@@ -129,7 +129,7 @@ async function finalizeAcceptedOffer(
             return { success: false, error: 'Auction is no longer active - cannot accept offer' };
         }
 
-        // Permanent listings stay live until an order is actually completed:
+        // Permanent listings stay live unless the seller takes them down:
         // an accepted offer does not reserve the item, because buyers can
         // accept-then-never-pay. Timed auctions close immediately as before.
         const isPermanent = isPermanentListing(auction.ends_at);
@@ -163,7 +163,7 @@ async function finalizeAcceptedOffer(
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
             body: isPermanent
-                ? `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live until an order is completed.`
+                ? `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live unless the seller takes it down.`
                 : `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
             auction_id: offer.auction_id,
         });
@@ -172,7 +172,7 @@ async function finalizeAcceptedOffer(
             user_id: offer.seller_id,
             type: 'new_offer',
             title: 'Offer Accepted - Awaiting Buyer',
-            body: `You accepted GHS ${agreedAmount.toLocaleString()} for "${auction.title}". The listing stays active until the order is completed.`,
+            body: `You accepted GHS ${agreedAmount.toLocaleString()} for "${auction.title}". The listing stays active unless you take it down.`,
             auction_id: offer.auction_id,
         });
 
