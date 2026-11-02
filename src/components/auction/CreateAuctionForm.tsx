@@ -810,7 +810,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 <Infinity className={`h-5 w-5 shrink-0 mt-0.5 ${isPermanent ? 'text-white' : 'text-gray-400'}`} />
                                 <div>
                                     <p className="text-sm font-bold">Permanent</p>
-                                    <p className={`text-xs mt-0.5 ${isPermanent ? 'text-white/65' : 'text-gray-400'}`}>Stays live until you accept an offer</p>
+                                    <p className={`text-xs mt-0.5 ${isPermanent ? 'text-white/65' : 'text-gray-400'}`}>Stays live until you take it down.</p>
                                 </div>
                             </button>
                             <button
