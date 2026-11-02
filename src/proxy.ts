@@ -32,6 +32,6 @@ export const config = {
          * Only run on page navigations and API routes.
          * Skip _next/*, static assets, and all file extensions.
          */
-        '/((?!_next/|_vercel/|favicon\.ico|.*\.[a-zA-Z0-9]+$).*)',
+        '/((?!_next/|_vercel/|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)',
     ],
 };
