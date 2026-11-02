@@ -31,6 +31,8 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
     return {
         title,
         description,
+        // Internal search pages are not standalone search landing pages.
+        ...(q ? { robots: { index: false, follow: true } } : {}),
         alternates: { canonical },
         openGraph: {
             title: `${title} | AuctionsGH`,

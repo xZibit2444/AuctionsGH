@@ -29,6 +29,7 @@ import ReportListingButton from '@/components/auction/ReportListingButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
 import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X, ChevronRight } from 'lucide-react';
+import type { AuctionFull } from '@/types/auction';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,7 @@ import { relistAuctionAction } from '@/app/actions/relistAuction';
 
 interface AuctionDetailProps {
     auctionId: string;
+    initialAuction?: AuctionFull | null;
 }
 
 type AuctionDetailData = {
@@ -56,8 +58,8 @@ type AuctionDetailData = {
     } | null;
 };
 
-export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
-    const { auction, loading, error, setAuction } = useAuction(auctionId);
+export default function AuctionDetail({ auctionId, initialAuction }: AuctionDetailProps) {
+    const { auction, loading, error, setAuction } = useAuction(auctionId, initialAuction);
     const { bids, setBids, loading: bidsLoading } = useBids(auctionId);
     const { user, profile } = useAuth();
     const { savedIds, toggleSave } = useSavedAuctions();

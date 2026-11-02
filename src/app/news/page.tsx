@@ -7,6 +7,7 @@ import NewsPageClient from '@/components/news/NewsPageClient';
 
 
 export const metadata: Metadata = {
+    alternates: { canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com'}/news` },
 
     title: 'News & Updates | AuctionsGH',
 

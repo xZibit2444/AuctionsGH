@@ -5,12 +5,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
 const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {
-    title: "Live Auctions in Ghana",
-    description: 'Browse live AuctionsGH listings, ending-soon deals, top bids, and newly listed items across Ghana.',
+    title: "Buy and Sell in Ghana",
+    description: 'Buy and sell phones, furniture, electronics, vehicles and more across Ghana. Browse fixed-price listings, make an offer or bid in live auctions.',
     alternates: { canonical: SITE_URL },
     openGraph: {
-        title: "AuctionsGH - Live Auctions in Ghana",
-        description: 'Browse live auctions, top bids, and newly listed items on AuctionsGH.',
+        title: "AuctionsGH - Buy and Sell in Ghana",
+        description: 'Browse fixed-price listings and live auctions from sellers across Ghana.',
         url: SITE_URL,
         siteName: 'AuctionsGH',
         type: 'website',
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: "AuctionsGH - Live Auctions in Ghana",
-        description: 'Browse live auctions, top bids, and newly listed items on AuctionsGH.',
+        title: "AuctionsGH - Buy and Sell in Ghana",
+        description: 'Browse fixed-price listings and live auctions from sellers across Ghana.',
         images: [DEFAULT_OG_IMAGE],
     },
 };

@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { AuctionFull } from '@/types/auction';
 
-export function useAuction(auctionId: string) {
-    const [auction, setAuction] = useState<AuctionFull | null>(null);
-    const [loading, setLoading] = useState(true);
+export function useAuction(auctionId: string, initialAuction?: AuctionFull | null) {
+    const [auction, setAuction] = useState<AuctionFull | null>(initialAuction ?? null);
+    const [loading, setLoading] = useState(!initialAuction);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -14,8 +14,10 @@ export function useAuction(auctionId: string) {
         // Having createClient() outside caused a new object every render
         // → effect re-ran on every render → infinite fetch loop.
         const supabase = createClient();
+        if (initialAuction) setAuction(initialAuction);
         const fetchAuction = async () => {
-            setLoading(true);
+            // Keep server-rendered public content visible while private state refreshes.
+            if (!initialAuction) setLoading(true);
             const { data, error: fetchError } = await supabase
                 .from('auctions')
                 .select(
@@ -61,7 +63,7 @@ export function useAuction(auctionId: string) {
         };
 
         fetchAuction();
-    }, [auctionId]); // auctionId only — no supabase reference needed here
+    }, [auctionId, initialAuction]); // No supabase client in dependencies.
 
     return { auction, loading, error, setAuction };
 }

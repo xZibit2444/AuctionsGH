@@ -1,3 +1,7 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 // Auth group layout — strips the main navigation and footer
 // so that login/signup pages are full-screen, uncluttered.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

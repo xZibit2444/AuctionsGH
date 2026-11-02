@@ -26,49 +26,27 @@ const DEFAULT_OG_IMAGE = '/opengraph-image';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Auctions GH â Ghana's Online Auction Marketplace",
-    template: '%s | Auctions GH',
+    default: 'AuctionsGH - Buy and Sell in Ghana',
+    template: '%s | AuctionsGH',
   },
-  description:
-    "Buy and sell smartphones and electronics at the best prices through live online auctions. Ghana's leading auction marketplace â bid, win, and pay securely.",
-  keywords: [
-    'Ghana auction', 'online auction Ghana', 'buy phones Ghana', 'sell phones Ghana',
-    'smartphone auction', 'electronics marketplace Ghana', 'live auction', 'bid online',
-    'Auctions GH', 'Ghana marketplace',
-  ],
-  authors: [{ name: 'Auctions GH', url: SITE_URL }],
-  creator: 'Auctions GH',
+  description: 'Buy and sell phones, electronics, furniture, vehicles and more across Ghana. Browse listings, make offers or bid, and arrange payment and collection with the seller.',
+  authors: [{ name: 'AuctionsGH', url: SITE_URL }],
+  creator: 'AuctionsGH',
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_GH',
-    url: SITE_URL,
-    siteName: 'Auctions GH',
-    title: "Auctions GH â Ghana's Online Auction Marketplace",
-    description:
-      "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: 'Auctions GH â Online Auction Marketplace',
-      },
-    ],
+    type: 'website', locale: 'en_GH', siteName: 'AuctionsGH',
+    title: 'AuctionsGH - Buy and Sell in Ghana',
+    description: 'Browse phones, furniture, electronics, vehicles and more from sellers across Ghana.',
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: 'AuctionsGH marketplace' }],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: "Auctions GH â Ghana's Online Auction Marketplace",
-    description:
-      "Buy and sell smartphones at the best prices through live online auctions. Ghana's leading auction marketplace.",
+    card: 'summary_large_image', title: 'AuctionsGH - Buy and Sell in Ghana',
+    description: 'Browse listings and arrange payment and collection with sellers across Ghana.',
     images: [DEFAULT_OG_IMAGE],
-  },
-  alternates: {
-    canonical: SITE_URL,
   },
 };
 

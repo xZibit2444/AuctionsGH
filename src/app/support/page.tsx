@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import SupportForm from '@/components/support/SupportForm';
 
 export const metadata: Metadata = {
+    alternates: { canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com'}/support` },
     title: 'Contact Support',
     description: 'Send a support request to AuctionsGH about an order, listing, account or anything else.',
 };
