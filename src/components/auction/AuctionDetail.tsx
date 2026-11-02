@@ -303,8 +303,8 @@ export default function AuctionDetail({ auctionId }: AuctionDetailProps) {
 
     const priceSubline = isPermanent
         ? buyNowEnabled
-            ? 'Fixed price · or make an offer · stays live until sold'
-            : 'Fixed price · make an offer or message us · stays live until sold'
+            ? 'Fixed price · or make an offer · stays live unless the seller takes it down'
+            : 'Fixed price · make an offer or message us · stays live unless the seller takes it down'
         : `${auction.bid_count} bid${auction.bid_count !== 1 ? 's' : ''} · auction ends when the timer runs out`;
 
     const sellerCard = (
