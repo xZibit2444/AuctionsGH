@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PermanentListingsPageClient } from '@/components/auction/AuctionsPageClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
 const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 type ListingsPageProps = {

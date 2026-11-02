@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import HomePageClient from '@/components/auction/HomePageClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
 const DEFAULT_OG_IMAGE = '/opengraph-image';
 
 export const metadata: Metadata = {

@@ -11,7 +11,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isMissingProfileVisibilityColumnError } from '@/lib/supabase/profileGuards';
 import { formatCurrency, formatFirstNameLastInitial, timeAgo } from '@/lib/utils';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
 
 interface UserPageProps {
     params: Promise<{ id: string }>;
