@@ -21,7 +21,7 @@ const SORT_OPTIONS = [
     { label: 'Price: High to Low', value: 'current_price:desc' },
 ];
 
-function AuctionsContent({ listingType, initialAuctions }: { listingType: ListingType; initialAuctions?: Auction[] }) {
+function AuctionsContent({ listingType, initialAuctions }: { listingType: ListingType | 'all'; initialAuctions?: Auction[] }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -53,7 +53,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
     const { auctions, loading, error } = useAuctions({
         initialAuctions: (searchParams.get('q') ?? '').trim() ? undefined : initialAuctions,
         status: 'visible',
-        listingType: isSearching ? 'all' : listingType,
+        listingType: isSearching || listingType === 'all' ? 'all' : listingType,
         // No fixed cap: page through every matching row so the default All
         // view always includes all listings, however large the catalog grows.
         fetchAll: true,
@@ -75,9 +75,9 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
         [auctions, isDefaultSort, initialAuctions]
     );
 
-    const basePath = listingType === 'permanent' ? '/listings' : '/auctions';
-    const pageTitle = isSearching ? 'Search results' : listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
-    const pageDescription = isSearching
+    const basePath = listingType === 'all' ? '/search' : listingType === 'permanent' ? '/listings' : '/auctions';
+    const pageTitle = isSearching ? 'Search results' : listingType === 'all' ? 'Search' : listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
+    const pageDescription = isSearching || listingType === 'all'
         ? 'Showing matches from both auctions and permanent listings.'
         : listingType === 'permanent'
         ? 'Browse fixed-price style permanent listings separately from timed auctions.'
@@ -216,6 +216,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
 
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
                 {[
+                    { href: '/search', label: 'All listings', active: listingType === 'all' },
                     { href: '/auctions', label: 'Auctions', active: !isSearching && listingType === 'auction' },
                     { href: '/listings', label: 'Permanent Listings', active: !isSearching && listingType === 'permanent' },
                 ].map((tab) => (
@@ -347,7 +348,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                 </div>
             )}
 
-            <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={isSearching || listingType === 'permanent' ? 'listings' : 'auctions'} />
+            <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={isSearching || listingType !== 'auction' ? 'listings' : 'auctions'} />
         </div>
         </div>
     );
@@ -367,6 +368,12 @@ export function PermanentListingsPageClient({ initialAuctions }: { initialAuctio
             <AuctionsContent listingType="permanent" initialAuctions={initialAuctions} />
         </Suspense>
     );
-                                                          }
+}
 
-
+export function SearchListingsPageClient({ initialAuctions }: { initialAuctions?: Auction[] }) {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin h-8 w-8 border-4 border-amber-400 border-t-transparent rounded-full" /></div>}>
+            <AuctionsContent listingType="all" initialAuctions={initialAuctions} />
+        </Suspense>
+    );
+}

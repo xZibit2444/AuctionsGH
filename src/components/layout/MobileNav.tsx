@@ -27,7 +27,7 @@ import ProfileShortcut from './ProfileShortcut';
 
 const tabs = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/auctions', label: 'Auctions', icon: Search },
+    { href: '/search', label: 'Search', icon: Search },
     { href: '/auctions/create', label: 'Sell', icon: Plus, highlighted: true },
     { href: '/listings', label: 'Listings', icon: Package },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
