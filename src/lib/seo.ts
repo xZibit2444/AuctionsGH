@@ -24,12 +24,15 @@ export function listingStructuredData(auction: AuctionFull, siteUrl: string) {
     // must not claim a purchasable, in-stock offer either.
     const hasOffer = getListingType(auction) === 'permanent' && auction.allow_buy_now !== false
         && ['active', 'sold'].includes(auction.status) && Number(auction.current_price) > 0;
+    // Do not advertise Product rich-result markup when there is no genuine
+    // fixed-price offer. Auction bids and enquiry prices are not sale offers.
+    // Keep those public listings described as ordinary, indexable item pages.
     return {
-        '@context': 'https://schema.org', '@type': 'Product',
-        '@id': `${url}#product`, url, name: auction.title,
+        '@context': 'https://schema.org', '@type': hasOffer ? 'Product' : 'ItemPage',
+        '@id': `${url}#${hasOffer ? 'product' : 'itempage'}`, url, name: auction.title,
         description: listingDescription(auction),
         ...(images.length ? { image: images } : {}),
-        ...(condition ? { itemCondition: `https://schema.org/${condition}` } : {}),
+        ...(hasOffer && condition ? { itemCondition: `https://schema.org/${condition}` } : {}),
         ...(hasOffer ? { offers: {
             '@type': 'Offer', url, priceCurrency: 'GHS', price: Number(auction.current_price),
             availability: `https://schema.org/${auction.status === 'active' ? 'InStock' : 'SoldOut'}`,
