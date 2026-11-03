@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 
 interface FavoriteSellersContextType {
     favoriteSellerIds: Set<string>;
@@ -17,39 +18,99 @@ function getStorageKey(userId: string) {
     return `favorite-sellers:${userId}`;
 }
 
+function readLocal(userId: string): string[] {
+    try {
+        const stored = window.localStorage.getItem(getStorageKey(userId));
+        const parsed = stored ? (JSON.parse(stored) as string[]) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function writeLocal(userId: string, ids: Iterable<string>) {
+    try {
+        window.localStorage.setItem(getStorageKey(userId), JSON.stringify([...ids]));
+    } catch {
+        // storage unavailable
+    }
+}
+
 export function FavoriteSellersProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [favoriteSellerIds, setFavoriteSellerIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-        queueMicrotask(() => {
-            if (!user) {
-                setFavoriteSellerIds(new Set());
-                return;
-            }
+        if (!user) {
+            queueMicrotask(() => setFavoriteSellerIds(new Set()));
+            return;
+        }
 
-            try {
-                const stored = window.localStorage.getItem(getStorageKey(user.id));
-                const parsed = stored ? (JSON.parse(stored) as string[]) : [];
-                setFavoriteSellerIds(new Set(parsed));
-            } catch {
-                setFavoriteSellerIds(new Set());
-            }
+        let isMounted = true;
+        const local = readLocal(user.id);
+        queueMicrotask(() => {
+            if (isMounted) setFavoriteSellerIds(new Set(local));
         });
+
+        const sync = async () => {
+            try {
+                const supabase = createClient();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const table = supabase.from('favorite_sellers') as any;
+                const { data, error } = await table.select('seller_id').eq('user_id', user.id);
+                if (error) return; // table unavailable: keep device-local favorites
+                const remote = (data ?? []).map((r: { seller_id: string }) => r.seller_id);
+                const remoteSet = new Set<string>(remote);
+                const migratedKey = `${getStorageKey(user.id)}:synced`;
+                const alreadyMigrated = window.localStorage.getItem(migratedKey) === '1';
+                const missing = alreadyMigrated ? [] : local.filter((id) => !remoteSet.has(id));
+                if (missing.length > 0) {
+                    // One-time copy of favorites saved on this device into the account
+                    const { error: upsertError } = await table.upsert(
+                        missing.map((seller_id) => ({ user_id: user.id, seller_id })),
+                        { onConflict: 'user_id,seller_id', ignoreDuplicates: true }
+                    );
+                    if (upsertError) return;
+                }
+                try { window.localStorage.setItem(migratedKey, '1'); } catch { /* ignore */ }
+                // After the one-time copy, the account is the source of truth
+                const merged = new Set<string>(alreadyMigrated ? remote : [...remote, ...local]);
+                writeLocal(user.id, merged);
+                if (isMounted) setFavoriteSellerIds(merged);
+            } catch {
+                // keep device-local favorites
+            }
+        };
+        sync();
+
+        return () => { isMounted = false; };
     }, [user]);
 
     const toggleFavoriteSeller = useCallback(async (sellerId: string) => {
         if (!user) return;
+        const wasFavorite = favoriteSellerIds.has(sellerId);
+        const next = new Set(favoriteSellerIds);
+        if (wasFavorite) next.delete(sellerId);
+        else next.add(sellerId);
+        setFavoriteSellerIds(next);
+        writeLocal(user.id, next);
 
-        setFavoriteSellerIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(sellerId)) next.delete(sellerId);
-            else next.add(sellerId);
-
-            window.localStorage.setItem(getStorageKey(user.id), JSON.stringify([...next]));
-            return next;
-        });
-    }, [user]);
+        try {
+            const supabase = createClient();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const table = supabase.from('favorite_sellers') as any;
+            if (wasFavorite) {
+                await table.delete().eq('user_id', user.id).eq('seller_id', sellerId);
+            } else {
+                await table.upsert(
+                    { user_id: user.id, seller_id: sellerId },
+                    { onConflict: 'user_id,seller_id', ignoreDuplicates: true }
+                );
+            }
+        } catch {
+            // local copy is kept; next load retries the sync
+        }
+    }, [user, favoriteSellerIds]);
 
     return (
         <FavoriteSellersContext.Provider value={{ favoriteSellerIds, toggleFavoriteSeller }}>
