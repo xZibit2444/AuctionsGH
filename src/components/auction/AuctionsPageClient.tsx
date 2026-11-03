@@ -48,10 +48,12 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
         string,
     ];
 
+    // A text search covers both auctions and permanent listings.
+    const isSearching = query.trim().length > 0;
     const { auctions, loading, error } = useAuctions({
-        initialAuctions,
+        initialAuctions: (searchParams.get('q') ?? '').trim() ? undefined : initialAuctions,
         status: 'visible',
-        listingType,
+        listingType: isSearching ? 'all' : listingType,
         // No fixed cap: page through every matching row so the default All
         // view always includes all listings, however large the catalog grows.
         fetchAll: true,
@@ -74,8 +76,10 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
     );
 
     const basePath = listingType === 'permanent' ? '/listings' : '/auctions';
-    const pageTitle = listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
-    const pageDescription = listingType === 'permanent'
+    const pageTitle = isSearching ? 'Search results' : listingType === 'permanent' ? 'Permanent Listings' : 'Auctions';
+    const pageDescription = isSearching
+        ? 'Showing matches from both auctions and permanent listings.'
+        : listingType === 'permanent'
         ? 'Browse fixed-price style permanent listings separately from timed auctions.'
         : 'Browse timed auctions separately from permanent listings.';
 
@@ -212,8 +216,8 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
 
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-3 mb-4">
                 {[
-                    { href: '/auctions', label: 'Auctions', active: listingType === 'auction' },
-                    { href: '/listings', label: 'Permanent Listings', active: listingType === 'permanent' },
+                    { href: '/auctions', label: 'Auctions', active: !isSearching && listingType === 'auction' },
+                    { href: '/listings', label: 'Permanent Listings', active: !isSearching && listingType === 'permanent' },
                 ].map((tab) => (
                     <Link
                         key={tab.href}
@@ -343,7 +347,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                 </div>
             )}
 
-            <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={listingType === 'permanent' ? 'listings' : 'auctions'} />
+            <AuctionGrid auctions={visibleAuctions} loading={loading} emptyNoun={isSearching || listingType === 'permanent' ? 'listings' : 'auctions'} />
         </div>
         </div>
     );
