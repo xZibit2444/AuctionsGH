@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { emailNewMessageIfEnabled, auctionChatUrl } from '@/lib/messageEmails';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -128,6 +129,14 @@ export async function POST(request: Request) {
         title: isSeller ? 'Message from Seller' : 'Message from Buyer',
         body: text.length > 100 ? `${text.slice(0, 100)}…` : text,
         auction_id,
+    });
+
+    await emailNewMessageIfEnabled(supabaseAdmin as never, {
+        recipientId,
+        senderId: user.id,
+        auctionTitle: auction.title,
+        messageBody: text,
+        chatUrl: auctionChatUrl(auction_id),
     });
 
     return NextResponse.json({ success: true, message: inserted }, { status: 201 });

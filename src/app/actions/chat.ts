@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { emailNewMessageIfEnabled, orderChatUrl } from '@/lib/messageEmails';
 import { isTerminalOrderStatus } from '@/lib/orderStatus';
 
 const supabaseAdmin = createClient(
@@ -62,6 +63,16 @@ export async function sendMessageAction(
         title: `New message from ${senderLabel}`,
         body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
         order_id: orderId,
+    });
+
+    const auctionRel = order.auction as { title?: string } | { title?: string }[] | null;
+    const auctionTitle = (Array.isArray(auctionRel) ? auctionRel[0]?.title : auctionRel?.title) ?? 'your order';
+    await emailNewMessageIfEnabled(supabaseAdmin as never, {
+        recipientId,
+        senderId: user.id,
+        auctionTitle,
+        messageBody: trimmed,
+        chatUrl: orderChatUrl(orderId),
     });
 
     return { success: true, messageId: msg.id };

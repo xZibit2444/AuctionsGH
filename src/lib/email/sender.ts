@@ -4,6 +4,7 @@ import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
 import NewOfferEmail from '@/emails/NewOfferEmail';
+import NewMessageEmail from '@/emails/NewMessageEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import CounterOfferEmail from '@/emails/CounterOfferEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
@@ -232,6 +233,46 @@ export async function sendNewOfferEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending new offer email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendNewMessageEmail(
+    to: string,
+    recipientName: string,
+    senderName: string,
+    auctionTitle: string,
+    messagePreview: string,
+    chatUrl: string
+) {
+    const resendClient = getResend();
+    if (!resendClient) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resendClient.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: `New message from ${senderName} about ${auctionTitle}`,
+            react: NewMessageEmail({
+                recipientName,
+                senderName,
+                auctionTitle,
+                messagePreview,
+                chatUrl,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send new message email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending new message email:', error);
         return { success: false, error };
     }
 }

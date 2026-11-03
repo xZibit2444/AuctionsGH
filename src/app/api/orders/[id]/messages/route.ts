@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { emailNewMessageIfEnabled, orderChatUrl } from '@/lib/messageEmails';
 import { isTerminalOrderStatus } from '@/lib/orderStatus';
 
 const supabaseAdmin = createClient(
@@ -31,7 +32,7 @@ export async function POST(
     // Verify caller is buyer or seller
     const { data: order, error: orderErr } = await supabaseAdmin
         .from('orders')
-        .select('id, buyer_id, seller_id, status')
+        .select('id, buyer_id, seller_id, status, auction:auctions(title)')
         .eq('id', orderId)
         .single();
 
@@ -59,6 +60,16 @@ export async function POST(
         title: `New message from ${isBuyer ? 'Buyer' : 'Seller'}`,
         body: trimmed.length > 100 ? `${trimmed.slice(0, 100)}…` : trimmed,
         order_id: orderId,
+    });
+
+    const auctionRel = (order as { auction?: { title?: string } | { title?: string }[] | null }).auction;
+    const auctionTitle = (Array.isArray(auctionRel) ? auctionRel[0]?.title : auctionRel?.title) ?? 'your order';
+    await emailNewMessageIfEnabled(supabaseAdmin as never, {
+        recipientId,
+        senderId: user.id,
+        auctionTitle,
+        messageBody: trimmed,
+        chatUrl: orderChatUrl(orderId),
     });
 
     return NextResponse.json({ success: true, messageId: (msg as { id: string }).id });
