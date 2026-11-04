@@ -22,7 +22,7 @@ describe('Mark sold site confirmation', () => {
 });
 
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: { id: 'seller-1' }, profile: {} }) }));
-vi.mock('@/hooks/useAuctions', () => ({ useAuctions: () => ({ loading: false, auctions: [{ id: 'listing-1', seller_id: 'seller-1', title: 'Test phone', listing_type: 'permanent', status: 'active', bid_count: 0, starting_price: 1000, current_price: 1000, images: [], created_at: '2026-11-01T00:00:00Z' }] }) }));
+vi.mock('@/hooks/useAuctions', () => ({ useAuctions: () => ({ loading: false, auctions: [{ id: 'listing-1', seller_id: 'seller-1', title: 'Test phone', ends_at: '2099-12-31T23:59:59Z', status: 'active', bid_count: 0, starting_price: 1000, current_price: 1000, images: [], created_at: '2026-11-01T00:00:00Z' }] }) }));
 vi.mock('@/app/actions/delivery', () => ({ markShippedAction: vi.fn() }));
 vi.mock('@/app/actions/deleteAuction', () => ({ deleteAuctionAction: vi.fn() }));
 vi.mock('@/app/actions/relistAuction', () => ({ relistAuctionAction: vi.fn() }));
