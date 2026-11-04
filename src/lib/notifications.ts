@@ -22,6 +22,9 @@ interface NotificationInsert {
     body?: string | null;
     auction_id?: string | null;
     order_id?: string | null;
+    /** Set when a dedicated templated email already covers this event, so the
+     *  generic notification email does not duplicate it. */
+    skipEmail?: boolean;
 }
 
 const NOTIFICATION_PREFERENCE_MAP: Partial<Record<AppNotificationType, NotificationPreferenceKey>> = {
@@ -79,7 +82,64 @@ export async function insertNotificationIfEnabled(
     // Fire-and-forget Expo push to any registered device tokens for this user
     void sendExpoPushIfTokens(supabase, notification).catch(() => {/* non-critical */});
 
+    // Email a copy of every in-app notification, unless a dedicated templated
+    // email already covers the event (skipEmail) or the richer new-message
+    // email handles it. Fire-and-forget; failures are logged only.
+    if (!error && !notification.skipEmail && notification.type !== 'new_message') {
+        void emailNotificationCopy(supabase, notification).catch((err) => {
+            console.error('Notification email failed (non-fatal):', err);
+        });
+    }
+
     return { skipped: false, error };
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+/**
+ * Emails the recipient a copy of an in-app notification. Best-effort: any
+ * failure is logged and swallowed so alerts are never blocked by email.
+ */
+export async function emailNotificationCopy(
+    supabase: SupabaseClient<Database>,
+    notification: NotificationInsert
+) {
+    try {
+        const [{ data: authData }, { data: profile }] = await Promise.all([
+            supabase.auth.admin.getUserById(notification.user_id),
+            supabase
+                .from('profiles')
+                .select('full_name, username')
+                .eq('id', notification.user_id)
+                .maybeSingle(),
+        ]);
+
+        const email = authData.user?.email;
+        if (!email) return;
+
+        const named = profile as { full_name?: string | null; username?: string | null } | null;
+        const name = named?.full_name?.trim() || named?.username?.trim() || 'there';
+
+        const actionUrl = notification.order_id
+            ? `${SITE_URL}/orders/${notification.order_id}`
+            : notification.auction_id
+                ? `${SITE_URL}/auctions/${notification.auction_id}`
+                : SITE_URL;
+
+        const { sendNotificationEmail } = await import('@/lib/email/sender');
+        const result = await sendNotificationEmail(
+            email,
+            name,
+            notification.title,
+            notification.body ?? null,
+            actionUrl
+        );
+        if (!result.success) {
+            console.error('Failed to send notification email:', result.error);
+        }
+    } catch (err) {
+        console.error('Error sending notification email (non-fatal):', err);
+    }
 }
 
 async function sendExpoPushIfTokens(

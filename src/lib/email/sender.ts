@@ -5,6 +5,7 @@ import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
 import NewOfferEmail from '@/emails/NewOfferEmail';
 import NewMessageEmail from '@/emails/NewMessageEmail';
+import NotificationEmail from '@/emails/NotificationEmail';
 import OfferDeclinedEmail from '@/emails/OfferDeclinedEmail';
 import CounterOfferEmail from '@/emails/CounterOfferEmail';
 import OrderCompletedSummaryEmail from '@/emails/OrderCompletedSummaryEmail';
@@ -707,6 +708,43 @@ export async function sendNewSupportRequestAdminEmail(
         return { success: true, data };
     } catch (error) {
         console.error('Error sending admin support request email:', error);
+        return { success: false, error };
+    }
+}
+
+export async function sendNotificationEmail(
+    to: string,
+    userName: string,
+    title: string,
+    body: string | null,
+    actionUrl: string
+) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to, title });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: title,
+            react: NotificationEmail({
+                recipientName: userName,
+                title,
+                body,
+                actionUrl,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send notification email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending notification email:', error);
         return { success: false, error };
     }
 }

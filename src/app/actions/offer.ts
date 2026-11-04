@@ -76,6 +76,7 @@ export async function makeOfferAction(
         user_id: auction.seller_id,
         type: 'new_offer',
         title: 'New Offer on Your Listing',
+            skipEmail: true,
         body: `${buyerLabel} is asking: "Will you accept GHS ${Number(amount).toLocaleString()} for ${auction.title}?"`,
         auction_id: auctionId,
     });
@@ -162,6 +163,7 @@ async function finalizeAcceptedOffer(
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
+            skipEmail: true,
             body: isPermanent
                 ? `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live unless the seller takes it down.`
                 : `The seller accepted your offer of GHS ${agreedAmount.toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
@@ -172,6 +174,7 @@ async function finalizeAcceptedOffer(
             user_id: offer.seller_id,
             type: 'new_offer',
             title: 'Offer Accepted - Awaiting Buyer',
+            skipEmail: true,
             body: `You accepted GHS ${agreedAmount.toLocaleString()} for "${auction.title}". The listing stays active unless you take it down.`,
             auction_id: offer.auction_id,
         });
@@ -261,6 +264,7 @@ export async function respondToOfferAction(
             user_id: offer.buyer_id,
             type: 'system',
             title: 'Offer Declined',
+            skipEmail: true,
             body: `The seller declined your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction?.title ?? 'this item'}".`,
             auction_id: offer.auction_id,
         });
@@ -329,6 +333,7 @@ export async function counterOfferAction(
         user_id: offer.buyer_id,
         type: 'new_offer',
         title: 'Counter-Offer Received',
+            skipEmail: true,
         body: `The seller countered your offer of GHS ${Number(offer.amount).toLocaleString()} for "${title}" with GHS ${counterAmount.toLocaleString()}. Open the listing to accept or decline.`,
         auction_id: offer.auction_id,
     });

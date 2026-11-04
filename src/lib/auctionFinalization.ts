@@ -72,6 +72,7 @@ export async function finalizeAuction(auctionId: string) {
                 user_id: topBid.bidder_id,
                 type: 'auction_won',
                 title: 'You Won the Auction!',
+            skipEmail: true,
                 body: `Click here to proceed to checkout and arrange payment/delivery for "${auction.title}".`,
                 auction_id: auctionId,
             });
@@ -80,6 +81,7 @@ export async function finalizeAuction(auctionId: string) {
                 user_id: auction.seller_id,
                 type: 'auction_ended',
                 title: 'Your auction has ended',
+            skipEmail: true,
                 body: `"${auction.title}" sold for ${auction.current_price} GHS`,
                 auction_id: auctionId,
             });
@@ -142,6 +144,7 @@ export async function finalizeAuction(auctionId: string) {
                 user_id: auction.seller_id,
                 type: 'auction_ended',
                 title: 'Your auction ended with no bids',
+            skipEmail: true,
                 body: `"${auction.title}" received no bids`,
                 auction_id: auctionId,
             });

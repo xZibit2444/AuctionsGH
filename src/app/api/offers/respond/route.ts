@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
             user_id: offer.buyer_id,
             type: 'auction_won',
             title: 'Your Offer Was Accepted!',
+            skipEmail: true,
             body: isPermanent
                 ? `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order to secure it - the listing stays live unless the seller takes it down.`
                 : `The seller accepted your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". Confirm your order, then agree with the seller how to pay and collect.`,
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
             user_id: user.id,
             type: 'new_offer',
             title: 'Offer Accepted - Awaiting Buyer',
+            skipEmail: true,
             body: `You accepted GHS ${Number(offer.amount).toLocaleString()} for "${auction.title}". The listing stays active unless you take it down.`,
             auction_id: offer.auction_id,
         });
@@ -137,6 +139,7 @@ export async function POST(request: NextRequest) {
             user_id: offer.buyer_id,
             type: 'system',
             title: 'Offer Declined',
+            skipEmail: true,
             body: `The seller declined your offer of GHS ${Number(offer.amount).toLocaleString()} for "${auction?.title ?? 'this item'}".`,
             auction_id: offer.auction_id,
         });

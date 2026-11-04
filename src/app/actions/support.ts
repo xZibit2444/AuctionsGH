@@ -77,6 +77,7 @@ export async function submitSupportRequest(
                 user_id: adminId,
                 type: 'system',
                 title: `New support request: ${topic}`,
+                skipEmail: true,
                 body: `${name} (${email}): ${message.slice(0, 300)}`,
             });
         }
