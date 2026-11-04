@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useRouter } from 'next/navigation';
 import { setListingStatusAction, type ListingStatusChange } from '@/app/actions/updateListing';
 
@@ -14,6 +15,7 @@ interface OwnerStatusControlsProps {
 export default function OwnerStatusControls({ auctionId, status, isPermanent, bidCount }: OwnerStatusControlsProps) {
     const router = useRouter();
     const [busy, setBusy] = useState<ListingStatusChange | null>(null);
+    const [confirmSoldOpen, setConfirmSoldOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Same rules the server enforces: permanent listings with no bids only.
@@ -22,16 +24,18 @@ export default function OwnerStatusControls({ auctionId, status, isPermanent, bi
     const canResume = status === 'draft' || status === 'ended';
     if (!canPause && !canResume) return null;
 
-    const run = async (change: ListingStatusChange, confirmText?: string) => {
-        if (confirmText && !window.confirm(confirmText)) return;
+    const run = async (change: ListingStatusChange) => {
+        if (busy !== null) return;
         setBusy(change);
         setError(null);
         const result = await setListingStatusAction(auctionId, change);
         setBusy(null);
         if (!result.success) {
+            setConfirmSoldOpen(false);
             setError(result.error ?? 'Could not update this listing.');
             return;
         }
+        setConfirmSoldOpen(false);
         router.refresh();
     };
 
@@ -49,7 +53,7 @@ export default function OwnerStatusControls({ auctionId, status, isPermanent, bi
                     <button
                         type="button"
                         disabled={busy !== null}
-                        onClick={() => run('sold_elsewhere', 'Mark this listing as sold? It will be hidden from buyers. You can resume it later.')}
+                        onClick={() => { setError(null); setConfirmSoldOpen(true); }}
                         className={`${btn} border-gray-300 bg-white text-black hover:bg-gray-50`}
                     >
                         {busy === 'sold_elsewhere' ? 'Saving…' : 'Mark sold'}
@@ -61,6 +65,15 @@ export default function OwnerStatusControls({ auctionId, status, isPermanent, bi
                     </button>
                 )}
             </div>
+            <ConfirmDialog
+                open={confirmSoldOpen}
+                title="Mark this listing as sold?"
+                message="It will be hidden from buyers. You can resume it later."
+                confirmLabel="Mark sold"
+                busy={busy === 'sold_elsewhere'}
+                onConfirm={() => void run('sold_elsewhere')}
+                onCancel={() => { if (busy === null) setConfirmSoldOpen(false); }}
+            />
             {status === 'draft' && (
                 <p className="text-[11px] text-amber-700">Paused. Buyers can&apos;t see this listing in browse or search until you resume it.</p>
             )}

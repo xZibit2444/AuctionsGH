@@ -7,6 +7,7 @@ import { useAuctions } from '@/hooks/useAuctions';
 import { getPrimaryDelivery } from '@/lib/delivery';
 import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import { formatCurrency } from '@/lib/utils';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Skeleton from '@/components/ui/Skeleton';
 import { ArrowUpRight, Trash2, MessageCircle } from 'lucide-react';
 import { markShippedAction } from '@/app/actions/delivery';
@@ -100,6 +101,7 @@ export default function ListingTable({
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [soldConfirmId, setSoldConfirmId] = useState<string | null>(null);
     const [statusBusyId, setStatusBusyId] = useState<string | null>(null);
     const [statusOverrides, setStatusOverrides] = useState<Record<string, AuctionStatus>>({});
     const [renderTimestamp] = useState(() => Date.now());
@@ -142,6 +144,7 @@ export default function ListingTable({
             setDeleteError(result.error ?? 'Could not update this listing.');
         }
         setStatusBusyId(null);
+        setSoldConfirmId(null);
     };
 
     const handleMarkSent = async (orderId: string) => {
@@ -202,6 +205,16 @@ export default function ListingTable({
     }
 
     return (
+        <>
+            <ConfirmDialog
+                open={soldConfirmId !== null}
+                title="Mark this listing as sold?"
+                message="It will be hidden from buyers. You can resume it later."
+                confirmLabel="Mark sold"
+                busy={soldConfirmId !== null && statusBusyId === soldConfirmId}
+                onConfirm={() => { if (soldConfirmId && !statusBusyId) void handleStatusChange(soldConfirmId, 'sold_elsewhere'); }}
+                onCancel={() => { if (!statusBusyId) setSoldConfirmId(null); }}
+            />
         <div className="overflow-x-auto">
             {deleteError && (
                 <div className="border-b border-red-200 bg-red-50 px-5 py-3 text-sm text-red-700">
@@ -377,7 +390,7 @@ export default function ListingTable({
                                                                     Pause
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
+                                                                    onClick={() => setSoldConfirmId(auction.id)}
                                                                     disabled={statusBusyId === auction.id}
                                                                     className={chipNeutral}
                                                                 >
@@ -506,7 +519,7 @@ export default function ListingTable({
                                                                     Pause
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => void handleStatusChange(auction.id, 'sold_elsewhere')}
+                                                                    onClick={() => setSoldConfirmId(auction.id)}
                                                                     disabled={statusBusyId === auction.id}
                                                                     className={chipNeutral}
                                                                 >
@@ -572,5 +585,6 @@ export default function ListingTable({
                 </tbody>
             </table>
         </div>
+        </>
     );
 }
