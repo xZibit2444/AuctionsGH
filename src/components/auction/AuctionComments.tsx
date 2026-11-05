@@ -9,13 +9,14 @@ import { deleteAuctionCommentAction } from '@/app/actions/moderation';
 import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { formatFirstNameLastInitial } from '@/lib/utils';
-import { Loader2, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { CornerDownRight, Loader2, MessageSquare, Send, Trash2, X } from 'lucide-react';
 
 interface AuctionComment {
     id: string;
     auction_id: string;
     user_id: string;
     body: string;
+    parent_id?: string | null;
     created_at: string;
     profile?: {
         id: string;
@@ -40,6 +41,8 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
     const [sending, setSending] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const [replyTo, setReplyTo] = useState<AuctionComment | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const canModerate = profile?.is_super_admin === true;
 
     useEffect(() => {
@@ -48,7 +51,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
         const fetchComments = async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data } = await (supabase.from('auction_comments') as any)
-                .select('id, auction_id, user_id, body, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
+                .select('id, auction_id, user_id, body, parent_id, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
                 .eq('auction_id', auctionId)
                 .order('created_at', { ascending: true })
                 .limit(200);
@@ -70,7 +73,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                     const inserted = payload.new as AuctionComment;
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const { data } = await (supabase.from('auction_comments') as any)
-                        .select('id, auction_id, user_id, body, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
+                        .select('id, auction_id, user_id, body, parent_id, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
                         .eq('id', inserted.id)
                         .maybeSingle();
 
@@ -100,6 +103,18 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
         };
     }, [auctionId]);
 
+    // Top-level comments in time order, each followed by its replies in time order.
+    const ordered = (() => {
+        const ids = new Set(comments.map((c) => c.id));
+        const top = comments.filter((c) => !c.parent_id || !ids.has(c.parent_id));
+        const out: AuctionComment[] = [];
+        for (const t of top) {
+            out.push(t);
+            for (const r of comments) if (r.parent_id === t.id) out.push(r);
+        }
+        return out;
+    })();
+
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [comments]);
@@ -114,9 +129,13 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
             return;
         }
 
+        const replyingTo = replyTo;
+        const threadParentId = replyingTo ? (replyingTo.parent_id ?? replyingTo.id) : null;
+
         setSending(true);
         setError('');
         setBody('');
+        setReplyTo(null);
 
         const optimisticId = `opt-${Date.now()}`;
         setComments((prev) => [
@@ -126,6 +145,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                 auction_id: auctionId,
                 user_id: currentUserId,
                 body: trimmed,
+                parent_id: threadParentId,
                 created_at: new Date().toISOString(),
                 profile: {
                     id: currentUserId,
@@ -136,10 +156,11 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
             },
         ]);
 
-        const result = await sendAuctionCommentAction(auctionId, trimmed);
+        const result = await sendAuctionCommentAction(auctionId, trimmed, threadParentId);
         if (!result.success) {
             setComments((prev) => prev.filter((comment) => comment.id !== optimisticId));
             setBody(trimmed);
+            setReplyTo(replyingTo);
             setError(result.error ?? 'Failed to post comment.');
         } else if (result.commentId) {
             const commentId = result.commentId;
@@ -147,7 +168,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
             const supabase = createClient();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data: saved } = await (supabase.from('auction_comments') as any)
-                .select('id, auction_id, user_id, body, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
+                .select('id, auction_id, user_id, body, parent_id, created_at, profile:profiles!auction_comments_user_id_fkey(id, full_name, username, avatar_url)')
                 .eq('id', commentId)
                 .maybeSingle();
             setComments((prev) => {
@@ -197,13 +218,14 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {comments.map((comment) => {
+                        {ordered.map((comment) => {
                             const name = formatFirstNameLastInitial(comment.profile?.full_name ?? comment.profile?.username);
                             const isMine = comment.user_id === currentUserId;
                             const isDeleting = deletingId === comment.id;
+                            const isReply = !!comment.parent_id;
 
                             return (
-                                <div key={comment.id} className="flex items-start gap-3">
+                                <div key={comment.id} className={`flex items-start gap-3 ${isReply ? 'ml-8 sm:ml-11 pl-3 border-l-2 border-amber-200' : ''}`}>
                                     {comment.profile?.id ? (
                                         <Link href={`/users/${comment.profile.id}`} className="shrink-0 hover:opacity-80 transition-opacity">
                                             <Avatar
@@ -246,6 +268,23 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                                                         minute: '2-digit',
                                                     })}
                                             </p>
+                                            {!comment.id.startsWith('opt-') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (!currentUserId) {
+                                                            router.push(`/login?redirectTo=/auctions/${auctionId}`);
+                                                            return;
+                                                        }
+                                                        setReplyTo(comment);
+                                                        textareaRef.current?.focus();
+                                                    }}
+                                                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black"
+                                                >
+                                                    <CornerDownRight className="h-3 w-3" />
+                                                    Reply
+                                                </button>
+                                            )}
                                             {canModerate && !comment.id.startsWith('opt-') && (
                                                 <button
                                                     type="button"
@@ -282,13 +321,24 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                         to comment on this listing.
                     </div>
                 )}
+                {replyTo && (
+                    <div className="mx-4 mt-3 flex items-center justify-between gap-2 border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-black">
+                        <span className="min-w-0 truncate">
+                            Replying to <span className="font-semibold">{formatFirstNameLastInitial(replyTo.profile?.full_name ?? replyTo.profile?.username) || 'User'}</span>: {replyTo.body}
+                        </span>
+                        <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="shrink-0 text-gray-500 hover:text-black">
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                )}
                 <div className="p-4 flex gap-2">
                     <textarea
+                        ref={textareaRef}
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
                         rows={3}
                         maxLength={2000}
-                        placeholder="Ask a question, leave a comment, or discuss the listing..."
+                        placeholder={replyTo ? 'Write your reply...' : 'Ask a question, leave a comment, or discuss the listing...'}
                         className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
                     />
                     <button
@@ -297,7 +347,7 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                         className="self-end inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black text-[11px] font-black uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50"
                     >
                         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                        Comment
+                        {replyTo ? 'Reply' : 'Comment'}
                     </button>
                 </div>
             </form>

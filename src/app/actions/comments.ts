@@ -6,7 +6,8 @@ import { insertNotificationIfEnabled } from '@/lib/notifications';
 
 export async function sendAuctionCommentAction(
     auctionId: string,
-    body: string
+    body: string,
+    parentId?: string | null
 ): Promise<{ success: boolean; error?: string; commentId?: string }> {
     const supabase = await createServerClient();
     const admin = createAdminClient();
@@ -31,12 +32,29 @@ export async function sendAuctionCommentAction(
         return { success: false, error: 'Comments are not available on this listing.' };
     }
 
+    // Replies attach to the top-level comment of their thread (one level of nesting).
+    let rootParentId: string | null = null;
+    let parentAuthorId: string | null = null;
+    if (parentId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: parent } = await (admin.from('auction_comments') as any)
+            .select('id, auction_id, user_id, parent_id')
+            .eq('id', parentId)
+            .maybeSingle();
+        if (!parent || parent.auction_id !== auctionId) {
+            return { success: false, error: 'The comment you are replying to no longer exists.' };
+        }
+        rootParentId = parent.parent_id ?? parent.id;
+        parentAuthorId = parent.user_id;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (admin.from('auction_comments') as any)
         .insert({
             auction_id: auctionId,
             user_id: user.id,
             body: trimmed,
+            parent_id: rootParentId,
         })
         .select('id')
         .single();
@@ -45,7 +63,34 @@ export async function sendAuctionCommentAction(
 
     // Tell the seller in the app (the bell). Never for their own comments, and a failure here
     // must not fail the comment. One unread alert per listing, so a busy thread does not pile up.
-    if (auction.seller_id && auction.seller_id !== user.id) {
+    // Tell the person being replied to (in the bell and by email). Skipped for replies to yourself.
+    if (parentAuthorId && parentAuthorId !== user.id) {
+        try {
+            const replyTitle = 'New reply to your comment';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: existingReply } = await (admin.from('notifications') as any)
+                .select('id')
+                .eq('user_id', parentAuthorId)
+                .eq('auction_id', auctionId)
+                .eq('title', replyTitle)
+                .eq('is_read', false)
+                .limit(1);
+            if (!existingReply || existingReply.length === 0) {
+                await insertNotificationIfEnabled(admin as never, {
+                    user_id: parentAuthorId,
+                    type: 'system',
+                    title: replyTitle,
+                    body: `Someone replied to your comment on "${auction.title}". Open the listing to read and reply.`,
+                    auction_id: auctionId,
+                });
+            }
+        } catch (e) {
+            console.error('Reply alert failed:', e);
+        }
+    }
+
+    // The seller already gets the reply alert above when the reply is to their own comment.
+    if (auction.seller_id && auction.seller_id !== user.id && auction.seller_id !== parentAuthorId) {
         try {
             const alertTitle = 'New comment on your listing';
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
