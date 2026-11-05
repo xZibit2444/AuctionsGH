@@ -95,6 +95,7 @@ export async function POST(request: Request) {
         user_id: auction.seller_id,
         type: 'new_offer',
         title: 'New Offer on Your Listing',
+        skipEmail: true,
         body: `${buyerLabel} offered GHS ${Number(amount).toLocaleString()} for "${auction.title}"`,
         auction_id,
     });
