@@ -63,9 +63,14 @@ export async function insertNotificationIfEnabled(
         return { skipped: true, error: null };
     }
 
+    // Only real notifications columns may reach PostgREST: helper-only flags
+    // like skipEmail are rejected as unknown columns, which silently dropped
+    // every notification that set them (offer alerts since 2026-11-04).
+    const { skipEmail, ...row } = notification;
+
     // Database types in this repo lag behind the live schema for notifications.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let { error } = await (supabase.from('notifications') as any).insert(notification);
+    let { error } = await (supabase.from('notifications') as any).insert(row);
 
     if (error) {
         console.error('Failed to insert notification:', notification.type, error.message ?? error);
@@ -74,7 +79,7 @@ export async function insertNotificationIfEnabled(
         // 'new_offer'). Retry as a generic 'system' notification so the alert still
         // shows in the in-app panel instead of being dropped.
         if (notification.type !== 'system' && /enum|notification_type|invalid input value/i.test(error.message ?? '')) {
-            ({ error } = await (supabase.from('notifications') as any).insert({ ...notification, type: 'system' }));
+            ({ error } = await (supabase.from('notifications') as any).insert({ ...row, type: 'system' }));
             if (error) console.error('Fallback notification insert failed:', error.message ?? error);
         }
     }
@@ -85,7 +90,7 @@ export async function insertNotificationIfEnabled(
     // Email a copy of every in-app notification, unless a dedicated templated
     // email already covers the event (skipEmail) or the richer new-message
     // email handles it. Fire-and-forget; failures are logged only.
-    if (!error && !notification.skipEmail && notification.type !== 'new_message') {
+    if (!error && !skipEmail && notification.type !== 'new_message') {
         void emailNotificationCopy(supabase, notification).catch((err) => {
             console.error('Notification email failed (non-fatal):', err);
         });

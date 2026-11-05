@@ -57,4 +57,19 @@ describe('insertNotificationIfEnabled enum fallback', () => {
         expect(r.skipped).toBe(true);
         expect(inserts.length).toBe(0);
     });
+    it('never sends helper-only fields like skipEmail to the database', async () => {
+        const { client, inserts } = fakeClient([]);
+        await insertNotificationIfEnabled(client as never, { ...n, skipEmail: true });
+        expect(inserts.length).toBe(1);
+        expect(inserts[0]).not.toHaveProperty('skipEmail');
+    });
+
+    it('strips skipEmail on the system fallback retry too', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        const { client, inserts } = fakeClient(['new_offer']);
+        const r = await insertNotificationIfEnabled(client as never, { ...n, skipEmail: true });
+        expect(r.error).toBeNull();
+        expect(inserts.map((i) => i.type)).toEqual(['new_offer', 'system']);
+        inserts.forEach((i) => expect(i).not.toHaveProperty('skipEmail'));
+    });
 });
