@@ -15,17 +15,17 @@ const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').repl
 const FROM = process.env.NEWSLETTER_FROM || 'Jason T at AuctionsGH <noreply@auctionsgh.com>';
 const IMG = 'https://bgzjkwwsjrdlsjvyosoa.supabase.co/storage/v1/object/public/auction-images/';
 
-// Content approved by the owner on 2026-11-01 (listing set and wording).
-const SUBJECT = 'New on AuctionsGH: phones, laptops, TVs and more';
-const INTRO = '68 items are now live on AuctionsGH: phones, laptops, TVs, furniture and more, from sellers across Ghana. Here are six worth a look. Message the seller, agree a price, and collect or arrange delivery.';
+// Content approved by the owner on 2026-11-09 (listing set and wording).
+const SUBJECT = 'New on AuctionsGH: cars, phones, Starlink and more';
+const INTRO = 'Cars have arrived on AuctionsGH: Honda, Acura, Kia and Hyundai, alongside phones, TVs, sneakers and furniture from sellers across Ghana. Here are six worth a look. Message the seller, agree a price, and collect or arrange delivery.';
 const UTM_CAMPAIGN = 'listings_newsletter';
 const LISTINGS: NewsletterListing[] = [
-    { title: 'iPhone 15 Pro Max 256GB', detail: 'Good · Greater Accra', price: '₵7,300', url: `${SITE}/auctions/f96b67a1-eadf-43fa-a6f7-1588ced542b3`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/f96b67a1-eadf-43fa-a6f7-1588ced542b3/1793287551897.jpg` },
-    { title: 'iPhone 14 Pro Max 128GB', detail: 'Greater Accra', price: '₵4,499', url: `${SITE}/auctions/b2551153-6d75-4b18-be78-c4f0724d3adc`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/b2551153-6d75-4b18-be78-c4f0724d3adc/1793451900393-nimemb.jpg` },
-    { title: 'iPad (A16) 128GB WiFi Blue', detail: 'Good · Greater Accra', price: '₵3,900', url: `${SITE}/auctions/0718bef4-de91-415b-998b-7b18d762f8cd`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/0718bef4-de91-415b-998b-7b18d762f8cd/1793481343363-1xmvjc.jpg` },
-    { title: 'HP EliteBook 830 G7, Core i5, 256GB SSD', detail: 'Ashanti', price: '₵4,000', url: `${SITE}/auctions/5689c538-9d3c-473f-a7d3-fe7615e13da1`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/5689c538-9d3c-473f-a7d3-fe7615e13da1/1793468628926-9mrzy0.jpg` },
-    { title: 'Samsung 40" Full HD Smart TV', detail: 'Ashanti', price: '₵2,500', url: `${SITE}/auctions/163bcbc7-8edc-4391-83ca-089c5d3b7b62`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/163bcbc7-8edc-4391-83ca-089c5d3b7b62/1793468749443-7dp56z.jpg` },
-    { title: 'Gray Velvet 3-in-1 Sofa Set', detail: 'Brand New · Greater Accra', price: '₵2,200', url: `${SITE}/auctions/0f2a556b-2c50-4f5f-bc01-74bfa3e8a311`, image: `${IMG}3e0fc167-b8e4-4f18-9463-b1400adb8ec6/0f2a556b-2c50-4f5f-bc01-74bfa3e8a311/1793372810707-5rppuf.jpg` },
+    { title: '2021 Acura RDX A-Spec', detail: 'Greater Accra', price: '₵288,000', url: `${SITE}/auctions/95803ca0-e6c3-4c10-b7d9-7587edaa8839`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/95803ca0-e6c3-4c10-b7d9-7587edaa8839/1793886121221-x5kr4j.jpg` },
+    { title: '2017 Honda Accord Limited', detail: 'Greater Accra', price: '₵145,000', url: `${SITE}/auctions/e56cffea-bcc0-47b0-9fb5-bf4ec0394a0d`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/e56cffea-bcc0-47b0-9fb5-bf4ec0394a0d/1793882814333-d4f4kt.jpg` },
+    { title: '2013 Kia Morning', detail: 'Greater Accra', price: '₵62,000', url: `${SITE}/auctions/6186a130-1835-4750-b0c0-370a348f652d`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/6186a130-1835-4750-b0c0-370a348f652d/1793886216161-ik0tod.jpg` },
+    { title: 'Apple iPhone 17 Pro Max 256GB', detail: 'Brand New · Greater Accra', price: '₵10,200', url: `${SITE}/auctions/6a554b22-34b4-4d60-9c61-ae984f972c8e`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/6a554b22-34b4-4d60-9c61-ae984f972c8e/1793806052918-g9zt2s.jpg` },
+    { title: 'Starlink Mini Kit', detail: 'Brand New · Greater Accra', price: '₵2,999', url: `${SITE}/auctions/04be0e86-5f2c-49a1-8ab8-6a6db939d716`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/04be0e86-5f2c-49a1-8ab8-6a6db939d716/1793524321658-w3a9cj.jpg` },
+    { title: 'Hisense A4 Series 43-inch Smart TV', detail: 'Greater Accra', price: '₵2,550', url: `${SITE}/auctions/9bca43db-cf02-4835-a02d-f5e5e563c7b5`, image: `${IMG}fd42e50f-26b3-48a8-8be3-35ec78ba08e6/9bca43db-cf02-4835-a02d-f5e5e563c7b5/1794212842302-xugkcf.jpg` },
 ];
 
 type Recipient = { id: string; email: string; firstName: string };
@@ -111,3 +111,4 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ dryRun: false, sent, failed: failed.length, total: recipients.length });
 }
+
