@@ -89,6 +89,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         listing_city,
                         meetup_area,
                         delivery_available,
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                         auction_images(url, position),
                         listing_videos(id),
                         orders(id, status, deliveries(status)),
@@ -111,6 +112,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         listing_city,
                         meetup_area,
                         delivery_available,
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                         auction_images(url, position),
                         listing_videos(id)
                     `;

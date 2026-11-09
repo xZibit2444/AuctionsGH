@@ -12,6 +12,7 @@ export async function getPublicBrowse(listingType?: ListingType, home = false): 
             const query = supabase.from('auctions').select(`id, title, brand, model, condition,
                 current_price, status, bid_count, ends_at, created_at, updated_at, seller_id,
                 storage_gb, listing_city, meetup_area, delivery_available,
+                profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                 auction_images(url, position), listing_videos(id)`)
                 .in('status', home ? ['active'] : ['active', 'sold'])
                 .order('ends_at', { ascending: true }).order('id', { ascending: true });

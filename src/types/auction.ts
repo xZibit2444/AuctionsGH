@@ -20,4 +20,11 @@ export type AuctionWithSeller = Auction & {
     };
 };
 
+/** Public seller fields shown on listing cards. */
+export type SellerPreview = {
+    username: string;
+    full_name: string | null;
+    avatar_url: string | null;
+};
+
 export type AuctionFull = AuctionWithImages & AuctionWithSeller;

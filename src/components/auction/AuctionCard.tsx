@@ -5,13 +5,27 @@ import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import { getListingType } from '@/lib/listings';
 import { MapPin, Package, Play } from 'lucide-react';
-import type { Auction } from '@/types/auction';
+import type { Auction, SellerPreview } from '@/types/auction';
 
 interface AuctionCardProps {
     auction: Auction & {
         auction_images?: { url: string; position: number }[];
         listing_videos?: { id: string }[] | null;
+        profiles?: SellerPreview | null;
     };
+}
+
+/** Seller shown as first name plus last-name initial, username as fallback. */
+function sellerDisplayName(profile: SellerPreview | null | undefined): string | null {
+    if (!profile) return null;
+    const full = profile.full_name?.trim();
+    if (full) {
+        const parts = full.split(/\s+/);
+        return parts.length > 1
+            ? `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`
+            : parts[0];
+    }
+    return profile.username || null;
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
@@ -21,6 +35,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     const hasVideo = (auction.listing_videos ?? []).length > 0;
     const priceLabel = getListingType(auction) === 'permanent' ? 'Fixed price' : 'Auction';
     const conditionLabel = CONDITION_LABELS[auction.condition] ?? auction.condition;
+    const sellerName = sellerDisplayName(auction.profiles);
 
     return (
         <Link href={`/auctions/${auction.id}`} className="block">
@@ -71,6 +86,23 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                     <p className="mt-[9px] text-[17px] font-extrabold leading-[1.2] tracking-tight text-black">
                         {formatCurrency(auction.current_price)}
                     </p>
+                    {sellerName && (
+                        <p className="mt-2.5 flex items-center gap-1.5 border-t border-[#F1EEE9] pt-2.5 text-[12px] font-medium leading-[1.2] text-[#6E675E]">
+                            {auction.profiles?.avatar_url ? (
+                                <img
+                                    src={auction.profiles.avatar_url}
+                                    alt=""
+                                    loading="lazy"
+                                    className="h-5 w-5 shrink-0 rounded-full object-cover"
+                                />
+                            ) : (
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#12100C] text-[10px] font-bold text-white">
+                                    {sellerName[0].toUpperCase()}
+                                </span>
+                            )}
+                            <span className="truncate">{sellerName}</span>
+                        </p>
+                    )}
                 </div>
             </article>
         </Link>

@@ -50,6 +50,7 @@ export default function SavedPage() {
                     auction_id,
                     auctions (
                         *,
+                        profiles!auctions_seller_id_fkey ( username, full_name, avatar_url ),
                         auction_images ( url, position )
                     )
                 `)
