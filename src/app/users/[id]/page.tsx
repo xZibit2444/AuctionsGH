@@ -207,8 +207,8 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                 <div className="p-6 sm:p-8 pt-0 sm:pt-0">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <Avatar src={profile.avatar_url} name={profileName} size="lg" className="shrink-0 ring-0" />
-                        <div>
+                        <Avatar src={profile.avatar_url} name={profileName} size="lg" className="profile-avatar-ring relative z-10 -mt-16 shrink-0 ring-4 ring-white" />
+                        <div className="pt-4">
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Public Profile</p>
                                 {isSeller && (

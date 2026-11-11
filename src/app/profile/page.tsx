@@ -156,7 +156,7 @@ export default function ProfilePage() {
                             src={profile?.avatar_url}
                             name={displayName}
                             size="lg"
-                            className="profile-avatar-ring -mt-12 shrink-0 ring-4 ring-white sm:-mt-14"
+                            className="profile-avatar-ring relative z-10 -mt-16 shrink-0 ring-4 ring-white"
                         />
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
