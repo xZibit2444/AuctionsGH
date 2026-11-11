@@ -172,11 +172,21 @@ export default function AuctionComments({ auctionId, currentUserId }: AuctionCom
                 .eq('id', commentId)
                 .maybeSingle();
             setComments((prev) => {
-                const withoutDuplicate = saved ? prev.filter((c) => c.id !== commentId || c.id === optimisticId) : prev;
-                return withoutDuplicate.map((comment) => {
-                    if (comment.id !== optimisticId) return comment;
-                    return saved ? (saved as AuctionComment) : { ...comment, id: commentId };
-                });
+                const placeholderStillThere = prev.some((comment) => comment.id === optimisticId);
+                if (!placeholderStillThere) {
+                    // The realtime INSERT already swapped the placeholder for the saved row.
+                    // Leave the list alone so the comment does not vanish until a refresh;
+                    // only append the row if it is somehow missing entirely.
+                    if (prev.some((comment) => comment.id === commentId)) return prev;
+                    return saved ? [...prev, saved as AuctionComment] : prev;
+                }
+                // Normal path: drop any duplicate realtime copy, then swap the placeholder.
+                return prev
+                    .filter((comment) => comment.id !== commentId)
+                    .map((comment) => {
+                        if (comment.id !== optimisticId) return comment;
+                        return saved ? (saved as AuctionComment) : { ...comment, id: commentId };
+                    });
             });
         }
 
