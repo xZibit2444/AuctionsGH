@@ -105,6 +105,25 @@ export function whatsappChatLink(phone: string, text: string): string {
 }
 
 /**
+ * The pinned TJ Loans collateral-loan listing (permanent, price on request)
+ * gets its own prewritten enquiry message, approved by the site owner.
+ * Every other listing keeps the standard product enquiry.
+ */
+export const TJ_LOANS_LISTING_ID = '16adc252-845c-4fbb-b7c1-87cc3598e92d';
+
+export function whatsappEnquiryText(auction: {
+    id: string;
+    title: string;
+    current_price: number;
+    price_on_request?: boolean | null;
+}): string {
+    if (auction.id === TJ_LOANS_LISTING_ID) {
+        return "Hi TJ Loans, I saw your collateral loan listing on AuctionsGH. I'd like to ask about getting a loan and the collateral requirements.";
+    }
+    return `Hi, I'm interested in your listing "${auction.title}"${auction.price_on_request ? ' (price on request)' : ` (${formatCurrency(auction.current_price)})`} on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`;
+}
+
+/**
  * Truncate a string to a maximum length, appending an ellipsis when needed.
  */
 export function truncate(value: string, maxLength: number): string {

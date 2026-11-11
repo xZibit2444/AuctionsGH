@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { formatCurrency, whatsappChatLink } from '@/lib/utils';
+import { formatCurrency, whatsappChatLink, whatsappEnquiryText } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import { getListingType } from '@/lib/listings';
 import { MapPin, MessageCircle, Package, Play } from 'lucide-react';
@@ -40,10 +40,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     // Pinned cards act as the homepage enquiry channel: offer a direct WhatsApp
     // chat when the seller opted in, so visitors never need the detail page.
     const whatsappUrl = auction.is_pinned && auction.profiles?.whatsapp_enabled && sellerPhone
-        ? whatsappChatLink(
-            sellerPhone,
-            `Hi, I'm interested in your listing "${auction.title}"${auction.price_on_request ? ' (price on request)' : ` (${formatCurrency(auction.current_price)})`} on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`
-        )
+        ? whatsappChatLink(sellerPhone, whatsappEnquiryText(auction))
         : null;
 
     return (

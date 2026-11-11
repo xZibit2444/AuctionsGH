@@ -8,6 +8,7 @@ import {
     cn,
     formatDisplayName,
     whatsappChatLink,
+    whatsappEnquiryText,
 } from '@/lib/utils';
 
 // ── formatCurrency ─────────────────────────────────────────────────────────
@@ -211,5 +212,37 @@ describe('whatsappChatLink', () => {
     it('encodes the prewritten message', () => {
         const link = whatsappChatLink('0241234567', 'Hi, is "iPhone 16e" (GH₵5,000) still available?');
         expect(link).toBe('https://wa.me/233241234567?text=' + encodeURIComponent('Hi, is "iPhone 16e" (GH₵5,000) still available?'));
+    });
+});
+
+describe('whatsappEnquiryText', () => {
+    it('uses the approved loan enquiry for the TJ Loans listing', () => {
+        const text = whatsappEnquiryText({
+            id: '16adc252-845c-4fbb-b7c1-87cc3598e92d',
+            title: 'Collateral Loans Available',
+            current_price: 0,
+            price_on_request: true,
+        });
+        expect(text).toBe("Hi TJ Loans, I saw your collateral loan listing on AuctionsGH. I'd like to ask about getting a loan and the collateral requirements.");
+    });
+
+    it('keeps the standard product enquiry for other listings', () => {
+        const text = whatsappEnquiryText({
+            id: '11111111-2222-3333-4444-555555555555',
+            title: 'Apple iPhone 12 Pro Max 128GB',
+            current_price: 2950,
+        });
+        expect(text).toBe('Hi, I\'m interested in your listing "Apple iPhone 12 Pro Max 128GB" (₵2,950.00) on AuctionsGH: https://auctionsgh.com/auctions/11111111-2222-3333-4444-555555555555 - is it still available?');
+    });
+
+    it('notes price on request for other price-on-request listings', () => {
+        const text = whatsappEnquiryText({
+            id: '11111111-2222-3333-4444-555555555555',
+            title: 'Some Service',
+            current_price: 0,
+            price_on_request: true,
+        });
+        expect(text).toContain('(price on request)');
+        expect(text).not.toContain('TJ Loans');
     });
 });

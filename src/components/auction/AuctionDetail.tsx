@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency, formatAuctionLocation, getUserDisplayLabel, whatsappChatLink } from '@/lib/utils';
+import { formatCurrency, formatAuctionLocation, getUserDisplayLabel, whatsappChatLink, whatsappEnquiryText } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS } from '@/lib/listingEdit';
@@ -243,10 +243,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     // nothing is sent automatically.
     const sellerPhone = auctionData.profiles?.phone_number?.trim() || null;
     const sellerWhatsappUrl = showBuyerCtas && auctionData.profiles?.whatsapp_enabled && sellerPhone
-        ? whatsappChatLink(
-            sellerPhone,
-            `Hi, I'm interested in your listing "${auction.title}"${auction.price_on_request ? ' (price on request)' : ` (${formatCurrency(auction.current_price)})`} on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`
-        )
+        ? whatsappChatLink(sellerPhone, whatsappEnquiryText(auction))
         : null;
 
     const scrollToOffer = () => {
