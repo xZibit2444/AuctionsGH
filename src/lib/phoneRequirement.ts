@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const PHONE_REQUIRED_MESSAGE = 'Add your phone number to your account to continue.';
+import { PHONE_REQUIRED_MESSAGE } from './phone';
+
+export { PHONE_REQUIRED_MESSAGE };
 
 function adminClient() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

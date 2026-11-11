@@ -23,7 +23,7 @@ function cookieValid(value: string | undefined, userId: string): boolean {
 /**
  * Server-side page gate: signed-in users without a phone number are redirected to
  * /complete-profile before any page renders. A signed cookie caches "has a number"
- * so the profile is read once, not on every navigation. Fails open on read errors
+ * so the profile is re-read at most once an hour, not on every navigation. Fails open on read errors
  * (the client gate and the write-path checks still apply).
  */
 export async function applyPhoneGate(request: NextRequest, response: NextResponse): Promise<NextResponse> {
@@ -48,7 +48,7 @@ export async function applyPhoneGate(request: NextRequest, response: NextRespons
         if (has === null) return response;
         if (has) {
             const sig = sign(userId);
-            if (sig) response.cookies.set(COOKIE, `${userId}.${sig}`, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 30 });
+            if (sig) response.cookies.set(COOKIE, `${userId}.${sig}`, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 });
             return response;
         }
         const target = request.nextUrl.clone();

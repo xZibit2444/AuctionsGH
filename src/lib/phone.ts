@@ -14,6 +14,8 @@ export function normalizeGhanaPhone(value: string): string | null {
 const EXEMPT_PREFIXES = [
     '/complete-profile', '/login', '/signup', '/callback', '/verify-email',
     '/forgot-password', '/reset-password', '/privacy', '/terms', '/unsubscribe', '/api',
+    // Must stay reachable for a locked-out user: support and public info pages.
+    '/support', '/contact', '/faq', '/safety',
 ];
 
 export function isPhoneGateExempt(pathname: string): boolean {
@@ -24,3 +26,6 @@ export function isPhoneGateExempt(pathname: string): boolean {
 export function safeNextPath(raw: string | null | undefined): string {
     return raw && raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/complete-profile') ? raw : '/';
 }
+
+/** Shown when a write is blocked because the account has no phone number. */
+export const PHONE_REQUIRED_MESSAGE = 'Add your phone number to your account to continue.';

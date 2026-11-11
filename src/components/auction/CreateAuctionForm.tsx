@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { finalizeListingVideo } from '@/app/actions/listingVideo';
+import { createListingAction } from '@/app/actions/createListing';
+import { PHONE_REQUIRED_MESSAGE } from '@/lib/phone';
 import { createAuctionSchema, type CreateAuctionInput } from '@/lib/validators';
 import {
     ITEM_CATEGORIES,
@@ -289,53 +291,29 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
 
         setSubmitting(true);
 
-        let endsAt: string;
-        if (isPermanent) {
-            endsAt = new Date('2099-12-31T23:59:59Z').toISOString();
-        } else {
-            const totalHours = (formData.duration_hours || 0) + (formData.duration_minutes || 0) / 60;
-            if (totalHours === 0) {
-                setErrors({ duration_hours: 'Please set a duration or choose a permanent listing.' });
-                setStep(3);
-                setSubmitting(false);
-                return;
-            }
-            endsAt = new Date(Date.now() + totalHours * 60 * 60 * 1000).toISOString();
+        if (!isPermanent && (formData.duration_hours || 0) + (formData.duration_minutes || 0) / 60 === 0) {
+            setErrors({ duration_hours: 'Please set a duration or choose a permanent listing.' });
+            setSubmitting(false);
+            return;
         }
 
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: auction, error: auctionError } = await (supabase.from('auctions') as any)
-                .insert({
-                    seller_id: user.id,
-                    title: formData.title,
-                    description: formData.description || null,
-                    brand: formData.brand,
-                    model: formData.model,
-                    storage_gb: specFields.storage ? formData.storage_gb || (specs.storage !== '' ? Number(specs.storage) : null) : null,
-                    battery_health: specFields.battery && specs.battery !== '' ? Number(specs.battery) : null,
-                    sim_type: specFields.sim ? specs.sim || null : null,
-                    network_lock: specFields.lock ? specs.lock || null : null,
-                    faults: specs.faults.trim() || null,
-                    condition: formData.condition,
-                    starting_price: formData.starting_price,
-                    current_price: formData.starting_price,
-                    min_increment: formData.min_increment,
-                    ends_at: endsAt,
-                    listing_city: formData.listing_city,
-                    meetup_area: formData.meetup_area,
-                    delivery_available: formData.delivery_available,
-                    inspection_available: formData.inspection_available,
-                    allow_buy_now: isPermanent ? allowBuyNow : true,
-                })
-                .select()
-                .single();
-
-            if (auctionError || !auction) {
-                setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
-                return;
+        const result2 = await createListingAction({
+            form: formData,
+            specs,
+            isPermanent,
+            allowBuyNow,
+        });
+        if (!result2.success || !result2.auctionId) {
+            if (result2.error === PHONE_REQUIRED_MESSAGE) {
+                router.push(`/complete-profile?next=${encodeURIComponent('/auctions/create')}`);
             }
+            setErrors({ submit: result2.error ?? 'Failed to create auction' });
+            setSubmitting(false);
+            return;
+        }
+        const auctionId = result2.auctionId;
 
+        try {
             // Persist the WhatsApp contact choice shown on the publish screen.
             if (whatsappOptIn !== null && whatsappOptIn !== !!profile?.whatsapp_enabled) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -345,26 +323,10 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 if (waError) console.error('Failed to save WhatsApp preference:', waError.message);
             }
 
-            const winnerNote = (formData.winner_note ?? '').trim();
-            if (winnerNote) {
-                // Save private seller instructions visible only to the winning buyer via RLS.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const { error: noteError } = await (supabase.from('auction_winner_notes') as any).insert({
-                    auction_id: (auction as { id: string }).id,
-                    seller_id: user.id,
-                    note: winnerNote,
-                });
-
-                if (noteError) {
-                    console.error('Failed to save winner-only note:', noteError.message);
-                }
-            }
-
             // Upload all images in parallel with a 30-second timeout per image
             const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
                 Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
-            const auctionId = (auction as { id: string }).id;
             const uploadResults = await Promise.all(
                 images.map((img, i) =>
                     withTimeout(uploadImage(img, user.id, auctionId), 30000)
