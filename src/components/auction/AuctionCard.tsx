@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { formatCurrency, whatsappChatLink, whatsappEnquiryText } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import { getListingType } from '@/lib/listings';
-import { MapPin, MessageCircle, Package, Play } from 'lucide-react';
+import { MapPin, Package, Play } from 'lucide-react';
 import type { Auction, SellerPreview } from '@/types/auction';
 
 interface AuctionCardProps {
@@ -36,13 +36,6 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     const priceLabel = getListingType(auction) === 'permanent' ? 'Fixed price' : 'Auction';
     const conditionLabel = CONDITION_LABELS[auction.condition] ?? auction.condition;
     const sellerName = sellerDisplayName(auction.profiles);
-    const sellerPhone = auction.profiles?.phone_number?.trim() || null;
-    // Pinned cards act as the homepage enquiry channel: offer a direct WhatsApp
-    // chat when the seller opted in, so visitors never need the detail page.
-    const whatsappUrl = auction.is_pinned && auction.profiles?.whatsapp_enabled && sellerPhone
-        ? whatsappChatLink(sellerPhone, whatsappEnquiryText(auction))
-        : null;
-
     return (
         <article className="group overflow-hidden rounded-[14px] border border-[#E9E6E0] bg-white transition-shadow duration-200 hover:shadow-md">
         <Link href={`/auctions/${auction.id}`} className="block">
@@ -120,19 +113,6 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                     )}
                 </div>
         </Link>
-        {whatsappUrl && (
-            <div className="px-3.5 pb-3.5">
-                <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-3 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-[#1FB857]"
-                >
-                    <MessageCircle className="h-4 w-4" strokeWidth={2.5} />
-                    Message to enquire
-                </a>
-            </div>
-        )}
     </article>
     );
 }
