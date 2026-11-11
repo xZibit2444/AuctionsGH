@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Clock3, MapPin, Package, ShieldCheck, Star } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import ProfileCover from '@/components/profile/ProfileCover';
+import MobileSeeMore from '@/components/ui/MobileSeeMore';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import SellerAdminMenu from '@/components/seller/SellerAdminMenu';
 import ShareButton from '@/components/ui/ShareButton';
@@ -194,9 +196,15 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
     const visiblePastBuys = !isSeller && profile.show_past_buys ? pastBuys : [];
     const visibleListingHistory = profile.show_past_sales ? listingHistory : [];
 
+    // Tolerant read so pages keep working if the cover column is not there yet.
+    const { data: coverRow } = await createAdminClient().from('profiles').select('cover_url').eq('id', profile.id).single() as { data: { cover_url: string | null } | null };
+    const coverUrl = coverRow?.cover_url ?? null;
+
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-24 sm:pb-12">
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 mb-8">
+            <div className="rounded-2xl border border-gray-200 bg-white mb-8 overflow-hidden">
+                <ProfileCover coverUrl={coverUrl} />
+                <div className="p-6 sm:p-8 pt-0 sm:pt-0">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-start gap-4">
                         <Avatar src={profile.avatar_url} name={profileName} size="lg" className="shrink-0 ring-0" />
@@ -260,6 +268,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                     </div>
                 </div>
             </div>
+                </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div className="xl:col-span-2 space-y-8">
@@ -272,7 +281,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         {activeListings.length === 0 ? (
                             <EmptyState message={isSeller ? 'No active listings right now.' : 'This member has no public listings.'} />
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <MobileSeeMore className="grid grid-cols-1 md:grid-cols-2 gap-4" noun="listings">
                                 {activeListings.map((auction) => {
                                     const preview = listingPreview(auction);
                                     return (
@@ -300,7 +309,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                         </Link>
                                     );
                                 })}
-                            </div>
+                            </MobileSeeMore>
                         )}
                     </section>
 
@@ -314,7 +323,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                         {visibleListingHistory.length === 0 ? (
                             <EmptyState message="No public past sales yet." />
                         ) : (
-                            <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
+                            <MobileSeeMore className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden" noun="past listings">
                                 {visibleListingHistory.map((auction) => (
                                     <Link key={auction.id} href={`/auctions/${auction.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-gray-50 transition-colors">
                                         <div className="min-w-0">
@@ -331,7 +340,7 @@ export default async function PublicUserProfilePage({ params }: UserPageProps) {
                                         </div>
                                     </Link>
                                 ))}
-                            </div>
+                            </MobileSeeMore>
                         )}
                     </section>
                     )}
