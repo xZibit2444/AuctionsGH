@@ -111,7 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [supabase, fetchProfile]);
 
     const signOut = useCallback(async () => {
-        await supabase.auth.signOut();
+        // Ordinary sign-out affects this session only, not the user's other devices.
+        await supabase.auth.signOut({ scope: 'local' });
         setUser(null);
         setProfile(null);
     }, [supabase]);
