@@ -26,7 +26,7 @@ export function useAuction(auctionId: string, initialAuction?: AuctionFull | nul
           auction_images (url, position),
           listing_videos (id, content_type, duration_seconds),
           profiles!auctions_seller_id_fkey (
-            id, username, full_name, avatar_url, location, is_verified
+            id, username, full_name, avatar_url, location, is_verified, phone_number, whatsapp_enabled
           ),
           orders(id, status, buyer_id),
           auction_offers(id, buyer_id, amount, counter_amount, status)

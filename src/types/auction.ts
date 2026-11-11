@@ -17,6 +17,9 @@ export type AuctionWithSeller = Auction & {
         avatar_url: string | null;
         location: string | null;
         is_verified: boolean;
+        /** Only present when the listing query includes them (detail page). */
+        phone_number?: string | null;
+        whatsapp_enabled?: boolean | null;
     };
 };
 

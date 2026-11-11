@@ -92,6 +92,19 @@ export function formatAuctionLocation(region?: string | null, location?: string 
 }
 
 /**
+ * Normalize a stored Ghana phone number into wa.me digits and build a
+ * click-to-chat link with a prewritten message the buyer can review and send.
+ * Handles "+233 ...", "233...", leading-zero local numbers and bare 9-digit numbers.
+ */
+export function whatsappChatLink(phone: string, text: string): string {
+    let digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('00233')) digits = digits.slice(2);
+    if (digits.startsWith('0')) digits = `233${digits.slice(1)}`;
+    else if (!digits.startsWith('233') && digits.length === 9) digits = `233${digits}`;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+/**
  * Truncate a string to a maximum length, appending an ellipsis when needed.
  */
 export function truncate(value: string, maxLength: number): string {

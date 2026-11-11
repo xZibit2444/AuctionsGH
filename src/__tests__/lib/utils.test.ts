@@ -7,6 +7,7 @@ import {
     truncate,
     cn,
     formatDisplayName,
+    whatsappChatLink,
 } from '@/lib/utils';
 
 // ── formatCurrency ─────────────────────────────────────────────────────────
@@ -190,5 +191,25 @@ describe('formatDisplayName', () => {
     it('handles email address by stripping domain', () => {
         const result = formatDisplayName('kwame.asante@gmail.com');
         expect(result).toBe('KA');
+    });
+});
+
+describe('whatsappChatLink', () => {
+    it('normalizes a formatted Ghana number to wa.me digits', () => {
+        const link = whatsappChatLink('+233 208805948', 'Hi');
+        expect(link).toBe('https://wa.me/233208805948?text=Hi');
+    });
+
+    it('converts leading-zero local numbers to international format', () => {
+        expect(whatsappChatLink('0208805948', 'Hi')).toBe('https://wa.me/233208805948?text=Hi');
+    });
+
+    it('prefixes bare 9-digit numbers with the Ghana country code', () => {
+        expect(whatsappChatLink('208805948', 'Hi')).toBe('https://wa.me/233208805948?text=Hi');
+    });
+
+    it('encodes the prewritten message', () => {
+        const link = whatsappChatLink('0241234567', 'Hi, is "iPhone 16e" (GH₵5,000) still available?');
+        expect(link).toBe('https://wa.me/233241234567?text=' + encodeURIComponent('Hi, is "iPhone 16e" (GH₵5,000) still available?'));
     });
 });

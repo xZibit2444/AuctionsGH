@@ -255,6 +255,7 @@ export default function SettingsPage({ section }: { section: Section }) {
         location: '',
         show_past_buys: false,
         show_past_sales: false,
+        whatsapp_enabled: false,
     });
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -281,6 +282,7 @@ export default function SettingsPage({ section }: { section: Section }) {
                 location: profile.location ?? '',
                 show_past_buys: profile.show_past_buys ?? false,
                 show_past_sales: profile.show_past_sales ?? false,
+                whatsapp_enabled: profile.whatsapp_enabled ?? false,
             });
             setAvatarUrl(profile.avatar_url ?? '');
         }
@@ -300,6 +302,7 @@ export default function SettingsPage({ section }: { section: Section }) {
             location: profile?.location ?? '',
             show_past_buys: profile?.show_past_buys ?? false,
             show_past_sales: profile?.show_past_sales ?? false,
+            whatsapp_enabled: profile?.whatsapp_enabled ?? false,
         });
         setAvatarUrl(profile?.avatar_url ?? '');
         setProfileError('');
@@ -392,6 +395,7 @@ export default function SettingsPage({ section }: { section: Section }) {
                     location: profileForm.location,
                     show_past_buys: profileForm.show_past_buys,
                     show_past_sales: profileForm.show_past_sales,
+                    whatsapp_enabled: profileForm.whatsapp_enabled,
                     avatar_url: avatarUrl || null,
                 })
                 .eq('id', user.id);
@@ -633,6 +637,10 @@ export default function SettingsPage({ section }: { section: Section }) {
                                         <InfoRow label="Username" value={profile?.username ?? ''} placeholder="Not set" />
                                         <InfoRow label="Email" value={user?.email ?? ''} />
                                         <InfoRow label="Phone" value={profile?.phone_number ?? ''} placeholder="Not set" />
+                                        <InfoRow
+                                            label="WhatsApp Button"
+                                            value={profile?.whatsapp_enabled ? 'Shown on my listings' : 'Off'}
+                                        />
                                         <InfoRow label="Location" value={profile?.location ?? ''} placeholder="Not set" />
                                         {visibilitySettingsAvailable ? (
                                             <>
@@ -741,6 +749,20 @@ export default function SettingsPage({ section }: { section: Section }) {
                                                             />
                                                         </div>
                                                     )}
+
+                                                    <div className="flex items-center gap-4 px-5 py-4">
+                                                        <IconTile icon={MessageCircle} />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-sm font-bold text-black">WhatsApp button on my listings</p>
+                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                Buyers see a WhatsApp button on your listings that opens a chat to your saved phone number ({profile?.phone_number || 'not set'}) with a prewritten message about the listing.
+                                                            </p>
+                                                        </div>
+                                                        <Toggle
+                                                            on={profileForm.whatsapp_enabled}
+                                                            onToggle={() => setProfileForm((prev) => ({ ...prev, whatsapp_enabled: !prev.whatsapp_enabled }))}
+                                                        />
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">

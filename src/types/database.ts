@@ -26,6 +26,7 @@ export interface Database {
                     full_name: string | null;
                     avatar_url: string | null;
                     phone_number: string | null;
+                    whatsapp_enabled: boolean;
                     location: string | null;
                     show_past_buys: boolean;
                     show_past_sales: boolean;
@@ -52,6 +53,7 @@ export interface Database {
                     full_name?: string | null;
                     avatar_url?: string | null;
                     phone_number?: string | null;
+                    whatsapp_enabled?: boolean;
                     location?: string | null;
                     show_past_buys?: boolean;
                     show_past_sales?: boolean;
@@ -73,6 +75,7 @@ export interface Database {
                     full_name?: string | null;
                     avatar_url?: string | null;
                     phone_number?: string | null;
+                    whatsapp_enabled?: boolean;
                     location?: string | null;
                     show_past_buys?: boolean;
                     show_past_sales?: boolean;

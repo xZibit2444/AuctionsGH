@@ -6,7 +6,7 @@ import { useBids } from '@/hooks/useBids';
 import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
-import { formatCurrency, formatAuctionLocation, getUserDisplayLabel } from '@/lib/utils';
+import { formatCurrency, formatAuctionLocation, getUserDisplayLabel, whatsappChatLink } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
@@ -25,6 +25,7 @@ import Avatar from '@/components/ui/Avatar';
 import SellerRating from '@/components/ui/SellerRating';
 import FavoriteSellerButton from '@/components/seller/FavoriteSellerButton';
 import ShareButton from '@/components/ui/ShareButton';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import ReportListingButton from '@/components/auction/ReportListingButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
@@ -55,6 +56,8 @@ type AuctionDetailData = {
         location: string | null;
         is_verified: boolean;
         full_name?: string | null;
+        phone_number?: string | null;
+        whatsapp_enabled?: boolean | null;
     } | null;
 };
 
@@ -232,6 +235,17 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     const isActive = auction.status === 'active';
     const showBuyerCtas = !isSeller && isActive;
     const canBuyNow = isPermanent && buyNowEnabled && auction.current_price > 0;
+
+    // Seller WhatsApp contact: only when the seller opted in and has a phone saved.
+    // Opens the buyer's WhatsApp with a prewritten message about this listing;
+    // nothing is sent automatically.
+    const sellerPhone = auctionData.profiles?.phone_number?.trim() || null;
+    const sellerWhatsappUrl = showBuyerCtas && auctionData.profiles?.whatsapp_enabled && sellerPhone
+        ? whatsappChatLink(
+            sellerPhone,
+            `Hi, I'm interested in your listing "${auction.title}" (${formatCurrency(auction.current_price)}) on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`
+        )
+        : null;
 
     const scrollToOffer = () => {
         document.getElementById('offer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -493,6 +507,18 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
 
             {buyerCtas}
 
+            {sellerWhatsappUrl && (
+                <a
+                    href={sellerWhatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#1fb857] sm:mt-3"
+                >
+                    <WhatsAppIcon className="h-5 w-5" />
+                    Chat on WhatsApp
+                </a>
+            )}
+
             {isSeller && isActive && !isPermanent && (
                 <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
                     You cannot bid on your own auction.
@@ -694,6 +720,17 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                         >
                             Bid
                         </button>
+                    )}
+                    {sellerWhatsappUrl && (
+                        <a
+                            href={sellerWhatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Chat with the seller on WhatsApp"
+                            className="shrink-0 rounded-xl bg-[#25D366] p-3 text-white transition-colors hover:bg-[#1fb857]"
+                        >
+                            <WhatsAppIcon className="h-5 w-5" />
+                        </a>
                     )}
                 </div>
             )}
