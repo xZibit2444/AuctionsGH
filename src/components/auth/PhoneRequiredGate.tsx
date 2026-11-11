@@ -16,20 +16,21 @@ export default function PhoneRequiredGate() {
     const { user, loading } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
-    const checkedFor = useRef<string | null>(null);
+    // Remember only a positive result (this user has a number); anything else is re-checked on every navigation.
+    const hasPhoneFor = useRef<string | null>(null);
 
     useEffect(() => {
         if (loading || !user || isPhoneGateExempt(pathname)) return;
-        if (checkedFor.current === user.id) return;
-        checkedFor.current = user.id;
+        if (hasPhoneFor.current === user.id) return;
         let cancelled = false;
         (async () => {
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const { data, error } = await (createClient() as any).rpc('get_profile_phone', { profile_id: user.id });
                 if (cancelled || error) return;
-                if (typeof data !== 'string' || data.trim() === '') {
-                    checkedFor.current = null;
+                if (typeof data === 'string' && data.trim() !== '') {
+                    hasPhoneFor.current = user.id;
+                } else {
                     router.replace(`/complete-profile?next=${encodeURIComponent(pathname)}`);
                 }
             } catch { /* fail open */ }

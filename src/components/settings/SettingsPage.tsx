@@ -1,5 +1,6 @@
 'use client';
 
+import { normalizeGhanaPhone } from '@/lib/phone';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthGuard from '@/components/auth/AuthGuard';
@@ -383,6 +384,12 @@ export default function SettingsPage({ section }: { section: Section }) {
             setProfileError('Location (region) is required.');
             return;
         }
+        // Store one canonical form (+233XXXXXXXXX) so the unique constraint cannot be dodged with spaces.
+        const canonicalPhone = normalizeGhanaPhone(profileForm.phone_number);
+        if (!canonicalPhone) {
+            setProfileError('Please enter a valid Ghana phone number.');
+            return;
+        }
 
         try {
             const supabase = createClient();
@@ -391,7 +398,7 @@ export default function SettingsPage({ section }: { section: Section }) {
                 .update({
                     full_name: profileForm.full_name,
                     username: normalizedUsername,
-                    phone_number: profileForm.phone_number,
+                    phone_number: canonicalPhone,
                     location: profileForm.location,
                     show_past_buys: profileForm.show_past_buys,
                     show_past_sales: profileForm.show_past_sales,
@@ -405,7 +412,7 @@ export default function SettingsPage({ section }: { section: Section }) {
                     .update({
                         full_name: profileForm.full_name,
                         username: normalizedUsername,
-                        phone_number: profileForm.phone_number,
+                        phone_number: canonicalPhone,
                         location: profileForm.location,
                         avatar_url: avatarUrl || null,
                     })
