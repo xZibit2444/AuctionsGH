@@ -88,6 +88,19 @@ export const NETWORK_LOCK_OPTIONS = [
     { value: 'unknown', label: 'Not sure' },
 ] as const;
 
+export const vehicleSpecsSchema = z.object({
+    vehicle_year: z.preprocess(
+        emptyToNull,
+        z.coerce.number().int('Year must be a whole number').min(1950, 'Enter a valid year').max(new Date().getFullYear() + 1, 'Enter a valid year').nullable()
+    ).optional(),
+    vehicle_mileage_km: z.preprocess(
+        emptyToNull,
+        z.coerce.number().int('Mileage must be a whole number').min(0, 'Mileage cannot be negative').max(2147483647, 'Mileage is too large').nullable()
+    ).optional(),
+    vehicle_transmission: z.preprocess(emptyToNull, z.enum(['automatic', 'manual']).nullable()).optional(),
+    vehicle_fuel: z.preprocess(emptyToNull, z.enum(['petrol', 'diesel', 'hybrid', 'electric']).nullable()).optional(),
+});
+
 export const updateListingSchema = z.object({
     title: z.string().trim().min(5, 'Title must be at least 5 characters').max(100),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional().default(''),
@@ -101,16 +114,7 @@ export const updateListingSchema = z.object({
     sim_type: z.preprocess(emptyToNull, z.enum(['physical_sim', 'esim', 'dual_sim']).nullable()).optional(),
     network_lock: z.preprocess(emptyToNull, z.enum(['unlocked', 'locked', 'unknown']).nullable()).optional(),
     faults: z.string().trim().max(500, 'Faults cannot exceed 500 characters').optional().nullable(),
-    vehicle_year: z.preprocess(
-        emptyToNull,
-        z.coerce.number().int('Year must be a whole number').min(1950, 'Enter a valid year').max(new Date().getFullYear() + 1, 'Enter a valid year').nullable()
-    ).optional(),
-    vehicle_mileage_km: z.preprocess(
-        emptyToNull,
-        z.coerce.number().int('Mileage must be a whole number').min(0, 'Mileage cannot be negative').nullable()
-    ).optional(),
-    vehicle_transmission: z.preprocess(emptyToNull, z.enum(['automatic', 'manual']).nullable()).optional(),
-    vehicle_fuel: z.preprocess(emptyToNull, z.enum(['petrol', 'diesel', 'hybrid', 'electric']).nullable()).optional(),
+    ...vehicleSpecsSchema.shape,
     condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor', 'unspecified']),
     price: z.coerce
         .number()

@@ -493,7 +493,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             </SelectInput>
                         </div>
                         <div>
-                            <FieldLabel optional>Brand / Model</FieldLabel>
+                            <FieldLabel optional>{formData.brand === 'Vehicles' ? 'Make / Model' : 'Brand / Model'}</FieldLabel>
                             <input
                                 value={formData.model ?? ''}
                                 onChange={(e) => update('model', e.target.value)}

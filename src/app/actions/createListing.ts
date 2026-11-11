@@ -3,7 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createAuctionSchema } from '@/lib/validators';
-import { specFieldsForCategory } from '@/lib/listingEdit';
+import { specFieldsForCategory, vehicleSpecsSchema } from '@/lib/listingEdit';
 import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 function adminClient() {
@@ -45,6 +45,14 @@ export async function createListingAction(
     const { specs, isPermanent, allowBuyNow } = payload;
     const specFields = specFieldsForCategory(formData.brand);
 
+    const vehicle = vehicleSpecsSchema.safeParse(specFields.year ? {
+        vehicle_year: specs.year,
+        vehicle_mileage_km: specs.mileage,
+        vehicle_transmission: specs.transmission,
+        vehicle_fuel: specs.fuel,
+    } : {});
+    if (!vehicle.success) return { success: false, error: vehicle.error.issues[0]?.message ?? 'Invalid vehicle details' };
+
     let endsAt: string;
     if (isPermanent) {
         endsAt = new Date('2099-12-31T23:59:59Z').toISOString();
@@ -69,10 +77,10 @@ export async function createListingAction(
             sim_type: specFields.sim ? specs.sim || null : null,
             network_lock: specFields.lock ? specs.lock || null : null,
             faults: (specs.faults ?? '').trim() || null,
-            vehicle_year: specFields.year ? numOrNull(specs.year ?? '') : null,
-            vehicle_mileage_km: specFields.mileage ? numOrNull(specs.mileage ?? '') : null,
-            vehicle_transmission: specFields.transmission ? (specs.transmission || null) : null,
-            vehicle_fuel: specFields.fuel ? (specs.fuel || null) : null,
+            vehicle_year: vehicle.data.vehicle_year ?? null,
+            vehicle_mileage_km: vehicle.data.vehicle_mileage_km ?? null,
+            vehicle_transmission: vehicle.data.vehicle_transmission ?? null,
+            vehicle_fuel: vehicle.data.vehicle_fuel ?? null,
             condition: formData.condition,
             starting_price: formData.starting_price,
             current_price: formData.starting_price,

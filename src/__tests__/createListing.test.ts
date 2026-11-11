@@ -89,6 +89,14 @@ describe('createListingAction', () => {
             storage_gb: null, battery_health: null, sim_type: null, network_lock: null,
         });
     });
+    it('rejects invalid vehicle specs on the server before insert', async () => {
+        for (const invalid of [{ year: '0' }, { mileage: '-1' }, { mileage: '1.5' }, { transmission: 'robot' }, { fuel: 'unknown' }]) {
+            db.inserted = null;
+            const r = await createListingAction({ form: { ...baseForm, brand: 'Vehicles' }, specs: { ...specs, ...invalid }, isPermanent: true, allowBuyNow: true });
+            expect(r.success).toBe(false);
+            expect(db.inserted).toBeNull();
+        }
+    });
     it('nulls vehicle fields for phone listings', async () => {
         const r = await createListingAction({ form: baseForm, specs: { ...specs, year: '2016', mileage: '100', transmission: 'automatic', fuel: 'petrol' }, isPermanent: true, allowBuyNow: true });
         expect(r.success).toBe(true);

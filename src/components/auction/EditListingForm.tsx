@@ -15,7 +15,7 @@ import {
 } from '@/lib/constants';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 
-type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
+type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor' | 'unspecified';
 
 type FormState = {
     title: string;
@@ -104,7 +104,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 vehicle_mileage_km: data.vehicle_mileage_km != null ? String(data.vehicle_mileage_km) : '',
                 vehicle_transmission: data.vehicle_transmission ?? '',
                 vehicle_fuel: data.vehicle_fuel ?? '',
-                condition: (data.condition ?? 'good') as Condition,
+                condition: (data.condition ?? 'unspecified') as Condition,
                 price: String(data.starting_price ?? data.current_price ?? ''),
                 listing_city: data.listing_city ?? 'Greater Accra',
                 meetup_area: data.meetup_area ?? '',
@@ -253,7 +253,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         </select>
                     </div>
                     <div>
-                        <Label optional>Brand / Model</Label>
+                        <Label optional>{form.brand === 'Vehicles' ? 'Make / Model' : 'Brand / Model'}</Label>
                         <input
                             value={form.model}
                             onChange={(e) => set('model', e.target.value)}
