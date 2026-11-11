@@ -81,7 +81,7 @@ export default function MobileNav() {
         };
     }, [menuOpen]);
 
-    if (pathname === '/login' || pathname === '/signup') return null;
+    if (pathname === '/login' || pathname === '/signup' || pathname === '/complete-profile') return null;
 
     return (
         <>

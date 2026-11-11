@@ -5,7 +5,7 @@ import ProfileShortcut from './ProfileShortcut';
 import NotificationBell from './NotificationBell';
 import HomeHeader from './HomeHeader';
 
-const AUTH_ROUTES = ['/login', '/signup'];
+const AUTH_ROUTES = ['/login', '/signup', '/complete-profile'];
 
 export default function MainContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();

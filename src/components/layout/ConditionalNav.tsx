@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 
-const AUTH_ROUTES = ['/login', '/signup'];
+const AUTH_ROUTES = ['/login', '/signup', '/complete-profile'];
 // Single listing pages (/auctions/<id>) use the storefront header, no sidebar.
 const isListingDetail = (pathname: string) => /^\/auctions\/(?!create$)[^/]+$/.test(pathname);
 

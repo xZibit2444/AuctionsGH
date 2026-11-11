@@ -32,6 +32,14 @@ export async function GET(request: NextRequest) {
             // Guarded twice: a 2-minute account-age window plus a durable user_metadata flag,
             // so a repeat login cannot be counted as a second sign-up.
             const { data: { user } } = await supabase.auth.getUser();
+            // Every account needs a phone number, including Google/GitHub sign-ins.
+            // Collection only: ownership of the number is not verified. Fails open on read errors.
+            let needsPhone = false;
+            if (user) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { data: phone, error: phoneError } = await (supabase as any).rpc('get_profile_phone', { profile_id: user.id });
+                needsPhone = !phoneError && (typeof phone !== 'string' || phone.trim() === '');
+            }
             const createdAt = user?.created_at ? Date.parse(user.created_at) : NaN;
             const isNewUser =
                 Number.isFinite(createdAt) &&
@@ -45,7 +53,13 @@ export async function GET(request: NextRequest) {
                 }
                 const provider = (user?.app_metadata?.provider as string | undefined) || 'oauth';
                 const sep = next.includes('?') ? '&' : '?';
+                if (needsPhone) {
+                    return NextResponse.redirect(`${origin}/complete-profile?next=${encodeURIComponent(next)}&signup=oauth&provider=${encodeURIComponent(provider)}`);
+                }
                 return NextResponse.redirect(`${origin}${next}${sep}signup=oauth&provider=${encodeURIComponent(provider)}`);
+            }
+            if (needsPhone) {
+                return NextResponse.redirect(`${origin}/complete-profile?next=${encodeURIComponent(next)}`);
             }
             return NextResponse.redirect(`${origin}${next}`);
         }

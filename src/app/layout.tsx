@@ -9,6 +9,7 @@ import FloatingChatToast from '@/components/layout/FloatingChatToast';
 import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import SignupTracker from '@/components/analytics/SignupTracker';
+import PhoneRequiredGate from '@/components/auth/PhoneRequiredGate';
 import Script from 'next/script';
 
 // All pages use Supabase at runtime â prevent static prerender at build time
@@ -71,6 +72,7 @@ export default function RootLayout({
       <body className={`${jakarta.variable} ${jakarta.className} antialiased`}>
         <Providers>
           <SignupTracker />
+          <PhoneRequiredGate />
           <ConditionalNav />
           <MainContent>
             <FloatingChatToast />
