@@ -62,7 +62,7 @@ function SelectInput({ value, onChange, children }: {
 export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string }) {
     const router = useRouter();
     const supabase = createClient();
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const { uploadImage, uploading } = useImageUpload();
     const { uploadVideo } = useVideoUpload();
 
@@ -91,6 +91,27 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const [submitting, setSubmitting] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
+    // WhatsApp contact opt-in. null = still resolving. New sellers (no listings
+    // yet) default ON with disclosure; existing sellers see their saved setting.
+    const [whatsappOptIn, setWhatsappOptIn] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        if (whatsappOptIn !== null || !user || !profile) return;
+        if (profile.whatsapp_enabled) {
+            setWhatsappOptIn(true);
+            return;
+        }
+        supabase
+            .from('auctions')
+            .select('id', { count: 'exact', head: true })
+            .eq('seller_id', user.id)
+            .limit(1)
+            .then(({ count }) => {
+                const isNewSeller = (count ?? 0) === 0;
+                setWhatsappOptIn(isNewSeller && !!profile.phone_number);
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, profile, whatsappOptIn]);
     const [isPermanent, setIsPermanent] = useState(true);
     const [allowBuyNow, setAllowBuyNow] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
@@ -313,6 +334,15 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
             if (auctionError || !auction) {
                 setErrors({ submit: auctionError?.message ?? 'Failed to create auction' });
                 return;
+            }
+
+            // Persist the WhatsApp contact choice shown on the publish screen.
+            if (whatsappOptIn !== null && whatsappOptIn !== !!profile?.whatsapp_enabled) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const { error: waError } = await (supabase.from('profiles') as any)
+                    .update({ whatsapp_enabled: whatsappOptIn })
+                    .eq('id', user.id);
+                if (waError) console.error('Failed to save WhatsApp preference:', waError.message);
             }
 
             const winnerNote = (formData.winner_note ?? '').trim();
@@ -967,6 +997,25 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             <span className="font-semibold text-black">{formData.inspection_available ? 'Yes' : 'No'}</span>
                         </div>
                     </div>
+
+                    {profile?.phone_number && whatsappOptIn !== null && (
+                        <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={whatsappOptIn}
+                                onChange={(e) => setWhatsappOptIn(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 shrink-0 accent-[#25D366]"
+                            />
+                            <span>
+                                <span className="block text-sm font-semibold text-black">
+                                    Add a WhatsApp chat button to this listing
+                                </span>
+                                <span className="block text-xs text-gray-500 mt-0.5">
+                                    Buyers will see a WhatsApp button that opens a chat with your saved number {profile.phone_number}, with a prewritten message they can review before sending. This makes your number visible to buyers. You can turn it off anytime in Settings &gt; Profile.
+                                </span>
+                            </span>
+                        </label>
+                    )}
 
                     {errors.submit && (
                         <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
