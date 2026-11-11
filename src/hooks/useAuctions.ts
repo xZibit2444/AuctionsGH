@@ -91,7 +91,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         delivery_available,
                         is_pinned,
                         price_on_request,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, whatsapp_enabled),
                         auction_images(url, position),
                         listing_videos(id),
                         orders(id, status, deliveries(status)),
@@ -116,7 +116,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         delivery_available,
                         is_pinned,
                         price_on_request,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, whatsapp_enabled),
                         auction_images(url, position),
                         listing_videos(id)
                     `;
@@ -213,6 +213,20 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     const { data: limitedRows, error: limitedError } = await query.limit(limit);
                     data = limitedRows;
                     fetchError = limitedError;
+                }
+
+                // Pinned cards offer a direct WhatsApp enquiry CTA: fetch the
+                // seller's opted-in phone via the same gated RPC the listing
+                // page uses (the phone column itself is not publicly selectable).
+                if (!fetchError) {
+                    await Promise.all(((data as Auction[]) ?? []).map(async (row) => {
+                        const p = (row as unknown as { profiles?: { whatsapp_enabled?: boolean | null; phone_number?: string | null } | null }).profiles;
+                        if (row.is_pinned && p?.whatsapp_enabled) {
+                            const { data: phone } = await (supabase as unknown as { rpc: (fn: string, args: Record<string, string>) => Promise<{ data: string | null }> })
+                                .rpc('get_profile_phone', { profile_id: row.seller_id });
+                            p.phone_number = phone ?? null;
+                        }
+                    }));
                 }
 
                 if (!isMounted) return;
