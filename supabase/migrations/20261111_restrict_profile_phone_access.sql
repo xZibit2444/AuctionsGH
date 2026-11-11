@@ -1,13 +1,18 @@
 -- 20261111_restrict_profile_phone_access.sql
--- profiles.phone_number was readable by anyone: the public SELECT policy on
--- profiles covers every column, and the site's anon key is public by design.
--- This revokes direct column access and replaces it with a security-definer
--- function that returns a phone only to:
---   1. the owner of the profile,
---   2. buyers/sellers who share an order with the profile (deal handoff),
---   3. admins,
---   4. anyone, when the seller opted in to the listing WhatsApp button.
+-- Two problems fixed here:
+--
+-- 1. profiles.phone_number was readable by anyone: the table-level SELECT
+--    grant to anon/authenticated covers every column, the RLS policy allows
+--    public reads, and the site's anon key is public by design.
+-- 2. The table-level UPDATE grant plus "users can update own profile" let any
+--    authenticated user set privileged columns on their own row
+--    (is_admin, is_super_admin, is_verified, is_banned, ...).
+--
+-- Column-level REVOKE alone does NOT override a table-level grant, so we
+-- revoke the table-level grants and re-grant exactly the columns each role
+-- may read/write. service_role is untouched (server/admin flows keep working).
 
+-- ── 1. Gated phone access ──
 CREATE OR REPLACE FUNCTION public.get_profile_phone(profile_id uuid)
 RETURNS text
 LANGUAGE sql
@@ -36,4 +41,25 @@ $$;
 REVOKE ALL ON FUNCTION public.get_profile_phone(uuid) FROM public;
 GRANT EXECUTE ON FUNCTION public.get_profile_phone(uuid) TO anon, authenticated;
 
-REVOKE SELECT (phone_number) ON TABLE public.profiles FROM anon, authenticated;
+-- ── 2. Replace table-level SELECT with per-column grants (no phone) ──
+REVOKE SELECT ON TABLE public.profiles FROM anon, authenticated;
+GRANT SELECT (
+    id, username, full_name, avatar_url, location,
+    is_verified, is_admin, is_super_admin,
+    is_banned, banned_at, banned_reason, banned_by,
+    show_past_buys, show_past_sales,
+    notification_preferences, whatsapp_enabled,
+    created_at, updated_at
+) ON TABLE public.profiles TO anon, authenticated;
+
+-- ── 3. Lock self-service profile updates to safe columns ──
+-- Settings writes: username, full_name, avatar_url, phone_number, location,
+-- show_past_buys, show_past_sales, whatsapp_enabled, notification_preferences.
+-- Admin/verification/ban changes all run through the service role.
+REVOKE UPDATE ON TABLE public.profiles FROM anon, authenticated;
+GRANT UPDATE (
+    username, full_name, avatar_url, phone_number, location,
+    show_past_buys, show_past_sales,
+    notification_preferences, whatsapp_enabled,
+    updated_at
+) ON TABLE public.profiles TO authenticated;
