@@ -23,13 +23,21 @@ const getListing = cache(async (id: string) => {
         listing_city, meetup_area, delivery_available, allow_buy_now, inspection_available,
         starting_price, current_price, min_increment, bid_count, status, winner_id,
         starts_at, ends_at, created_at, updated_at, auction_images(url, position),
-        profiles!auctions_seller_id_fkey(id, username, full_name, avatar_url, location, is_verified, phone_number, whatsapp_enabled)
+        profiles!auctions_seller_id_fkey(id, username, full_name, avatar_url, location, is_verified, whatsapp_enabled)
     `).eq('id', id).single();
     if (error && error.code !== 'PGRST116' && error.code !== '22P02') throw new Error('Could not load listing');
-    // Only serialize the seller's phone into the public page when they opted in
-    // to the WhatsApp button; otherwise keep it out of the payload.
     const row = data as unknown as AuctionFull | null;
-    if (row?.profiles && !row.profiles.whatsapp_enabled) row.profiles.phone_number = null;
+    // Phone column access is revoked for anon/authenticated; fetch it through
+    // the gated function, and only serialize it into the public page when the
+    // seller opted in to the WhatsApp button.
+    if (row?.profiles) {
+        if (row.profiles.whatsapp_enabled) {
+            const { data: phone } = await (supabase as any).rpc('get_profile_phone', { profile_id: row.seller_id });
+            row.profiles.phone_number = (phone as string | null) ?? null;
+        } else {
+            row.profiles.phone_number = null;
+        }
+    }
     return row;
 });
 

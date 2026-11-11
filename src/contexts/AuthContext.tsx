@@ -40,11 +40,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchProfile = useCallback(
         async (userId: string, client: SupabaseClient) => {
             try {
-                const { data, error } = await client
+                let { data, error } = await client
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
                     .single();
+                // After the phone-privacy migration, select('*') fails on the
+                // revoked phone_number column. Fall back to explicit columns
+                // and fetch the owner's own phone via the gated function.
+                if (error && /phone_number|permission denied/i.test(error.message ?? '')) {
+                    const retry = await client
+                        .from('profiles')
+                        .select('id, username, full_name, avatar_url, location, show_past_buys, show_past_sales, is_verified, is_admin, is_super_admin, is_banned, banned_at, banned_reason, banned_by, notification_preferences, whatsapp_enabled, created_at, updated_at')
+                        .eq('id', userId)
+                        .single();
+                    data = retry.data as typeof data;
+                    error = retry.error;
+                    if (data) {
+                        const { data: phone } = await (client as any).rpc('get_profile_phone', { profile_id: userId });
+                        (data as { phone_number?: string | null }).phone_number = (phone as string | null) ?? null;
+                    }
+                }
                 if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error);
                 }

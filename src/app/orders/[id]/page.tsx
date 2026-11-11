@@ -169,8 +169,8 @@ export default function OrderPage({ params }: OrderPageProps) {
                 .select(`
                     *,
                     auction:auctions ( id, title, current_price, condition, ends_at, status, bid_count, auction_images(url), auction_winner_notes(note) ),
-                    buyer:profiles!orders_buyer_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
-                    seller:profiles!orders_seller_id_fkey ( id, avatar_url, username, full_name, phone_number, location, is_verified ),
+                    buyer:profiles!orders_buyer_id_fkey ( id, avatar_url, username, full_name, location, is_verified ),
+                    seller:profiles!orders_seller_id_fkey ( id, avatar_url, username, full_name, location, is_verified ),
                     deliveries!deliveries_order_id_fkey ( id, status, delivered_at )
                 `)
                 .eq('id', id)
@@ -180,6 +180,14 @@ export default function OrderPage({ params }: OrderPageProps) {
 
             if (!error && data) {
                 const nextOrder = data as OrderPageData;
+                // Phones are gated behind get_profile_phone() (owner, deal counterparties, admins)
+                const [buyerPhone, sellerPhone] = await Promise.all([
+                    (supabase as any).rpc('get_profile_phone', { profile_id: nextOrder.buyer_id }),
+                    (supabase as any).rpc('get_profile_phone', { profile_id: nextOrder.seller_id }),
+                ]);
+                if (nextOrder.buyer) nextOrder.buyer.phone_number = (buyerPhone.data as string | null) ?? null;
+                if (nextOrder.seller) nextOrder.seller.phone_number = (sellerPhone.data as string | null) ?? null;
+                if (!isMounted) return;
                 setOrder(nextOrder);
                 const dels = Array.isArray(nextOrder.deliveries)
                     ? nextOrder.deliveries

@@ -26,7 +26,7 @@ export function useAuction(auctionId: string, initialAuction?: AuctionFull | nul
           auction_images (url, position),
           listing_videos (id, content_type, duration_seconds),
           profiles!auctions_seller_id_fkey (
-            id, username, full_name, avatar_url, location, is_verified, phone_number, whatsapp_enabled
+            id, username, full_name, avatar_url, location, is_verified, whatsapp_enabled
           ),
           orders(id, status, buyer_id),
           auction_offers(id, buyer_id, amount, counter_amount, status)
@@ -45,10 +45,13 @@ export function useAuction(auctionId: string, initialAuction?: AuctionFull | nul
 
                 const baseAuction = data as unknown as AuctionWithWinnerNote;
 
-                // Keep the seller's phone out of the client payload unless they
-                // opted in to the WhatsApp button.
+                // Phone column access is revoked; fetch it through the gated
+                // function only when the seller opted in to the WhatsApp button.
                 if (baseAuction.profiles && !baseAuction.profiles.whatsapp_enabled) {
                     baseAuction.profiles.phone_number = null;
+                } else if (baseAuction.profiles?.whatsapp_enabled) {
+                    const { data: phone } = await (supabase as any).rpc('get_profile_phone', { profile_id: baseAuction.seller_id });
+                    baseAuction.profiles.phone_number = (phone as string | null) ?? null;
                 }
 
                 // Best-effort fetch for optional winner note. This should never block checkout/details.
