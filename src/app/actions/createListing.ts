@@ -16,7 +16,7 @@ function adminClient() {
 
 export type CreateListingPayload = {
     form: unknown; // validated here with createAuctionSchema
-    specs: { storage: string; battery: string; sim: string; lock: string; faults: string };
+    specs: { storage: string; battery: string; sim: string; lock: string; faults: string; year?: string; mileage?: string; transmission?: string; fuel?: string };
     isPermanent: boolean;
     allowBuyNow: boolean;
 };
@@ -69,6 +69,10 @@ export async function createListingAction(
             sim_type: specFields.sim ? specs.sim || null : null,
             network_lock: specFields.lock ? specs.lock || null : null,
             faults: (specs.faults ?? '').trim() || null,
+            vehicle_year: specFields.year ? numOrNull(specs.year ?? '') : null,
+            vehicle_mileage_km: specFields.mileage ? numOrNull(specs.mileage ?? '') : null,
+            vehicle_transmission: specFields.transmission ? (specs.transmission || null) : null,
+            vehicle_fuel: specFields.fuel ? (specs.fuel || null) : null,
             condition: formData.condition,
             starting_price: formData.starting_price,
             current_price: formData.starting_price,

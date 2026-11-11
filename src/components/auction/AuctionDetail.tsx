@@ -9,10 +9,12 @@ import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel, whatsappChatLink } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS } from '@/lib/listingEdit';
 
 const SIM_TYPE_LABELS: Record<string, string> = Object.fromEntries(SIM_TYPE_OPTIONS.map((o) => [o.value, o.label]));
 const NETWORK_LOCK_LABELS: Record<string, string> = Object.fromEntries(NETWORK_LOCK_OPTIONS.map((o) => [o.value, o.label]));
+const TRANSMISSION_LABELS: Record<string, string> = Object.fromEntries(TRANSMISSION_OPTIONS.map((o) => [o.value, o.label]));
+const FUEL_TYPE_LABELS: Record<string, string> = Object.fromEntries(FUEL_TYPE_OPTIONS.map((o) => [o.value, o.label]));
 import { getListingType, getListingTypeLabel } from '@/lib/listings';
 import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import AuctionCountdown from './AuctionCountdown';
@@ -370,6 +372,10 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
         ...(specFields.battery && auction.battery_health != null ? [{ label: 'Battery health', value: `${auction.battery_health}%` }] : []),
         ...(specFields.sim && auction.sim_type ? [{ label: 'SIM', value: SIM_TYPE_LABELS[auction.sim_type] ?? '—' }] : []),
         ...(specFields.lock && auction.network_lock ? [{ label: 'Network lock', value: NETWORK_LOCK_LABELS[auction.network_lock] ?? '—' }] : []),
+        ...(specFields.year && auction.vehicle_year != null ? [{ label: 'Year', value: String(auction.vehicle_year) }] : []),
+        ...(specFields.mileage && auction.vehicle_mileage_km != null ? [{ label: 'Mileage', value: `${auction.vehicle_mileage_km.toLocaleString()} km` }] : []),
+        ...(specFields.transmission && auction.vehicle_transmission ? [{ label: 'Transmission', value: TRANSMISSION_LABELS[auction.vehicle_transmission] ?? '—' }] : []),
+        ...(specFields.fuel && auction.vehicle_fuel ? [{ label: 'Fuel type', value: FUEL_TYPE_LABELS[auction.vehicle_fuel] ?? '—' }] : []),
         ...(auction.faults ? [{ label: 'Known faults', value: auction.faults }] : []),
         { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
         { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },

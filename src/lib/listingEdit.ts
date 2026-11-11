@@ -18,10 +18,27 @@ export type SpecFieldVisibility = {
     battery: boolean;
     sim: boolean;
     lock: boolean;
+    year: boolean;
+    mileage: boolean;
+    transmission: boolean;
+    fuel: boolean;
 };
 
 const FULL_SPEC_CATEGORIES: ReadonlySet<string> = new Set(['Phones & Tablets', 'Apple']);
 const STORAGE_BATTERY_CATEGORIES: ReadonlySet<string> = new Set(['Computers & Laptops']);
+const VEHICLE_SPEC_CATEGORIES: ReadonlySet<string> = new Set(['Vehicles']);
+
+export const TRANSMISSION_OPTIONS = [
+    { value: 'automatic', label: 'Automatic' },
+    { value: 'manual', label: 'Manual' },
+] as const;
+
+export const FUEL_TYPE_OPTIONS = [
+    { value: 'petrol', label: 'Petrol' },
+    { value: 'diesel', label: 'Diesel' },
+    { value: 'hybrid', label: 'Hybrid' },
+    { value: 'electric', label: 'Electric' },
+] as const;
 
 /** Placeholder examples that match the category being listed, so sellers are
  *  not shown iPhone examples while listing furniture. */
@@ -54,12 +71,15 @@ export function placeholdersForCategory(category: string | null | undefined): Ca
 
 export function specFieldsForCategory(category: string | null | undefined): SpecFieldVisibility {
     if (category && FULL_SPEC_CATEGORIES.has(category)) {
-        return { storage: true, battery: true, sim: true, lock: true };
+        return { storage: true, battery: true, sim: true, lock: true, year: false, mileage: false, transmission: false, fuel: false };
     }
     if (category && STORAGE_BATTERY_CATEGORIES.has(category)) {
-        return { storage: true, battery: true, sim: false, lock: false };
+        return { storage: true, battery: true, sim: false, lock: false, year: false, mileage: false, transmission: false, fuel: false };
     }
-    return { storage: false, battery: false, sim: false, lock: false };
+    if (category && VEHICLE_SPEC_CATEGORIES.has(category)) {
+        return { storage: false, battery: false, sim: false, lock: false, year: true, mileage: true, transmission: true, fuel: true };
+    }
+    return { storage: false, battery: false, sim: false, lock: false, year: false, mileage: false, transmission: false, fuel: false };
 }
 
 export const NETWORK_LOCK_OPTIONS = [
@@ -81,6 +101,16 @@ export const updateListingSchema = z.object({
     sim_type: z.preprocess(emptyToNull, z.enum(['physical_sim', 'esim', 'dual_sim']).nullable()).optional(),
     network_lock: z.preprocess(emptyToNull, z.enum(['unlocked', 'locked', 'unknown']).nullable()).optional(),
     faults: z.string().trim().max(500, 'Faults cannot exceed 500 characters').optional().nullable(),
+    vehicle_year: z.preprocess(
+        emptyToNull,
+        z.coerce.number().int('Year must be a whole number').min(1950, 'Enter a valid year').max(new Date().getFullYear() + 1, 'Enter a valid year').nullable()
+    ).optional(),
+    vehicle_mileage_km: z.preprocess(
+        emptyToNull,
+        z.coerce.number().int('Mileage must be a whole number').min(0, 'Mileage cannot be negative').nullable()
+    ).optional(),
+    vehicle_transmission: z.preprocess(emptyToNull, z.enum(['automatic', 'manual']).nullable()).optional(),
+    vehicle_fuel: z.preprocess(emptyToNull, z.enum(['petrol', 'diesel', 'hybrid', 'electric']).nullable()).optional(),
     condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor', 'unspecified']),
     price: z.coerce
         .number()

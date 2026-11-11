@@ -21,7 +21,7 @@ import {
     getLocationsForRegion,
 } from '@/lib/constants';
 import { formatAuctionLocation } from '@/lib/utils';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 import {
     Upload, X, Check, ArrowRight, ArrowLeft, AlertTriangle, ImagePlus, CheckCircle2, Clock, Infinity, Video
 } from 'lucide-react';
@@ -75,7 +75,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         brand: 'Phones & Tablets',
         model: '',
         storage_gb: undefined,
-        condition: 'good',
+        condition: 'unspecified',
         starting_price: 0,
         min_increment: 50,
         duration_hours: 72,
@@ -86,7 +86,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         inspection_available: true,
         winner_note: '',
     });
-    const [specs, setSpecs] = useState({ storage: '', battery: '', sim: '', lock: '', faults: '' });
+    const [specs, setSpecs] = useState({ storage: '', battery: '', sim: '', lock: '', faults: '', year: '', mileage: '', transmission: '', fuel: '' });
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -134,7 +134,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         (async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data } = await (supabase.from('auctions') as any)
-                .select('title, description, brand, model, storage_gb, battery_health, sim_type, network_lock, faults, condition, starting_price, min_increment, ends_at, listing_city, meetup_area, delivery_available, inspection_available, seller_id')
+                .select('title, description, brand, model, storage_gb, battery_health, sim_type, network_lock, faults, vehicle_year, vehicle_mileage_km, vehicle_transmission, vehicle_fuel, condition, starting_price, min_increment, ends_at, listing_city, meetup_area, delivery_available, inspection_available, seller_id')
                 .eq('id', copyFromId)
                 .eq('seller_id', user.id)
                 .maybeSingle();
@@ -159,6 +159,10 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 sim: data.sim_type ?? '',
                 lock: data.network_lock ?? '',
                 faults: data.faults ?? '',
+                year: data.vehicle_year != null ? String(data.vehicle_year) : '',
+                mileage: data.vehicle_mileage_km != null ? String(data.vehicle_mileage_km) : '',
+                transmission: data.vehicle_transmission ?? '',
+                fuel: data.vehicle_fuel ?? '',
             });
             setIsPermanent(isPermanentListing(data.ends_at));
             setCopiedFrom(data.title ?? 'your listing');
@@ -184,6 +188,10 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
             sim: visible.sim ? p.sim : '',
             lock: visible.lock ? p.lock : '',
             faults: p.faults,
+            year: visible.year ? p.year : '',
+            mileage: visible.mileage ? p.mileage : '',
+            transmission: visible.transmission ? p.transmission : '',
+            fuel: visible.fuel ? p.fuel : '',
         }));
     };
 
@@ -256,6 +264,16 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         const specErrors: Record<string, string> = {};
         if (specFields.storage && specs.storage !== '' && !(Number.isInteger(Number(specs.storage)) && Number(specs.storage) >= 1 && Number(specs.storage) <= 8192)) {
             specErrors.spec_storage = 'Storage must be a whole number of GB between 1 and 8192.';
+        }
+        if (specFields.year && specs.year !== '' && !(Number.isInteger(Number(specs.year)) && Number(specs.year) >= 1950 && Number(specs.year) <= new Date().getFullYear() + 1)) {
+            setErrors({ spec_year: 'Enter a valid year' });
+            setStep(1);
+            return;
+        }
+        if (specFields.mileage && specs.mileage !== '' && !(Number.isInteger(Number(specs.mileage)) && Number(specs.mileage) >= 0)) {
+            setErrors({ spec_mileage: 'Mileage must be a whole number of kilometres' });
+            setStep(1);
+            return;
         }
         if (specFields.battery && specs.battery !== '' && !(Number.isInteger(Number(specs.battery)) && Number(specs.battery) >= 0 && Number(specs.battery) <= 100)) {
             specErrors.spec_battery = 'Battery health must be a whole number from 0 to 100.';
@@ -506,7 +524,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                     </div>
 
                     {/* Optional specs - only the fields that fit the category */}
-                    {(specFields.storage || specFields.battery || specFields.sim || specFields.lock) && (
+                    {(specFields.storage || specFields.battery || specFields.sim || specFields.lock || specFields.year || specFields.mileage || specFields.transmission || specFields.fuel) && (
                     <div className="grid grid-cols-2 gap-4">
                         {specFields.storage && (
                         <div>
@@ -537,6 +555,38 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             <SelectInput value={specs.lock} onChange={(e) => setSpecs((p) => ({ ...p, lock: e.target.value }))}>
                                 <option value="">Not specified</option>
                                 {NETWORK_LOCK_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </SelectInput>
+                        </div>
+                        )}
+                        {specFields.year && (
+                        <div>
+                            <FieldLabel optional>Year</FieldLabel>
+                            <input type="number" min={1950} max={new Date().getFullYear() + 1} value={specs.year} onChange={(e) => setSpecs((p) => ({ ...p, year: e.target.value }))} placeholder="e.g. 2016" className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
+                            {errors.spec_year && <p className="text-[11px] text-red-500 mt-1">{errors.spec_year}</p>}
+                        </div>
+                        )}
+                        {specFields.mileage && (
+                        <div>
+                            <FieldLabel optional>Mileage (km)</FieldLabel>
+                            <input type="number" min={0} value={specs.mileage} onChange={(e) => setSpecs((p) => ({ ...p, mileage: e.target.value }))} placeholder="e.g. 85000" className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition-colors" />
+                            {errors.spec_mileage && <p className="text-[11px] text-red-500 mt-1">{errors.spec_mileage}</p>}
+                        </div>
+                        )}
+                        {specFields.transmission && (
+                        <div>
+                            <FieldLabel optional>Transmission</FieldLabel>
+                            <SelectInput value={specs.transmission} onChange={(e) => setSpecs((p) => ({ ...p, transmission: e.target.value }))}>
+                                <option value="">Not specified</option>
+                                {TRANSMISSION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </SelectInput>
+                        </div>
+                        )}
+                        {specFields.fuel && (
+                        <div>
+                            <FieldLabel optional>Fuel type</FieldLabel>
+                            <SelectInput value={specs.fuel} onChange={(e) => setSpecs((p) => ({ ...p, fuel: e.target.value }))}>
+                                <option value="">Not specified</option>
+                                {FUEL_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </SelectInput>
                         </div>
                         )}

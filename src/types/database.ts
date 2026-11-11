@@ -105,6 +105,10 @@ export interface Database {
                     sim_type: string | null;
                     network_lock: string | null;
                     faults: string | null;
+                    vehicle_year: number | null;
+                    vehicle_mileage_km: number | null;
+                    vehicle_transmission: string | null;
+                    vehicle_fuel: string | null;
                     condition: PhoneCondition;
                     listing_city: string;
                     meetup_area: string;
@@ -135,6 +139,10 @@ export interface Database {
                     sim_type?: string | null;
                     network_lock?: string | null;
                     faults?: string | null;
+                    vehicle_year?: number | null;
+                    vehicle_mileage_km?: number | null;
+                    vehicle_transmission?: string | null;
+                    vehicle_fuel?: string | null;
                     condition: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;
@@ -163,6 +171,10 @@ export interface Database {
                     sim_type?: string | null;
                     network_lock?: string | null;
                     faults?: string | null;
+                    vehicle_year?: number | null;
+                    vehicle_mileage_km?: number | null;
+                    vehicle_transmission?: string | null;
+                    vehicle_fuel?: string | null;
                     condition?: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;

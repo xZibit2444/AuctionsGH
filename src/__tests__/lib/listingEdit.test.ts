@@ -65,18 +65,22 @@ describe('locations', () => {
 
 describe('specFieldsForCategory', () => {
     it('shows all spec fields for phone categories', () => {
-        const all = { storage: true, battery: true, sim: true, lock: true };
+        const all = { storage: true, battery: true, sim: true, lock: true, year: false, mileage: false, transmission: false, fuel: false };
         expect(specFieldsForCategory('Phones & Tablets')).toEqual(all);
         expect(specFieldsForCategory('Apple')).toEqual(all);
     });
 
     it('shows storage and battery but not SIM or lock for computers', () => {
-        expect(specFieldsForCategory('Computers & Laptops')).toEqual({ storage: true, battery: true, sim: false, lock: false });
+        expect(specFieldsForCategory('Computers & Laptops')).toEqual({ storage: true, battery: true, sim: false, lock: false, year: false, mileage: false, transmission: false, fuel: false });
+    });
+
+    it('shows vehicle spec fields for vehicles only', () => {
+        expect(specFieldsForCategory('Vehicles')).toEqual({ storage: false, battery: false, sim: false, lock: false, year: true, mileage: true, transmission: true, fuel: true });
     });
 
     it('hides phone spec fields for unrelated categories', () => {
-        const none = { storage: false, battery: false, sim: false, lock: false };
-        for (const c of ['Home & Garden', 'Electronics', 'Vehicles', 'Fashion & Clothing', 'Sports & Outdoors', 'Kids & Baby', 'Health & Beauty', 'Agriculture', 'Other']) {
+        const none = { storage: false, battery: false, sim: false, lock: false, year: false, mileage: false, transmission: false, fuel: false };
+        for (const c of ['Home & Garden', 'Electronics', 'Fashion & Clothing', 'Sports & Outdoors', 'Kids & Baby', 'Health & Beauty', 'Agriculture', 'Other']) {
             expect(specFieldsForCategory(c)).toEqual(none);
         }
         expect(specFieldsForCategory(undefined)).toEqual(none);

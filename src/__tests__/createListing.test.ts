@@ -79,6 +79,21 @@ describe('createListingAction', () => {
         expect(r.success).toBe(false);
         expect(r.error).toMatch(/duration/);
     });
+    it('saves vehicle spec fields for vehicle listings and nulls phone fields', async () => {
+        const vehicleForm = { ...baseForm, brand: 'Vehicles', model: 'Toyota Corolla', storage_gb: undefined };
+        const vehicleSpecs = { storage: '', battery: '', sim: '', lock: '', faults: '', year: '2016', mileage: '85000', transmission: 'automatic', fuel: 'petrol' };
+        const r = await createListingAction({ form: vehicleForm, specs: vehicleSpecs, isPermanent: true, allowBuyNow: true });
+        expect(r.success).toBe(true);
+        expect(db.inserted).toMatchObject({
+            vehicle_year: 2016, vehicle_mileage_km: 85000, vehicle_transmission: 'automatic', vehicle_fuel: 'petrol',
+            storage_gb: null, battery_health: null, sim_type: null, network_lock: null,
+        });
+    });
+    it('nulls vehicle fields for phone listings', async () => {
+        const r = await createListingAction({ form: baseForm, specs: { ...specs, year: '2016', mileage: '100', transmission: 'automatic', fuel: 'petrol' }, isPermanent: true, allowBuyNow: true });
+        expect(r.success).toBe(true);
+        expect(db.inserted).toMatchObject({ vehicle_year: null, vehicle_mileage_km: null, vehicle_transmission: null, vehicle_fuel: null });
+    });
     it('surfaces insert failures', async () => {
         db.failInsert = true;
         const r = await createListingAction({ form: baseForm, specs, isPermanent: true, allowBuyNow: true });

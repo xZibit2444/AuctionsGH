@@ -13,7 +13,7 @@ import {
     ITEM_CATEGORIES,
     getLocationsForRegion,
 } from '@/lib/constants';
-import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
+import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS, specFieldsForCategory, placeholdersForCategory } from '@/lib/listingEdit';
 
 type Condition = 'new' | 'brand_new' | 'like_new' | 'good' | 'fair' | 'poor';
 
@@ -27,6 +27,10 @@ type FormState = {
     sim_type: string;
     network_lock: string;
     faults: string;
+    vehicle_year: string;
+    vehicle_mileage_km: string;
+    vehicle_transmission: string;
+    vehicle_fuel: string;
     condition: Condition;
     price: string;
     listing_city: string;
@@ -96,6 +100,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                 sim_type: data.sim_type ?? '',
                 network_lock: data.network_lock ?? '',
                 faults: data.faults ?? '',
+                vehicle_year: data.vehicle_year != null ? String(data.vehicle_year) : '',
+                vehicle_mileage_km: data.vehicle_mileage_km != null ? String(data.vehicle_mileage_km) : '',
+                vehicle_transmission: data.vehicle_transmission ?? '',
+                vehicle_fuel: data.vehicle_fuel ?? '',
                 condition: (data.condition ?? 'good') as Condition,
                 price: String(data.starting_price ?? data.current_price ?? ''),
                 listing_city: data.listing_city ?? 'Greater Accra',
@@ -155,6 +163,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                       battery_health: visible.battery ? prev.battery_health : '',
                       sim_type: visible.sim ? prev.sim_type : '',
                       network_lock: visible.lock ? prev.network_lock : '',
+                      vehicle_year: visible.year ? prev.vehicle_year : '',
+                      vehicle_mileage_km: visible.mileage ? prev.vehicle_mileage_km : '',
+                      vehicle_transmission: visible.transmission ? prev.vehicle_transmission : '',
+                      vehicle_fuel: visible.fuel ? prev.vehicle_fuel : '',
                   }
                 : prev
         );
@@ -176,6 +188,10 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
             sim_type: specFields.sim ? form.sim_type : '',
             network_lock: specFields.lock ? form.network_lock : '',
             faults: form.faults,
+            vehicle_year: specFields.year && form.vehicle_year ? Number(form.vehicle_year) : null,
+            vehicle_mileage_km: specFields.mileage && form.vehicle_mileage_km ? Number(form.vehicle_mileage_km) : null,
+            vehicle_transmission: specFields.transmission ? form.vehicle_transmission : '',
+            vehicle_fuel: specFields.fuel ? form.vehicle_fuel : '',
             condition: form.condition,
             price: (priceLocked || dealLocked) ? undefined : Number(form.price),
             listing_city: form.listing_city,
@@ -338,6 +354,69 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                         ))}
                     </select>
                     {err('network_lock')}
+                </div>
+                )}
+
+                {(specFields.year || specFields.mileage) && (
+                <div className={`grid gap-4 ${specFields.year && specFields.mileage ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {specFields.year && (
+                    <div>
+                        <Label optional>Year</Label>
+                        <input
+                            type="number"
+                            min={1950}
+                            max={new Date().getFullYear() + 1}
+                            step={1}
+                            value={form.vehicle_year}
+                            onChange={(e) => set('vehicle_year', e.target.value)}
+                            className={inputClass}
+                        />
+                        {err('vehicle_year')}
+                    </div>
+                    )}
+                    {specFields.mileage && (
+                    <div>
+                        <Label optional>Mileage (km)</Label>
+                        <input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={form.vehicle_mileage_km}
+                            onChange={(e) => set('vehicle_mileage_km', e.target.value)}
+                            className={inputClass}
+                        />
+                        {err('vehicle_mileage_km')}
+                    </div>
+                    )}
+                </div>
+                )}
+
+                {(specFields.transmission || specFields.fuel) && (
+                <div className={`grid gap-4 ${specFields.transmission && specFields.fuel ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {specFields.transmission && (
+                    <div>
+                        <Label optional>Transmission</Label>
+                        <select value={form.vehicle_transmission} onChange={(e) => set('vehicle_transmission', e.target.value)} className={inputClass}>
+                            <option value="">Not specified</option>
+                            {TRANSMISSION_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+                        {err('vehicle_transmission')}
+                    </div>
+                    )}
+                    {specFields.fuel && (
+                    <div>
+                        <Label optional>Fuel type</Label>
+                        <select value={form.vehicle_fuel} onChange={(e) => set('vehicle_fuel', e.target.value)} className={inputClass}>
+                            <option value="">Not specified</option>
+                            {FUEL_TYPE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+                        {err('vehicle_fuel')}
+                    </div>
+                    )}
                 </div>
                 )}
 
