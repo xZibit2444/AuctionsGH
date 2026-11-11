@@ -184,8 +184,9 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                     );
                 }
 
-                // Apply ordering AFTER filters
-                query = query.order(orderBy, { ascending });
+                // Apply ordering AFTER filters. Pinned listings come first so a
+                // pinned permanent listing (far-future ends_at) is always in the fetched set.
+                query = query.order('is_pinned', { ascending: false }).order(orderBy, { ascending });
                 if (fetchAll) {
                     // Stable tie-breaker so range paging cannot skip or
                     // duplicate rows when many rows share the same ends_at.

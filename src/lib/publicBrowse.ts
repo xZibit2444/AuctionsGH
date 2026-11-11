@@ -15,7 +15,7 @@ export async function getPublicBrowse(listingType?: ListingType, home = false): 
                 profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                 auction_images(url, position), listing_videos(id)`)
                 .in('status', home ? ['active'] : ['active', 'sold'])
-                .order('ends_at', { ascending: true }).order('id', { ascending: true });
+                .order('is_pinned', { ascending: false }).order('ends_at', { ascending: true }).order('id', { ascending: true });
             const { data, error } = home ? await query.limit(30) : await query.range(offset, offset + 999);
             if (error) return undefined; // Existing client fetch/retry remains available.
             rows.push(...(data as unknown as Auction[]));
