@@ -71,9 +71,9 @@ export const createAuctionSchema = z.object({
     condition: z.enum(['new', 'brand_new', 'like_new', 'good', 'fair', 'poor', 'unspecified']),
     starting_price: z.coerce
         .number()
-        .positive('Starting price must be greater than 0')
-        .min(1, 'Minimum starting price is GHS 1')
+        .min(0, 'Starting price cannot be negative')
         .max(999999, 'Maximum starting price is GHS 999,999'),
+    price_on_request: z.boolean().default(false),
     min_increment: z.coerce.number().positive().default(5),
     duration_hours: z.coerce.number().min(0).optional().default(0),
     duration_minutes: z.coerce.number().min(0).max(59).optional().default(0),
@@ -83,6 +83,13 @@ export const createAuctionSchema = z.object({
     inspection_available: z.boolean().default(true),
     winner_note: z.string().max(500, 'Winner note cannot exceed 500 characters').optional(),
 }).superRefine((data, ctx) => {
+    if (!data.price_on_request && data.starting_price < 1) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['starting_price'],
+            message: 'Starting price must be greater than 0',
+        });
+    }
     const validLocations = getLocationsForRegion(data.listing_city) as readonly string[];
     if (!validLocations.includes(data.meetup_area)) {
         ctx.addIssue({

@@ -191,6 +191,16 @@ describe('createAuctionSchema', () => {
         expect(result.success).toBe(false);
     });
 
+    it('accepts a zero starting price when price_on_request is set', () => {
+        const result = createAuctionSchema.safeParse({ ...baseAuction, starting_price: 0, price_on_request: true });
+        expect(result.success).toBe(true);
+    });
+
+    it('rejects a negative starting price even with price_on_request', () => {
+        const result = createAuctionSchema.safeParse({ ...baseAuction, starting_price: -5, price_on_request: true });
+        expect(result.success).toBe(false);
+    });
+
     it('rejects an invalid brand', () => {
         const result = createAuctionSchema.safeParse({ ...baseAuction, brand: 'FakeBrand' });
         expect(result.success).toBe(false);

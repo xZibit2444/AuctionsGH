@@ -245,7 +245,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     const sellerWhatsappUrl = showBuyerCtas && auctionData.profiles?.whatsapp_enabled && sellerPhone
         ? whatsappChatLink(
             sellerPhone,
-            `Hi, I'm interested in your listing "${auction.title}" (${formatCurrency(auction.current_price)}) on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`
+            `Hi, I'm interested in your listing "${auction.title}"${auction.price_on_request ? ' (price on request)' : ` (${formatCurrency(auction.current_price)})`} on AuctionsGH: https://auctionsgh.com/auctions/${auction.id} - is it still available?`
         )
         : null;
 
@@ -319,7 +319,9 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
         </div>
     );
 
-    const priceSubline = isPermanent
+    const priceSubline = auction.price_on_request
+        ? 'Price on request · message the seller to agree the amount'
+        : isPermanent
         ? buyNowEnabled
             ? 'Fixed price · or make an offer · stays live unless the seller takes it down'
             : 'Fixed price · make an offer or message us · stays live unless the seller takes it down'
@@ -502,7 +504,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
             </div>
             <div className="sm:mt-[14px]">
                 <p className="text-[26px] font-extrabold leading-[1.2] tracking-tight text-black sm:text-[30px]">
-                    {formatCurrency(auction.current_price)}
+                    {auction.price_on_request ? 'On request' : formatCurrency(auction.current_price)}
                 </p>
                 <p className="mt-1 text-[12.5px] text-stone-500 sm:mt-[3px] sm:text-[13px] sm:leading-[1.2]">{priceSubline}</p>
             </div>
@@ -647,7 +649,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             isSeller={false}
                             userId={user?.id}
                             isActive={isActive}
-                            listingPrice={isPermanent ? auction.current_price : undefined}
+                            listingPrice={isPermanent && !auction.price_on_request ? auction.current_price : undefined}
                             buyNowEnabled={buyNowEnabled}
                         />
                     </>
@@ -696,7 +698,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                 <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3 border-t border-stone-200 bg-white px-4 py-3 shadow-[0_-4px_18px_rgba(0,0,0,0.06)] sm:hidden">
                     <div className="min-w-0 flex-1">
                         <p className="truncate text-[17px] font-extrabold leading-tight text-black">
-                            {formatCurrency(auction.current_price)}
+                            {auction.price_on_request ? 'On request' : formatCurrency(auction.current_price)}
                         </p>
                         <p className="text-[11px] text-stone-500">
                             {isPermanent ? 'Fixed price' : 'Current bid'}

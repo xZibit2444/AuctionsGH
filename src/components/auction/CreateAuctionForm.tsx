@@ -77,6 +77,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         storage_gb: undefined,
         condition: 'unspecified',
         starting_price: 0,
+        price_on_request: false,
         min_increment: 50,
         duration_hours: 72,
         duration_minutes: 0,
@@ -91,6 +92,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
     const [previews, setPreviews] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
+    const [priceOnRequest, setPriceOnRequest] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [publishedAuctionId, setPublishedAuctionId] = useState<string | null>(null);
     // WhatsApp contact opt-in. null = still resolving. New sellers (no listings
@@ -134,7 +136,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         (async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data } = await (supabase.from('auctions') as any)
-                .select('title, description, brand, model, storage_gb, battery_health, sim_type, network_lock, faults, vehicle_year, vehicle_mileage_km, vehicle_transmission, vehicle_fuel, condition, starting_price, min_increment, ends_at, listing_city, meetup_area, delivery_available, inspection_available, seller_id')
+                .select('title, description, brand, model, storage_gb, battery_health, sim_type, network_lock, faults, vehicle_year, vehicle_mileage_km, vehicle_transmission, vehicle_fuel, condition, starting_price, price_on_request, min_increment, ends_at, listing_city, meetup_area, delivery_available, inspection_available, seller_id')
                 .eq('id', copyFromId)
                 .eq('seller_id', user.id)
                 .maybeSingle();
@@ -147,6 +149,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 model: data.model ?? '',
                 condition: data.condition ?? prev.condition,
                 starting_price: Number(data.starting_price) || 0,
+                price_on_request: Boolean(data.price_on_request),
                 min_increment: Number(data.min_increment) || prev.min_increment,
                 listing_city: data.listing_city ?? prev.listing_city,
                 meetup_area: data.meetup_area ?? prev.meetup_area,
@@ -165,6 +168,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                 fuel: data.vehicle_fuel ?? '',
             });
             setIsPermanent(isPermanentListing(data.ends_at));
+            setPriceOnRequest(Boolean(data.price_on_request));
             setCopiedFrom(data.title ?? 'your listing');
         })();
         return () => { cancelled = true; };
@@ -935,12 +939,29 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             </div>
                             <input
                                 type="number"
-                                value={formData.starting_price || ''}
+                                value={priceOnRequest ? '' : formData.starting_price || ''}
                                 onChange={(e) => update('starting_price', Number(e.target.value))}
-                                placeholder="100.00"
-                                className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none"
+                                disabled={priceOnRequest}
+                                placeholder={priceOnRequest ? 'On request' : '100.00'}
+                                className="flex-1 px-4 py-3 text-sm text-black placeholder-gray-400 bg-white focus:outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
                             />
                         </div>
+                        <label className="flex items-start gap-2 mt-3 text-sm text-gray-800 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={priceOnRequest}
+                                onChange={(e) => {
+                                    const on = e.target.checked;
+                                    setPriceOnRequest(on);
+                                    update('price_on_request', on);
+                                }}
+                                className="mt-1"
+                            />
+                            <span>
+                                <span className="font-semibold">Price on request</span>
+                                <span className="block text-[11px] text-gray-500">Hide the amount on your listing. Buyers see "On request" and message you to agree the amount.</span>
+                            </span>
+                        </label>
                         {isPermanent && <p className="text-[11px] text-gray-500 mt-1">Buyers see this as the listing price and can send you offers.</p>}
                         {isPermanent && (
                             <label className="flex items-start gap-2 mt-3 text-sm text-gray-800 cursor-pointer">
@@ -990,7 +1011,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">{isPermanent ? 'Price' : 'Starting at'}</span>
-                            <span className="font-semibold text-black">GHS {formData.starting_price || '0'}</span>
+                            <span className="font-semibold text-black">{priceOnRequest ? 'On request' : `GHS ${formData.starting_price || '0'}`}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Photos</span>

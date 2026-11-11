@@ -90,7 +90,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         meetup_area,
                         delivery_available,
                         is_pinned,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
+                        price_on_request,
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, phone_number, whatsapp_enabled),
                         auction_images(url, position),
                         listing_videos(id),
                         orders(id, status, deliveries(status)),
@@ -114,7 +115,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         meetup_area,
                         delivery_available,
                         is_pinned,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
+                        price_on_request,
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, phone_number, whatsapp_enabled),
                         auction_images(url, position),
                         listing_videos(id)
                     `;

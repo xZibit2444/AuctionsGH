@@ -110,6 +110,7 @@ export interface Database {
                     vehicle_transmission: string | null;
                     vehicle_fuel: string | null;
                     is_pinned: boolean;
+                    price_on_request: boolean;
                     condition: PhoneCondition;
                     listing_city: string;
                     meetup_area: string;
@@ -145,6 +146,7 @@ export interface Database {
                     vehicle_transmission?: string | null;
                     vehicle_fuel?: string | null;
                     is_pinned?: boolean;
+                    price_on_request?: boolean;
                     condition: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;
@@ -178,6 +180,7 @@ export interface Database {
                     vehicle_transmission?: string | null;
                     vehicle_fuel?: string | null;
                     is_pinned?: boolean;
+                    price_on_request?: boolean;
                     condition?: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;

@@ -28,6 +28,9 @@ export type SellerPreview = {
     username: string;
     full_name: string | null;
     avatar_url: string | null;
+    /** Only present when the listing query includes them (homepage pinned card CTA). */
+    phone_number?: string | null;
+    whatsapp_enabled?: boolean | null;
 };
 
 export type AuctionFull = AuctionWithImages & AuctionWithSeller;
