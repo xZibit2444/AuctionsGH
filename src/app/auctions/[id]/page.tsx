@@ -26,7 +26,11 @@ const getListing = cache(async (id: string) => {
         profiles!auctions_seller_id_fkey(id, username, full_name, avatar_url, location, is_verified, phone_number, whatsapp_enabled)
     `).eq('id', id).single();
     if (error && error.code !== 'PGRST116' && error.code !== '22P02') throw new Error('Could not load listing');
-    return data as unknown as AuctionFull | null;
+    // Only serialize the seller's phone into the public page when they opted in
+    // to the WhatsApp button; otherwise keep it out of the payload.
+    const row = data as unknown as AuctionFull | null;
+    if (row?.profiles && !row.profiles.whatsapp_enabled) row.profiles.phone_number = null;
+    return row;
 });
 
 export async function generateMetadata({ params }: AuctionPageProps): Promise<Metadata> {

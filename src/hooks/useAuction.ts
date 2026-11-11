@@ -45,6 +45,12 @@ export function useAuction(auctionId: string, initialAuction?: AuctionFull | nul
 
                 const baseAuction = data as unknown as AuctionWithWinnerNote;
 
+                // Keep the seller's phone out of the client payload unless they
+                // opted in to the WhatsApp button.
+                if (baseAuction.profiles && !baseAuction.profiles.whatsapp_enabled) {
+                    baseAuction.profiles.phone_number = null;
+                }
+
                 // Best-effort fetch for optional winner note. This should never block checkout/details.
                 const { data: noteData } = await supabase
                     .from('auction_winner_notes')
