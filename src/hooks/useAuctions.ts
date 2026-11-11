@@ -91,7 +91,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         delivery_available,
                         is_pinned,
                         price_on_request,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, phone_number, whatsapp_enabled),
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                         auction_images(url, position),
                         listing_videos(id),
                         orders(id, status, deliveries(status)),
@@ -116,7 +116,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                         delivery_available,
                         is_pinned,
                         price_on_request,
-                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url, phone_number, whatsapp_enabled),
+                        profiles!auctions_seller_id_fkey(username, full_name, avatar_url),
                         auction_images(url, position),
                         listing_videos(id)
                     `;
