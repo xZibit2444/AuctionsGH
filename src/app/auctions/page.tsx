@@ -3,7 +3,7 @@ import { getPublicBrowse } from '@/lib/publicBrowse';
 import AuctionsPageClient from '@/components/auction/AuctionsPageClient';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
-const DEFAULT_OG_IMAGE = '/opengraph-image';
+const DEFAULT_OG_IMAGE = '/opengraph-image.png';
 
 type AuctionsPageProps = {
     searchParams: Promise<{ q?: string; brand?: string; sort?: string }>;

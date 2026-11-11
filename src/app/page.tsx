@@ -4,7 +4,7 @@ import { serializeJsonLd } from '@/lib/seo';
 import HomePageClient from '@/components/auction/HomePageClient';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
-const DEFAULT_OG_IMAGE = '/opengraph-image';
+const DEFAULT_OG_IMAGE = '/opengraph-image.png';
 
 export const metadata: Metadata = {
     title: "Buy and Sell in Ghana",

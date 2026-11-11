@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { AlertTriangle, LockKeyhole, ScanSearch, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
-const DEFAULT_OG_IMAGE = '/opengraph-image';
+const DEFAULT_OG_IMAGE = '/opengraph-image.png';
 
 export const metadata: Metadata = {
     title: 'Safety Tips',

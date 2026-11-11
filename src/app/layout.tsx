@@ -21,7 +21,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://auctionsgh.com').replace(/\/+$/, '');
-const DEFAULT_OG_IMAGE = '/opengraph-image';
+const DEFAULT_OG_IMAGE = '/opengraph-image.png';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
