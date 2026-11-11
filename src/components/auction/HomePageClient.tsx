@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useAuctions } from '@/hooks/useAuctions';
-import { shuffled } from '@/lib/rotation';
+import { pinFirst, shuffled } from '@/lib/rotation';
 import { createClient } from '@/lib/supabase/client';
 import AuctionGrid from '@/components/auction/AuctionGrid';
 import HomeHero from '@/components/auction/HomeHero';
@@ -67,7 +67,9 @@ export default function HomePageClient({ initialAuctions }: { initialAuctions?: 
     // view is capped at the preview count. The preview pool rotates on every
     // open so returning visitors see different listings first.
     const rotatedPool = useMemo(() => initialAuctions && auctions === initialAuctions ? auctions : shuffled(auctions), [auctions, initialAuctions]);
-    const visibleAuctions = isFiltering ? auctions : rotatedPool.slice(0, PREVIEW_COUNT);
+    // Pinned listings (e.g. the collateral-loan listing) always lead the
+    // preview; the rest of the pool keeps rotating per open.
+    const visibleAuctions = isFiltering ? auctions : pinFirst(rotatedPool).slice(0, PREVIEW_COUNT);
     const hasMore = !isFiltering && !loading && auctions.length > PREVIEW_COUNT;
 
     return (

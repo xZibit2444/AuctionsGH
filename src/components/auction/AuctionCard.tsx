@@ -54,8 +54,13 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                             <Package className="h-10 w-10" strokeWidth={1} />
                         </div>
                     )}
+                    {auction.is_pinned && (
+                        <span className="absolute left-2.5 top-2.5 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-[#12100C]">
+                            Pinned
+                        </span>
+                    )}
                     {conditionLabel && (
-                        <span className="absolute left-2.5 top-2.5 rounded-md bg-[#12100C]/80 px-2 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur-sm">
+                        <span className={`absolute left-2.5 ${auction.is_pinned ? 'top-[38px]' : 'top-2.5'} rounded-md bg-[#12100C]/80 px-2 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur-sm`}>
                             {conditionLabel}
                         </span>
                     )}

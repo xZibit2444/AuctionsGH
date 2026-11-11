@@ -3,7 +3,7 @@
  * explicit sort choices are preserved by the callers. Fixtures only.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { shuffled } from '@/lib/rotation';
+import { pinFirst, shuffled } from '@/lib/rotation';
 
 describe('shuffled', () => {
     const input = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -30,5 +30,27 @@ describe('shuffled', () => {
     it('handles empty and single-item lists', () => {
         expect(shuffled([])).toEqual([]);
         expect(shuffled(['only'])).toEqual(['only']);
+    });
+});
+
+describe('pinFirst', () => {
+    it('moves pinned entries ahead of unpinned ones, preserving order within each group', () => {
+        const input = [
+            { id: 1, is_pinned: false },
+            { id: 2, is_pinned: true },
+            { id: 3, is_pinned: false },
+            { id: 4, is_pinned: true },
+            { id: 5 },
+        ];
+        expect(pinFirst(input).map((a) => a.id)).toEqual([2, 4, 1, 3, 5]);
+    });
+
+    it('leaves an unpinned list unchanged', () => {
+        const input = [{ id: 1 }, { id: 2, is_pinned: false }];
+        expect(pinFirst(input).map((a) => a.id)).toEqual([1, 2]);
+    });
+
+    it('handles empty lists', () => {
+        expect(pinFirst([])).toEqual([]);
     });
 });

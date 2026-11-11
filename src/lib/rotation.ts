@@ -11,3 +11,12 @@ export function shuffled<T>(list: readonly T[], rand: () => number = Math.random
     }
     return out;
 }
+
+/**
+ * Pin-first ordering: pinned listings always lead the homepage preview while
+ * the rest of the pool keeps rotating per open. Returns a new array; input
+ * order within each group is preserved (call after shuffling).
+ */
+export function pinFirst<T extends { is_pinned?: boolean | null }>(list: readonly T[]): T[] {
+    return [...list.filter((a) => a.is_pinned), ...list.filter((a) => !a.is_pinned)];
+}

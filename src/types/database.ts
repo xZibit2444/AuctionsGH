@@ -109,6 +109,7 @@ export interface Database {
                     vehicle_mileage_km: number | null;
                     vehicle_transmission: string | null;
                     vehicle_fuel: string | null;
+                    is_pinned: boolean;
                     condition: PhoneCondition;
                     listing_city: string;
                     meetup_area: string;
@@ -143,6 +144,7 @@ export interface Database {
                     vehicle_mileage_km?: number | null;
                     vehicle_transmission?: string | null;
                     vehicle_fuel?: string | null;
+                    is_pinned?: boolean;
                     condition: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;
@@ -175,6 +177,7 @@ export interface Database {
                     vehicle_mileage_km?: number | null;
                     vehicle_transmission?: string | null;
                     vehicle_fuel?: string | null;
+                    is_pinned?: boolean;
                     condition?: PhoneCondition;
                     listing_city?: string;
                     meetup_area?: string;
