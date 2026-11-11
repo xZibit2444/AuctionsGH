@@ -81,7 +81,10 @@ export default function CoverEditor({ userId, value, onChange }: CoverEditorProp
                 Edit cover
             </button>
             {open && (
-                <div className="absolute right-3 top-14 z-20 w-[min(20rem,calc(100%-1.5rem))] rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-xl sm:right-4">
+                <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)} aria-hidden="true" />
+            )}
+            {open && (
+                <div className="fixed left-1/2 top-24 z-50 w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-2xl">
                     <p className="text-sm font-black text-black">Edit cover</p>
                     <p className="mt-1 text-xs text-gray-500">Wide image works best (3:1). JPG, PNG or WebP, up to 5 MB.</p>
                     <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => void upload(e.target.files?.[0])} />
@@ -109,7 +112,7 @@ export default function CoverEditor({ userId, value, onChange }: CoverEditorProp
                             );
                         })}
                     </div>
-                    {value && /^https?:/.test(value) && (
+                    {value && (
                         <button type="button" disabled={busy} onClick={() => void save(null)} className="mt-3 text-xs font-bold text-gray-500 underline underline-offset-2">
                             Remove cover
                         </button>
