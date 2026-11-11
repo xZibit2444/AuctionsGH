@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { isPermanentListing } from '@/lib/listings';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,6 +28,7 @@ export async function buyNowAction(
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
 
     const { data: listing } = await supabaseAdmin
         .from('auctions')

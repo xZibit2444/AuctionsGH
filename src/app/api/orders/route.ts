@@ -7,6 +7,7 @@ import {
     sendOrderConfirmedBuyerEmail,
     sendOrderConfirmedSellerEmail,
 } from '@/lib/email/sender';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
     if (authErr || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!(await userMayWrite(user.id))) return NextResponse.json({ error: 'PHONE_REQUIRED', message: PHONE_REQUIRED_MESSAGE }, { status: 403 });
 
     let body: {
         auctionId?: string;

@@ -7,6 +7,7 @@ import { isTerminalOrderStatus } from '@/lib/orderStatus';
 import { AUCTION_VIDEOS_BUCKET } from '@/lib/constants';
 import type { Auction, AuctionImage } from '@/types/auction';
 import type { Profile } from '@/types/profile';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createAdminClient();
 const PERMANENT_RELIST_ENDS_AT = '2099-12-31T23:59:59.000Z';
@@ -50,6 +51,7 @@ export async function relistAuctionAction(
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
 
     const { data: callerProfile } = await supabaseAdmin
         .from('profiles')

@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { sendSellerApprovedEmail, sendNewSellerApplicationAdminEmail } from '@/lib/email/sender';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 function getAdminClient() {
     return createAdminClient(
@@ -24,6 +25,7 @@ export async function submitSellerApplication(data: SellerApplicationData) {
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
 
     const required: (keyof SellerApplicationData)[] = [
         'full_name', 'phone_number', 'location', 'items_to_sell', 'experience',

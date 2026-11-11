@@ -3,6 +3,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 export async function sendAuctionCommentAction(
     auctionId: string,
@@ -14,6 +15,7 @@ export async function sendAuctionCommentAction(
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return { success: false, error: 'You must be logged in to comment.' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
 
     const trimmed = body.trim();
     if (!trimmed) return { success: false, error: 'Comment cannot be empty.' };

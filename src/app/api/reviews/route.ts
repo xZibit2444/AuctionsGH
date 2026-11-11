@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +33,8 @@ export async function POST(req: NextRequest) {
         if (authError || !data.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         user = data.user;
     }
+
+    if (!(await userMayWrite(user!.id))) return NextResponse.json({ error: 'PHONE_REQUIRED', message: PHONE_REQUIRED_MESSAGE }, { status: 403 });
 
     let body: unknown;
     try {

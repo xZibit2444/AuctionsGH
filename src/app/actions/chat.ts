@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { emailNewMessageIfEnabled, orderChatUrl } from '@/lib/messageEmails';
 import { isTerminalOrderStatus } from '@/lib/orderStatus';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,6 +24,7 @@ export async function sendMessageAction(
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'You must be logged in to send messages.' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
 
     const trimmed = body.trim();
     if (!trimmed) return { success: false, error: 'Message cannot be empty.' };

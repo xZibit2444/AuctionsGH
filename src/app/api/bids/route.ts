@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getListingType } from '@/lib/listings';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BID_AMOUNT = 999_999;
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     if (authError || !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!(await userMayWrite(user.id))) return NextResponse.json({ error: 'PHONE_REQUIRED', message: PHONE_REQUIRED_MESSAGE }, { status: 403 });
 
     // Rate-limit per authenticated user
     const rl = rateLimit(`bids:${user.id}`, BIDS_LIMIT, BIDS_WINDOW_MS);

@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { sendNewOfferEmail } from '@/lib/email/sender';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -57,6 +58,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     const user = await getAuth(request);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!(await userMayWrite(user.id))) return NextResponse.json({ error: 'PHONE_REQUIRED', message: PHONE_REQUIRED_MESSAGE }, { status: 403 });
 
     let body: { auction_id?: string; amount?: number };
     try { body = await request.json(); }

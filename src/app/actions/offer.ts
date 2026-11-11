@@ -11,6 +11,7 @@ import {
     sendNewOfferEmail,
     sendOfferDeclinedEmail,
 } from '@/lib/email/sender';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +30,7 @@ export async function makeOfferAction(
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
+    if (!(await userMayWrite(user.id))) return { success: false, error: PHONE_REQUIRED_MESSAGE };
     if (!amount || amount <= 0) return { success: false, error: 'Invalid amount' };
 
     const { data: auction, error: auctionErr } = await supabaseAdmin

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { listingDetailId, isListingUuid } from '@/lib/listingRoute';
 import { updateSession } from '@/lib/supabase/middleware';
+import { applyPhoneGate } from '@/lib/phoneGate';
 
 export async function proxy(request: NextRequest) {
     // Resolve missing listing pages before React starts streaming a 200 response.
@@ -23,7 +24,10 @@ export async function proxy(request: NextRequest) {
             status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Robots-Tag': 'noindex, follow', 'Cache-Control': 'no-store' },
         });
     }
-    return await updateSession(request);
+    const response = await updateSession(request);
+    // Redirects from the session check (login, banned) take priority.
+    if (response.headers.get('location')) return response;
+    return await applyPhoneGate(request, response);
 }
 
 export const config = {

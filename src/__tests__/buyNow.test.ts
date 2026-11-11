@@ -21,6 +21,7 @@ vi.mock('@supabase/supabase-js', () => ({
 vi.mock('@/lib/supabase/server', () => ({
     createClient: async () => ({ auth: { getUser: async () => ({ data: { user: currentUser } }) } }),
 }));
+vi.mock('@/lib/phoneRequirement', () => ({ userMayWrite: async () => true, PHONE_REQUIRED_MESSAGE: 'phone' }));
 vi.mock('@/lib/notifications', () => ({ insertNotificationIfEnabled: async (_c: unknown, n: any) => { db.notes.push(n); } }));
 vi.mock('@/lib/email/sender', () => ({ sendAuctionSoldEmail: vi.fn(), sendAuctionWonEmail: vi.fn() }));
 

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
 import { emailNewMessageIfEnabled, orderChatUrl } from '@/lib/messageEmails';
 import { isTerminalOrderStatus } from '@/lib/orderStatus';
+import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,6 +24,7 @@ export async function POST(
 
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
     if (authErr || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!(await userMayWrite(user.id))) return NextResponse.json({ error: 'PHONE_REQUIRED', message: PHONE_REQUIRED_MESSAGE }, { status: 403 });
 
     const { body: rawBody } = await req.json() as { body?: string };
     const trimmed = (rawBody ?? '').trim();
