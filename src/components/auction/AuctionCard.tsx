@@ -63,18 +63,22 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                             <Package className="h-10 w-10" strokeWidth={1} />
                         </div>
                     )}
+                    {/* Pinned badge sits top-right so it never covers a card
+                        image's own top-left branding (e.g. the TJ Loans tile). */}
                     {auction.is_pinned && (
-                        <span className="absolute left-2.5 top-2.5 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-[#12100C]">
+                        <span className="absolute right-2.5 top-2.5 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-[#12100C]">
                             Pinned
                         </span>
                     )}
-                    {conditionLabel && (
-                        <span className={`absolute left-2.5 ${auction.is_pinned ? 'top-[38px]' : 'top-2.5'} rounded-md bg-[#12100C]/80 px-2 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur-sm`}>
+                    {/* Service listings (price on request) carry no meaningful
+                        product condition, so the badge is omitted for them. */}
+                    {conditionLabel && !auction.price_on_request && (
+                        <span className="absolute left-2.5 top-2.5 rounded-md bg-[#12100C]/80 px-2 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur-sm">
                             {conditionLabel}
                         </span>
                     )}
                     {hasVideo && (
-                        <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-bold text-[#12100C]">
+                        <span className={`absolute right-2.5 ${auction.is_pinned ? 'top-[38px]' : 'top-2.5'} flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-bold text-[#12100C]`}>
                             <Play className="h-3 w-3" strokeWidth={2.5} />
                             Video
                         </span>
