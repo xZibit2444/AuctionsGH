@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { sendMessageAction } from '@/app/actions/chat';
+import { markChatNotificationsReadAction } from '@/app/actions/notifications';
 import { MessageCircle, Send, Loader2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
@@ -35,6 +36,12 @@ export default function OrderChat({ orderId, userId, otherPartyName, isCompleted
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    // Viewing the thread marks its new-message notifications read, so the bell
+    // badge and the unread-messages popup only count messages not yet seen.
+    useEffect(() => {
+        void markChatNotificationsReadAction({ orderId });
+    }, [orderId, messages]);
 
     useEffect(() => {
         const supabase = createClient();

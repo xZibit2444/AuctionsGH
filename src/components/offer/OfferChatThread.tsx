@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Send } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
+import { markChatNotificationsReadAction } from '@/app/actions/notifications';
 
 export interface OfferMessage {
     id: string;
@@ -42,6 +43,12 @@ export default function OfferChatThread({ auctionId, buyerId, userId, isSeller, 
         const el = scrollRef.current;
         if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: el.scrollHeight });
     }, [messages]);
+
+    // Viewing the thread marks its new-message notifications read, so the bell
+    // badge and the unread-messages popup only count messages not yet seen.
+    useEffect(() => {
+        void markChatNotificationsReadAction({ auctionId });
+    }, [auctionId, messages]);
 
     const fetchThread = useCallback(async () => {
         const supabase = createClient();

@@ -13,20 +13,75 @@ const CHAT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_VISIBLE_TOASTS = 3;
 
 interface ChatToast {
+    /** Thread key: order:<orderId> or offer:<auctionId> */
     id: string;
+    /** Latest notification id this toast represents */
+    notificationId: string;
     title: string;
     body: string;
-    orderId: string;
+    href: string;
     receivedAt: number;
 }
 
+interface MessageNotification {
+    id: string;
+    title: string;
+    body: string | null;
+    auction_id: string | null;
+    order_id: string | null;
+    created_at: string;
+}
+
+function threadKeyOf(n: { order_id: string | null; auction_id: string | null }): string | null {
+    if (n.order_id) return `order:${n.order_id}`;
+    if (n.auction_id) return `offer:${n.auction_id}`;
+    return null;
+}
+
+function dismissedStorageKey(userId: string) {
+    return `chatToastDismissed:${userId}`;
+}
+
+/** Map of threadKey -> latest dismissed notification id, per user, per device. */
+function readDismissed(userId: string): Record<string, string> {
+    try {
+        const raw = window.localStorage.getItem(dismissedStorageKey(userId));
+        if (!raw) return {};
+        const parsed: unknown = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+        return parsed as Record<string, string>;
+    } catch {
+        return {};
+    }
+}
+
+function rememberDismissed(userId: string, threadKey: string, notificationId: string) {
+    try {
+        const map = readDismissed(userId);
+        map[threadKey] = notificationId;
+        window.localStorage.setItem(dismissedStorageKey(userId), JSON.stringify(map));
+    } catch {
+        // Storage unavailable: dismissal just won't persist across visits.
+    }
+}
+
+/**
+ * Popup that asks a signed-in user to come to their deal chat. Covers two
+ * moments: when they OPEN the site with unread deal messages (order chats and
+ * offer Order & Chat threads), and when a new message arrives while they
+ * browse. Closing the popup with X (or opening the chat) is remembered per
+ * thread, so it only comes back when a newer message arrives; the 3-minute
+ * auto-hide alone does not dismiss it permanently.
+ */
 export default function FloatingChatToast() {
     const { user } = useAuth();
+    const userId = user?.id ?? null;
     const pathname = usePathname();
     const isUserAvailable = useUserAvailability();
     const [toasts, setToasts] = useState<ChatToast[]>([]);
     const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const pendingToastsRef = useRef<ChatToast[]>([]);
+    const latestNotifByThreadRef = useRef<Map<string, string>>(new Map());
     const activePathnameRef = useRef(pathname);
     const flushPendingToastsRef = useRef<() => void>(() => {});
     const dismissRef = useRef<(id: string) => void>(() => {});
@@ -63,7 +118,15 @@ export default function FloatingChatToast() {
         });
     }, [isUserAvailable]);
 
-    const dismiss = useCallback((id: string) => {
+    // `remember` records an explicit dismissal (X click or opening the chat)
+    // so the same messages do not pop up again; the auto-hide timer calls this
+    // without it, so an ignored popup re-asks on the next visit.
+    const dismiss = useCallback((id: string, opts?: { remember?: boolean }) => {
+        if (opts?.remember && userId) {
+            const notificationId = latestNotifByThreadRef.current.get(id);
+            if (notificationId) rememberDismissed(userId, id, notificationId);
+        }
+
         pendingToastsRef.current = pendingToastsRef.current.filter((toast) => toast.id !== id);
 
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
@@ -77,7 +140,7 @@ export default function FloatingChatToast() {
         if (isUserAvailable) {
             setTimeout(() => flushPendingToastsRef.current(), 0);
         }
-    }, [isUserAvailable]);
+    }, [isUserAvailable, userId]);
 
     const scheduleDismiss = useCallback((id: string) => {
         const existingTimer = timersRef.current.get(id);
@@ -90,18 +153,25 @@ export default function FloatingChatToast() {
     }, []);
 
     const enqueueToast = useCallback((toast: ChatToast) => {
+        latestNotifByThreadRef.current.set(toast.id, toast.notificationId);
         pendingToastsRef.current = pendingToastsRef.current.filter((item) => item.id !== toast.id);
 
         let displayedImmediately = false;
 
         setToasts((prev) => {
-            const deduped = prev.filter((item) => item.id !== toast.id);
-            if (isUserAvailable && deduped.length < MAX_VISIBLE_TOASTS) {
+            const existing = prev.find((item) => item.id === toast.id);
+            if (existing) {
+                if (existing.notificationId === toast.notificationId) return prev;
+                // Newer message on a thread already showing: refresh its card.
                 displayedImmediately = true;
-                return [...deduped, toast];
+                return prev.map((item) => (item.id === toast.id ? toast : item));
+            }
+            if (isUserAvailable && prev.length < MAX_VISIBLE_TOASTS) {
+                displayedImmediately = true;
+                return [...prev, toast];
             }
 
-            return deduped;
+            return prev;
         });
 
         if (displayedImmediately) {
@@ -112,19 +182,42 @@ export default function FloatingChatToast() {
         pendingToastsRef.current = [...pendingToastsRef.current, toast];
     }, [isUserAvailable, scheduleDismiss]);
 
+    // Order chats link to the order page; offer threads link to the Order &
+    // Chat deal page when an accepted offer exists (fallback: the listing).
+    const resolveHref = useCallback(async (notification: MessageNotification): Promise<string | null> => {
+        if (notification.order_id) return `/orders/${notification.order_id}`;
+        if (!notification.auction_id || !userId) return null;
+
+        const supabase = createClient();
+        // Database types do not include auction_offers yet.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: offer } = await (supabase.from('auction_offers') as any)
+            .select('id')
+            .eq('auction_id', notification.auction_id)
+            .eq('status', 'accepted')
+            .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        return offer?.id ? `/offers/${offer.id}` : `/auctions/${notification.auction_id}`;
+    }, [userId]);
+
     useEffect(() => {
         activePathnameRef.current = pathname;
         flushPendingToastsRef.current = flushPendingToasts;
         dismissRef.current = dismiss;
     }, [dismiss, flushPendingToasts, pathname]);
 
+    // Hide a thread's popup while its chat page is already open. The chat
+    // itself marks the notifications read, so the backlog will not re-ask.
     useEffect(() => {
         pendingToastsRef.current = pendingToastsRef.current.filter(
-            (toast) => pathname !== `/orders/${toast.orderId}`
+            (toast) => pathname !== toast.href
         );
 
         const matchingToastIds = toasts
-            .filter((toast) => pathname === `/orders/${toast.orderId}`)
+            .filter((toast) => pathname === toast.href)
             .map((toast) => toast.id);
 
         if (matchingToastIds.length === 0) return;
@@ -167,38 +260,93 @@ export default function FloatingChatToast() {
         flushPendingToasts();
     }, [flushPendingToasts]);
 
+    // On every full site visit, ask about unread deal messages (last 24h)
+    // whose thread was not explicitly dismissed since the latest message.
     useEffect(() => {
-        if (!user) return;
+        if (!userId) return;
+        let cancelled = false;
+        const supabase = createClient();
+
+        const loadBacklog = async () => {
+            const cutoff = new Date(Date.now() - CHAT_MAX_AGE_MS).toISOString();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data } = await (supabase.from('notifications') as any)
+                .select('id, title, body, auction_id, order_id, created_at')
+                .eq('user_id', userId)
+                .eq('type', 'new_message')
+                .eq('is_read', false)
+                .gte('created_at', cutoff)
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (cancelled || !data) return;
+
+            const dismissed = readDismissed(userId);
+            const seenThreads = new Set<string>();
+            for (const notification of data as MessageNotification[]) {
+                const key = threadKeyOf(notification);
+                if (!key || seenThreads.has(key)) continue;
+                // Rows are newest-first: the first hit per thread is its latest.
+                seenThreads.add(key);
+                if (dismissed[key] === notification.id) continue;
+                const href = await resolveHref(notification);
+                if (cancelled) return;
+                if (!href) continue;
+                if (activePathnameRef.current === href) continue;
+                enqueueToast({
+                    id: key,
+                    notificationId: notification.id,
+                    title: notification.title,
+                    body: notification.body ?? '',
+                    href,
+                    receivedAt: Date.now(),
+                });
+            }
+        };
+
+        void loadBacklog();
+        return () => { cancelled = true; };
+    }, [enqueueToast, resolveHref, userId]);
+
+    // Live: a new deal message arriving while the user browses.
+    useEffect(() => {
+        if (!userId) return;
 
         let isMounted = true;
         const supabase = createClient();
         const timers = timersRef.current;
 
         const channel = supabase
-            .channel(`floating-chat-toast:${user.id}`)
+            .channel(`floating-chat-toast:${userId}`)
             .on(
                 'postgres_changes',
                 {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'notifications',
-                    filter: `user_id=eq.${user.id}`,
+                    filter: `user_id=eq.${userId}`,
                 },
                 (payload) => {
-                    if (!isMounted) return;
+                    void (async () => {
+                        if (!isMounted) return;
 
-                    const notification = payload.new as Record<string, string | null>;
-                    if (notification.type !== 'new_message' || !notification.order_id) return;
+                        const notification = payload.new as MessageNotification & { type?: string };
+                        if (notification.type !== 'new_message') return;
+                        const key = threadKeyOf(notification);
+                        if (!key) return;
 
-                    if (activePathnameRef.current === `/orders/${notification.order_id}`) return;
+                        const href = await resolveHref(notification);
+                        if (!isMounted || !href) return;
+                        if (activePathnameRef.current === href) return;
 
-                    enqueueToast({
-                        id: notification.id as string,
-                        title: notification.title as string,
-                        body: notification.body ?? '',
-                        orderId: notification.order_id as string,
-                        receivedAt: Date.now(),
-                    });
+                        enqueueToast({
+                            id: key,
+                            notificationId: notification.id,
+                            title: notification.title,
+                            body: notification.body ?? '',
+                            href,
+                            receivedAt: Date.now(),
+                        });
+                    })();
                 }
             )
             .subscribe((status, err) => {
@@ -214,9 +362,9 @@ export default function FloatingChatToast() {
             timers.clear();
             pendingToastsRef.current = [];
         };
-    }, [enqueueToast, user]);
+    }, [enqueueToast, resolveHref, userId]);
 
-    if (!user || toasts.length === 0) return null;
+    if (!userId || toasts.length === 0) return null;
 
     return (
         <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col gap-2 items-end pointer-events-none">
@@ -239,7 +387,7 @@ export default function FloatingChatToast() {
                             </p>
                         </div>
                         <button
-                            onClick={() => dismiss(toast.id)}
+                            onClick={() => dismiss(toast.id, { remember: true })}
                             className="shrink-0 text-gray-500 hover:text-white transition-colors -mt-0.5"
                             aria-label="Dismiss"
                         >
@@ -248,11 +396,11 @@ export default function FloatingChatToast() {
                     </div>
                     <div className="px-4 pb-3 flex justify-end">
                         <Link
-                            href={`/orders/${toast.orderId}`}
-                            onClick={() => dismiss(toast.id)}
+                            href={toast.href}
+                            onClick={() => dismiss(toast.id, { remember: true })}
                             className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 transition-colors"
                         >
-                            View Order →
+                            Open Chat →
                         </Link>
                     </div>
                 </div>
