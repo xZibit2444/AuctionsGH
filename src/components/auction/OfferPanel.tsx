@@ -114,11 +114,21 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
+    const chatScrollRef = useRef<HTMLDivElement>(null);
+
     const openChatBuyerIdRef = useRef<string | null>(null);
 
 
 
     openChatBuyerIdRef.current = openChatBuyerId;
+
+    useEffect(() => {
+
+        const el = chatScrollRef.current;
+
+        if (el) el.scrollTo({ top: el.scrollHeight });
+
+    }, [chatThreads, openChatBuyerId]);
 
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -529,7 +539,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
             {/* Chat messages */}
 
-            <div className="max-h-60 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
+            <div className={`${openChatBuyerId ? 'max-h-none' : 'max-h-60'} overflow-y-auto px-4 py-3 space-y-3 bg-gray-50`}>
 
                 {offers.length === 0 ? (
 
@@ -839,7 +849,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                 {!isSeller && o.status === 'accepted' && (
 
-                                    <div className="flex justify-end gap-1.5">
+                                    <div className="flex flex-wrap justify-end gap-1.5">
 
                                         <button
 
@@ -889,7 +899,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                                     <div className="mt-1.5 overflow-hidden rounded-xl border border-gray-200 bg-white">
 
-                                        <div className="max-h-48 space-y-2 overflow-y-auto bg-gray-50 px-3 py-2.5">
+                                        <div ref={chatScrollRef} className="max-h-48 space-y-2 overflow-y-auto bg-gray-50 px-3 py-2.5">
 
                                             {chatLoading[o.buyer_id] && (chatThreads[o.buyer_id] ?? []).length === 0 ? (
 
