@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { copyOfferMessagesToOrder } from '@/lib/offerMessages';
 import { isPermanentListing } from '@/lib/listings';
 import { FAILED_ORDER_STATUSES } from '@/lib/orderStatus';
 import {
@@ -163,6 +164,12 @@ export async function POST(req: NextRequest) {
             });
 
         if (deliveryErr) console.error('[POST /api/orders] delivery insert:', deliveryErr);
+
+        await copyOfferMessagesToOrder(supabaseAdmin, {
+            auctionId,
+            buyerId: user.id,
+            orderId: order.id,
+        });
 
         const { error: pinErr } = await supabaseAdmin.rpc('create_order_pin', {
             p_order_id: order.id,

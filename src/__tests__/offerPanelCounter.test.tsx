@@ -91,6 +91,25 @@ describe('OfferPanel counter-offer UI', () => {
         expect(buttons).toContain('Counter');
     });
 
+    it('seller sees an Order & Chat link on an accepted offer, no inline composer', async () => {
+        h.offers = [{ ...h.offers[0], status: 'accepted' }];
+        await render({ isSeller: true });
+        const link = container!.querySelector('a[href="/offers/offer1"]');
+        expect(link).not.toBeNull();
+        expect(link!.textContent).toContain('Order & Chat');
+        expect(container!.querySelector('input[placeholder^="Message"]')).toBeNull();
+    });
+
+    it('buyer sees Order & Chat and Proceed to Checkout on an accepted offer', async () => {
+        h.offers = [{ ...h.offers[0], status: 'accepted' }];
+        await render({ isSeller: false });
+        const link = container!.querySelector('a[href="/offers/offer1"]');
+        expect(link).not.toBeNull();
+        const text = container!.textContent ?? '';
+        expect(text).toContain('Proceed to Checkout');
+        expect(container!.querySelector('input[placeholder^="Message"]')).toBeNull();
+    });
+
     it('buyer sees the counter amount with Accept/Decline on a countered offer', async () => {
         h.offers = [{ ...h.offers[0], status: 'countered', counter_amount: 6000 }];
         await render({ isSeller: false });

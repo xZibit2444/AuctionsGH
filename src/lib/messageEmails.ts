@@ -75,6 +75,10 @@ export function orderChatUrl(orderId: string) {
     return `${SITE_URL}/orders/${orderId}`;
 }
 
+export function offerChatUrl(offerId: string) {
+    return `${SITE_URL}/offers/${offerId}`;
+}
+
 export function auctionChatUrl(auctionId: string) {
     return `${SITE_URL}/auctions/${auctionId}`;
 }

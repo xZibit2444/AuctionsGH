@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
+import { copyOfferMessagesToOrder } from '@/lib/offerMessages';
 import { isPermanentListing } from '@/lib/listings';
 import { FAILED_ORDER_STATUSES } from '@/lib/orderStatus';
 import {
@@ -140,6 +141,14 @@ export async function createOrderAction(data: CheckoutFormData) {
         if (deliveryError) {
             console.error('Delivery record creation error:', deliveryError);
         }
+
+        // Carry any pre-order offer chat onto the order page so the
+        // conversation the parties already had stays with the deal.
+        await copyOfferMessagesToOrder(supabaseAdmin, {
+            auctionId: data.auctionId,
+            buyerId: data.buyerId,
+            orderId: order.id,
+        });
 
         const { data: pin, error: pinError } = await supabaseAdmin.rpc('create_order_pin', {
             p_order_id: order.id,

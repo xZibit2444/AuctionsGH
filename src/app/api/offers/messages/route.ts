@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { insertNotificationIfEnabled } from '@/lib/notifications';
-import { emailNewMessageIfEnabled, auctionChatUrl } from '@/lib/messageEmails';
+import { emailNewMessageIfEnabled, auctionChatUrl, offerChatUrl } from '@/lib/messageEmails';
 import { userMayWrite, PHONE_REQUIRED_MESSAGE } from '@/lib/phoneRequirement';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -133,12 +133,23 @@ export async function POST(request: Request) {
         auction_id,
     });
 
+    // Link straight to the deal page when this thread has an accepted offer.
+    const { data: acceptedOffer } = await supabaseAdmin
+        .from('auction_offers')
+        .select('id')
+        .eq('auction_id', auction_id)
+        .eq('buyer_id', buyerId)
+        .eq('status', 'accepted')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
     await emailNewMessageIfEnabled(supabaseAdmin as never, {
         recipientId,
         senderId: user.id,
         auctionTitle: auction.title,
         messageBody: text,
-        chatUrl: auctionChatUrl(auction_id),
+        chatUrl: acceptedOffer ? offerChatUrl(acceptedOffer.id) : auctionChatUrl(auction_id),
     });
 
     return NextResponse.json({ success: true, message: inserted }, { status: 201 });
