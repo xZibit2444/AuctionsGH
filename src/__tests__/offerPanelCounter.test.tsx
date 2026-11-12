@@ -27,7 +27,12 @@ vi.mock('@/lib/supabase/client', () => ({
                 return q;
             },
         }),
-        channel: () => ({ on: () => ({ subscribe: () => ({}) }) }),
+        channel: () => {
+            const c: Record<string, unknown> = {};
+            c.on = () => c;
+            c.subscribe = () => c;
+            return c;
+        },
         removeChannel: () => ({}),
     }),
 }));

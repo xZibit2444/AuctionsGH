@@ -10,7 +10,7 @@ import { counterOfferAction, makeOfferAction, respondToCounterAction, respondToO
 import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { Tag, CheckCircle2, XCircle, Loader2, Send } from 'lucide-react';
+import { Tag, CheckCircle2, XCircle, Loader2, Send, MessageCircle } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
 
@@ -32,6 +32,26 @@ interface Offer {
     created_at: string;
 
     buyer_profile?: { id: string; full_name: string | null; username: string } | null;
+}
+
+
+
+interface OfferMessage {
+
+    id: string;
+
+    auction_id: string;
+
+    buyer_id: string;
+
+    seller_id: string;
+
+    sender_id: string;
+
+    body: string;
+
+    created_at: string;
+
 }
 
 
@@ -66,12 +86,67 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     const [counterDrafts, setCounterDrafts] = useState<Record<string, string>>({});
 
+    const [openChatBuyerId, setOpenChatBuyerId] = useState<string | null>(null);
+
+
+
+    const [chatThreads, setChatThreads] = useState<Record<string, OfferMessage[]>>({});
+
+
+
+    const [chatLoading, setChatLoading] = useState<Record<string, boolean>>({});
+
+
+
+    const [chatDrafts, setChatDrafts] = useState<Record<string, string>>({});
+
+
+
+    const [chatSending, setChatSending] = useState<Record<string, boolean>>({});
+
+
+
+    const [chatErrors, setChatErrors] = useState<Record<string, string>>({});
+
+
+
+    const [chatUnread, setChatUnread] = useState<Record<string, number>>({});
+
+
+
+    const openChatBuyerIdRef = useRef<string | null>(null);
+
+
+
+    openChatBuyerIdRef.current = openChatBuyerId;
+
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [offers]);
 
+    const fetchChatThread = useCallback(async (buyerId: string) => {
+
+        const supabase = createClient();
+
+        // Database types in the repo do not include auction_offer_messages yet.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase.from('auction_offer_messages') as any)
+
+            .select('id, auction_id, buyer_id, seller_id, sender_id, body, created_at')
+
+            .eq('auction_id', auctionId)
+
+            .eq('buyer_id', buyerId)
+
+            .order('created_at', { ascending: true });
+
+        if (data) setChatThreads((prev) => ({ ...prev, [buyerId]: data as OfferMessage[] }));
+
+        setChatLoading((prev) => ({ ...prev, [buyerId]: false }));
+
+    }, [auctionId]);
     const fetchOffers = useCallback(async () => {
         if (!userId) { setLoading(false); return; }
         const supabase = createClient();
@@ -84,8 +159,17 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
         if (!isSeller) q = q.eq('buyer_id', userId);
         const { data } = await q;
         setOffers((data ?? []) as Offer[]);
+        // Buyer: preload chat threads for accepted offers so any unread badge shows on arrival
+        if (!isSeller) {
+            for (const o of (data ?? []) as Offer[]) {
+                if (o.status === 'accepted') {
+                    setChatLoading((prev) => ({ ...prev, [o.buyer_id]: true }));
+                    void fetchChatThread(o.buyer_id);
+                }
+            }
+        }
         setLoading(false);
-    }, [auctionId, isSeller, userId]);
+    }, [auctionId, isSeller, userId, fetchChatThread]);
 
     useEffect(() => {
         queueMicrotask(() => { void fetchOffers(); });
@@ -108,11 +192,49 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
             }, () => { void fetchOffers(); })
 
+            .on('postgres_changes', {
+
+                event: 'INSERT', schema: 'public', table: 'auction_offer_messages',
+
+                filter: `auction_id=eq.${auctionId}`,
+
+            }, (payload) => {
+
+                const incoming = payload.new as OfferMessage;
+
+                if (!incoming?.id) return;
+
+                setChatThreads((prev) => {
+
+                    const thread = prev[incoming.buyer_id];
+
+                    if (!thread) return prev;
+
+                    if (thread.some((m) => m.id === incoming.id)) return prev;
+
+                    const optIdx = thread.findIndex((m) => m.id.startsWith('opt-') && m.sender_id === incoming.sender_id && m.body === incoming.body);
+
+                    const next = [...thread];
+
+                    if (optIdx !== -1) next[optIdx] = incoming; else next.push(incoming);
+
+                    return { ...prev, [incoming.buyer_id]: next };
+
+                });
+
+                if (incoming.sender_id !== userId && openChatBuyerIdRef.current !== incoming.buyer_id) {
+
+                    setChatUnread((prev) => ({ ...prev, [incoming.buyer_id]: (prev[incoming.buyer_id] ?? 0) + 1 }));
+
+                }
+
+            })
+
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
 
-    }, [auctionId, fetchOffers]);
+    }, [auctionId, userId, fetchOffers]);
 
 
 
@@ -182,7 +304,23 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
         void fetchOffers();
 
-        if (result.success && response === 'accepted') router.refresh();
+        if (result.success && response === 'accepted') {
+
+            router.refresh();
+
+            const accepted = offers.find((x) => x.id === offerId);
+
+            if (accepted) {
+
+                setOpenChatBuyerId(accepted.buyer_id);
+
+                setChatLoading((prev) => ({ ...prev, [accepted.buyer_id]: true }));
+
+                void fetchChatThread(accepted.buyer_id);
+
+            }
+
+        }
 
     };
 
@@ -225,6 +363,115 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
+    const toggleChat = (buyerId: string) => {
+
+        if (openChatBuyerId === buyerId) { setOpenChatBuyerId(null); return; }
+
+        setOpenChatBuyerId(buyerId);
+
+        setChatUnread((prev) => ({ ...prev, [buyerId]: 0 }));
+
+        if (!chatThreads[buyerId]) {
+
+            setChatLoading((prev) => ({ ...prev, [buyerId]: true }));
+
+            void fetchChatThread(buyerId);
+
+        }
+
+    };
+
+
+
+    const handleSendChat = async (buyerId: string) => {
+
+        const text = (chatDrafts[buyerId] ?? '').trim();
+
+        if (!text || chatSending[buyerId] || !userId) return;
+
+        setChatSending((prev) => ({ ...prev, [buyerId]: true }));
+
+        setChatErrors((prev) => ({ ...prev, [buyerId]: '' }));
+
+        setChatDrafts((prev) => ({ ...prev, [buyerId]: '' }));
+
+        const optimisticId = `opt-${Date.now()}`;
+
+        const optimistic: OfferMessage = {
+
+            id: optimisticId,
+
+            auction_id: auctionId,
+
+            buyer_id: buyerId,
+
+            seller_id: isSeller ? userId : '',
+
+            sender_id: userId,
+
+            body: text,
+
+            created_at: new Date().toISOString(),
+
+        };
+
+        setChatThreads((prev) => ({ ...prev, [buyerId]: [...(prev[buyerId] ?? []), optimistic] }));
+
+        try {
+
+            const res = await fetch('/api/offers/messages', {
+
+                method: 'POST',
+
+                headers: { 'Content-Type': 'application/json' },
+
+                body: JSON.stringify(isSeller
+
+                    ? { auction_id: auctionId, body: text, buyer_id: buyerId }
+
+                    : { auction_id: auctionId, body: text }),
+
+            });
+
+            const json = (await res.json().catch(() => ({}))) as { error?: string; message?: { id?: string } | string };
+
+            if (!res.ok) {
+
+                const msg = json?.error ?? (typeof json?.message === 'string' ? json.message : undefined) ?? 'Failed to send message';
+
+                throw new Error(msg);
+
+            }
+
+            const realId = typeof json?.message === 'object' ? json.message?.id : undefined;
+
+            if (realId) {
+
+                setChatThreads((prev) => ({
+
+                    ...prev,
+
+                    [buyerId]: (prev[buyerId] ?? []).map((m) => (m.id === optimisticId ? { ...m, id: realId } : m)),
+
+                }));
+
+            }
+
+            trackEvent('send_message', { context: 'offer_chat' });
+
+        } catch (err) {
+
+            setChatThreads((prev) => ({ ...prev, [buyerId]: (prev[buyerId] ?? []).filter((m) => m.id !== optimisticId) }));
+
+            setChatDrafts((prev) => ({ ...prev, [buyerId]: text }));
+
+            setChatErrors((prev) => ({ ...prev, [buyerId]: err instanceof Error ? err.message : 'Failed to send message' }));
+
+        }
+
+        setChatSending((prev) => ({ ...prev, [buyerId]: false }));
+
+    };
     if (loading) return null;
 
     // Don't render at all if auction is inactive and there's nothing to show
@@ -554,11 +801,69 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
-                                {/* Checkout CTA for buyer on accepted offer */}
+                                {/* Seller can text the buyer once an offer is accepted */}
+
+                                {isSeller && o.status === 'accepted' && (
+
+                                    <div className="flex justify-end">
+
+                                        <button
+
+                                            onClick={() => toggleChat(o.buyer_id)}
+
+                                            className="mt-1 px-4 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors flex items-center gap-1.5"
+
+                                        >
+
+                                            <MessageCircle className="h-3 w-3" />
+
+                                            Message {buyerName}
+
+                                            {(chatUnread[o.buyer_id] ?? 0) > 0 && (
+
+                                                <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[9px] font-black text-white">
+
+                                                    {chatUnread[o.buyer_id]}
+
+                                                </span>
+
+                                            )}
+
+                                        </button>
+
+                                    </div>
+
+                                )}
+
+                                {/* Chat + checkout CTAs for buyer on accepted offer */}
 
                                 {!isSeller && o.status === 'accepted' && (
 
-                                    <div className="flex justify-end">
+                                    <div className="flex justify-end gap-1.5">
+
+                                        <button
+
+                                            onClick={() => toggleChat(o.buyer_id)}
+
+                                            className="mt-1 px-4 py-2 rounded-lg bg-white text-black border border-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+
+                                        >
+
+                                            <MessageCircle className="h-3 w-3" />
+
+                                            Message seller
+
+                                            {(chatUnread[o.buyer_id] ?? 0) > 0 && (
+
+                                                <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[9px] font-black text-white">
+
+                                                    {chatUnread[o.buyer_id]}
+
+                                                </span>
+
+                                            )}
+
+                                        </button>
 
                                         <button
 
@@ -573,6 +878,138 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                                             Proceed to Checkout →
 
                                         </button>
+
+                                    </div>
+
+                                )}
+
+                                {/* Chat thread for an accepted offer */}
+
+                                {o.status === 'accepted' && openChatBuyerId === o.buyer_id && (
+
+                                    <div className="mt-1.5 overflow-hidden rounded-xl border border-gray-200 bg-white">
+
+                                        <div className="max-h-48 space-y-2 overflow-y-auto bg-gray-50 px-3 py-2.5">
+
+                                            {chatLoading[o.buyer_id] && (chatThreads[o.buyer_id] ?? []).length === 0 ? (
+
+                                                <div className="flex justify-center py-3">
+
+                                                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+
+                                                </div>
+
+                                            ) : (chatThreads[o.buyer_id] ?? []).length === 0 ? (
+
+                                                <p className="py-3 text-center text-[11px] text-gray-400">
+
+                                                    {isSeller
+
+                                                        ? `No messages yet. Text ${buyerName} to arrange payment and pickup.`
+
+                                                        : 'No messages yet. Text the seller to arrange payment and pickup.'}
+
+                                                </p>
+
+                                            ) : (
+
+                                                (chatThreads[o.buyer_id] ?? []).map((m) => {
+
+                                                    const mine = m.sender_id === userId;
+
+                                                    return (
+
+                                                        <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+
+                                                            <div className={`max-w-[82%] px-3.5 py-2 text-sm leading-snug ${
+
+                                                                mine
+
+                                                                    ? 'bg-black text-white'
+
+                                                                    : 'bg-white border border-gray-200 text-black'
+
+                                                            } ${m.id.startsWith('opt-') ? 'opacity-60' : ''}`}>
+
+                                                                <p className="whitespace-pre-wrap wrap-break-word">{m.body}</p>
+
+                                                                <p className="mt-1 text-right text-[10px] opacity-50">
+
+                                                                    {m.id.startsWith('opt-')
+
+                                                                        ? 'Sending…'
+
+                                                                        : new Date(m.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+
+                                                                </p>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    );
+
+                                                })
+
+                                            )}
+
+                                        </div>
+
+                                        {chatErrors[o.buyer_id] && (
+
+                                            <p className="border-t border-red-100 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600">
+
+                                                {chatErrors[o.buyer_id]}
+
+                                            </p>
+
+                                        )}
+
+                                        <form
+
+                                            onSubmit={(e) => { e.preventDefault(); void handleSendChat(o.buyer_id); }}
+
+                                            className="flex items-center gap-2 border-t border-gray-200 bg-white p-2.5"
+
+                                        >
+
+                                            <input
+
+                                                type="text"
+
+                                                value={chatDrafts[o.buyer_id] ?? ''}
+
+                                                onChange={(e) => setChatDrafts((d) => ({ ...d, [o.buyer_id]: e.target.value }))}
+
+                                                placeholder={isSeller ? `Message ${buyerName}…` : 'Message the seller…'}
+
+                                                maxLength={2000}
+
+                                                className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-black placeholder-gray-400 focus:outline-none focus:border-amber-400"
+
+                                            />
+
+                                            <button
+
+                                                type="submit"
+
+                                                disabled={!(chatDrafts[o.buyer_id] ?? '').trim() || !!chatSending[o.buyer_id]}
+
+                                                className="shrink-0 px-3.5 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+
+                                                aria-label="Send message"
+
+                                            >
+
+                                                {chatSending[o.buyer_id]
+
+                                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+
+                                                    : <Send className="h-3.5 w-3.5" />}
+
+                                            </button>
+
+                                        </form>
 
                                     </div>
 
@@ -680,7 +1117,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                 <div className="border-t border-gray-100 px-4 py-2.5">
 
-                    <p className="text-[10px] text-gray-400 text-center">Respond Yes or No to each offer, or send a counter price.</p>
+                    <p className="text-[10px] text-gray-400 text-center">Respond Yes or No to each offer, or send a counter price. Message the buyer once accepted to arrange payment and pickup.</p>
 
                 </div>
 
