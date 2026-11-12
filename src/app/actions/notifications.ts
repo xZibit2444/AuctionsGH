@@ -25,11 +25,15 @@ export async function markAllReadAction(): Promise<{ success?: boolean; error?: 
  * chat), so the bell badge and the unread-messages popup only count messages
  * the user has not seen.
  *
- * Offer-thread notifications carry the auction id but no buyer id, so for a
- * seller this also clears other buyers' offer threads on the same listing.
+ * Offer threads are scoped by (auctionId, offerBuyerId) so opening one
+ * buyer's thread never clears another buyer's unread messages. Legacy
+ * offer-thread notifications (offer_buyer_id IS NULL, written before this
+ * scoping existed) are deliberately retained: they cannot be attributed to
+ * one thread safely, so they stay unread until the user clears them from the
+ * notification panel.
  */
 export async function markChatNotificationsReadAction(
-    target: { orderId?: string; auctionId?: string }
+    target: { orderId?: string; auctionId?: string; offerBuyerId?: string }
 ): Promise<{ success?: boolean; error?: string }> {
     try {
         const supabase = await createClient();
@@ -47,7 +51,11 @@ export async function markChatNotificationsReadAction(
         if (target.orderId) {
             query = query.eq('order_id', target.orderId);
         } else if (target.auctionId) {
-            query = query.eq('auction_id', target.auctionId).is('order_id', null);
+            if (!target.offerBuyerId) return { error: 'offerBuyerId required for offer threads' };
+            query = query
+                .eq('auction_id', target.auctionId)
+                .is('order_id', null)
+                .eq('offer_buyer_id', target.offerBuyerId);
         } else {
             return { error: 'orderId or auctionId required' };
         }

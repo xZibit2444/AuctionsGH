@@ -18,6 +18,7 @@ const h = vi.hoisted(() => ({
     realtimeHandler: null as ((payload: { new: Record<string, unknown> }) => void) | null,
     pathname: '/',
     lastReadQuery: null as { calls: unknown[][] } | null,
+    readQueryExecuted: false,
 }));
 
 vi.mock('@/lib/supabase/client', () => ({
@@ -59,8 +60,9 @@ vi.mock('@/lib/supabase/server', () => ({
             for (const m of ['update', 'eq', 'is']) {
                 q[m] = (...args: unknown[]) => { q.calls.push([m, ...args]); return q; };
             }
-            // The query builder is awaited at the end of the chain.
-            q.then = (resolve: (v: { error: null }) => void) => resolve({ error: null });
+            // The query builder is awaited at the end of the chain - that is
+            // when PostgREST would actually run the UPDATE.
+            q.then = (resolve: (v: { error: null }) => void) => { h.readQueryExecuted = true; resolve({ error: null }); };
             h.lastReadQuery = q;
             return q;
         },
@@ -87,17 +89,19 @@ function orderNotif(id: string, body: string, orderId = 'o1') {
         body,
         auction_id: null,
         order_id: orderId,
+        offer_buyer_id: null,
         created_at: new Date().toISOString(),
     };
 }
 
-function offerNotif(id: string, body: string, auctionId = 'a1') {
+function offerNotif(id: string, body: string, auctionId = 'a1', buyerId: string | null = 'buyer1') {
     return {
         id,
         title: 'Message from Seller',
         body,
         auction_id: auctionId,
         order_id: null,
+        offer_buyer_id: buyerId,
         created_at: new Date().toISOString(),
     };
 }
@@ -198,6 +202,33 @@ describe('FloatingChatToast unread-messages popup', () => {
         expect(window.localStorage.getItem('chatToastDismissed:u1')).toBe(JSON.stringify({ 'order:o1': 'n1' }));
     });
 
+    it('still surfaces unread deal messages older than 24 hours', async () => {
+        h.notifications = [{
+            ...orderNotif('n-old', 'from three days ago'),
+            created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        }];
+        await act(async () => { root.render(<FloatingChatToast />); });
+        await flush();
+        await flush();
+
+        expect(container.textContent).toContain('from three days ago');
+        expect(container.querySelector('a')?.getAttribute('href')).toBe('/orders/o1');
+    });
+
+    it('keeps two buyer threads on the same listing as separate popups', async () => {
+        h.notifications = [
+            offerNotif('n-b1', 'buyer one msg', 'a1', 'buyer1'),
+            offerNotif('n-b2', 'buyer two msg', 'a1', 'buyer2'),
+        ];
+        h.acceptedOffer = { id: 'offer1' };
+        await act(async () => { root.render(<FloatingChatToast />); });
+        await flush();
+        await flush();
+
+        expect(container.textContent).toContain('buyer one msg');
+        expect(container.textContent).toContain('buyer two msg');
+    });
+
     it('shows nothing when there are no unread deal messages', async () => {
         h.notifications = [];
         await act(async () => { root.render(<FloatingChatToast />); });
@@ -210,6 +241,7 @@ describe('FloatingChatToast unread-messages popup', () => {
 describe('markChatNotificationsReadAction', () => {
     beforeEach(() => {
         h.lastReadQuery = null;
+        h.readQueryExecuted = false;
     });
 
     it('marks only the order thread\'s unread new-message notifications read', async () => {
@@ -220,11 +252,18 @@ describe('markChatNotificationsReadAction', () => {
         expect(h.lastReadQuery?.calls).toContainEqual(['eq', 'order_id', 'o1']);
     });
 
-    it('scopes offer threads to the auction and excludes order notifications', async () => {
-        const result = await markChatNotificationsReadAction({ auctionId: 'a1' });
+    it('scopes offer threads to the auction AND buyer, excluding order notifications', async () => {
+        const result = await markChatNotificationsReadAction({ auctionId: 'a1', offerBuyerId: 'buyer1' });
         expect(result.success).toBe(true);
         expect(h.lastReadQuery?.calls).toContainEqual(['eq', 'auction_id', 'a1']);
         expect(h.lastReadQuery?.calls).toContainEqual(['is', 'order_id', null]);
+        expect(h.lastReadQuery?.calls).toContainEqual(['eq', 'offer_buyer_id', 'buyer1']);
+    });
+
+    it('rejects an offer-thread target without a buyer id, so legacy ambiguous rows are never cleared', async () => {
+        const result = await markChatNotificationsReadAction({ auctionId: 'a1' });
+        expect(result.error).toBeTruthy();
+        expect(h.readQueryExecuted).toBe(false);
     });
 
     it('rejects a call with no thread target', async () => {

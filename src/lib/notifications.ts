@@ -22,6 +22,10 @@ interface NotificationInsert {
     body?: string | null;
     auction_id?: string | null;
     order_id?: string | null;
+    /** Offer chat threads: the buyer side of the (auction, buyer) thread, so
+     *  read-marking and popups can tell one buyer's thread from another's.
+     *  NULL on legacy rows and non-offer notifications. */
+    offer_buyer_id?: string | null;
     /** Set when a dedicated templated email already covers this event, so the
      *  generic notification email does not duplicate it. */
     skipEmail?: boolean;
@@ -79,6 +83,7 @@ export async function insertNotificationIfEnabled(
         // 'new_offer'). Retry as a generic 'system' notification so the alert still
         // shows in the in-app panel instead of being dropped.
         if (notification.type !== 'system' && /enum|notification_type|invalid input value/i.test(error.message ?? '')) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ({ error } = await (supabase.from('notifications') as any).insert({ ...row, type: 'system' }));
             if (error) console.error('Fallback notification insert failed:', error.message ?? error);
         }

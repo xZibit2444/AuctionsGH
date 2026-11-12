@@ -46,9 +46,11 @@ export default function OfferChatThread({ auctionId, buyerId, userId, isSeller, 
 
     // Viewing the thread marks its new-message notifications read, so the bell
     // badge and the unread-messages popup only count messages not yet seen.
+    // Scoped to this (auction, buyer) thread: other buyers' threads keep
+    // their unread state.
     useEffect(() => {
-        void markChatNotificationsReadAction({ auctionId });
-    }, [auctionId, messages]);
+        void markChatNotificationsReadAction({ auctionId, offerBuyerId: buyerId });
+    }, [auctionId, buyerId, messages]);
 
     const fetchThread = useCallback(async () => {
         const supabase = createClient();

@@ -29,12 +29,17 @@ interface MessageNotification {
     body: string | null;
     auction_id: string | null;
     order_id: string | null;
+    /** Buyer side of an offer chat thread; NULL on legacy rows written before
+     *  thread scoping existed. */
+    offer_buyer_id: string | null;
     created_at: string;
 }
 
-function threadKeyOf(n: { order_id: string | null; auction_id: string | null }): string | null {
+function threadKeyOf(n: { order_id: string | null; auction_id: string | null; offer_buyer_id?: string | null }): string | null {
     if (n.order_id) return `order:${n.order_id}`;
-    if (n.auction_id) return `offer:${n.auction_id}`;
+    // Legacy offer notifications without a buyer id share one 'legacy'
+    // thread per listing rather than being merged into any buyer's thread.
+    if (n.auction_id) return `offer:${n.auction_id}:${n.offer_buyer_id ?? 'legacy'}`;
     return null;
 }
 
@@ -183,7 +188,8 @@ export default function FloatingChatToast() {
     }, [isUserAvailable, scheduleDismiss]);
 
     // Order chats link to the order page; offer threads link to the Order &
-    // Chat deal page when an accepted offer exists (fallback: the listing).
+    // Chat deal page for that (listing, buyer) thread when an accepted offer
+    // exists (fallback: the listing page).
     const resolveHref = useCallback(async (notification: MessageNotification): Promise<string | null> => {
         if (notification.order_id) return `/orders/${notification.order_id}`;
         if (!notification.auction_id || !userId) return null;
@@ -191,14 +197,15 @@ export default function FloatingChatToast() {
         const supabase = createClient();
         // Database types do not include auction_offers yet.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: offer } = await (supabase.from('auction_offers') as any)
+        let query = (supabase.from('auction_offers') as any)
             .select('id')
             .eq('auction_id', notification.auction_id)
             .eq('status', 'accepted')
             .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
             .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .limit(1);
+        if (notification.offer_buyer_id) query = query.eq('buyer_id', notification.offer_buyer_id);
+        const { data: offer } = await query.maybeSingle();
 
         return offer?.id ? `/offers/${offer.id}` : `/auctions/${notification.auction_id}`;
     }, [userId]);
@@ -260,24 +267,23 @@ export default function FloatingChatToast() {
         flushPendingToasts();
     }, [flushPendingToasts]);
 
-    // On every full site visit, ask about unread deal messages (last 24h)
-    // whose thread was not explicitly dismissed since the latest message.
+    // On every full site visit, ask about unread deal messages - however old;
+    // unread is unread - whose thread was not explicitly dismissed since its
+    // latest message.
     useEffect(() => {
         if (!userId) return;
         let cancelled = false;
         const supabase = createClient();
 
         const loadBacklog = async () => {
-            const cutoff = new Date(Date.now() - CHAT_MAX_AGE_MS).toISOString();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data } = await (supabase.from('notifications') as any)
-                .select('id, title, body, auction_id, order_id, created_at')
+                .select('id, title, body, auction_id, order_id, offer_buyer_id, created_at')
                 .eq('user_id', userId)
                 .eq('type', 'new_message')
                 .eq('is_read', false)
-                .gte('created_at', cutoff)
                 .order('created_at', { ascending: false })
-                .limit(20);
+                .limit(50);
             if (cancelled || !data) return;
 
             const dismissed = readDismissed(userId);

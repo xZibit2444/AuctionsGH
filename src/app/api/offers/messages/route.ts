@@ -131,6 +131,7 @@ export async function POST(request: Request) {
         title: isSeller ? 'Message from Seller' : 'Message from Buyer',
         body: text.length > 100 ? `${text.slice(0, 100)}…` : text,
         auction_id,
+        offer_buyer_id: buyerId,
     });
 
     // Link straight to the deal page when this thread has an accepted offer.
