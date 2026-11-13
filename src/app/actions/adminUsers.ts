@@ -2,7 +2,7 @@
 
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendBanNotificationEmail } from '@/lib/email/sender';
+import { sendBanNotificationEmail, sendUnbanNotificationEmail } from '@/lib/email/sender';
 import type { Profile } from '@/types/profile';
 import { isMissingBanColumnError } from '@/lib/supabase/banGuards';
 
@@ -116,10 +116,10 @@ export async function unbanUserAction(
 
     const { data: targetProfile, error: targetError } = await admin
         .from('profiles')
-        .select('id, is_banned')
+        .select('id, is_banned, full_name')
         .eq('id', userId)
         .maybeSingle() as {
-            data: Pick<Profile, 'id' | 'is_banned'> | null;
+            data: Pick<Profile, 'id' | 'is_banned' | 'full_name'> | null;
             error: unknown;
         };
 
@@ -150,6 +150,14 @@ export async function unbanUserAction(
 
     if (error) {
         return { success: false, error: error.message };
+    }
+
+    // Fetch user email from auth.users and send notification, mirroring the ban email
+    const { data: authUser } = await admin.auth.admin.getUserById(userId);
+    const userEmail = authUser.user?.email;
+
+    if (userEmail) {
+        await sendUnbanNotificationEmail(userEmail, targetProfile.full_name);
     }
 
     return { success: true };

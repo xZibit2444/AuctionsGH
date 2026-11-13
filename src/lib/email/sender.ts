@@ -3,6 +3,7 @@ import AuctionEndedNoBidsEmail from '@/emails/AuctionEndedNoBidsEmail';
 import AuctionSoldEmail from '@/emails/AuctionSoldEmail';
 import AuctionWonEmail from '@/emails/AuctionWonEmail';
 import BanNotificationEmail from '@/emails/BanNotificationEmail';
+import UnbanNotificationEmail from '@/emails/UnbanNotificationEmail';
 import NewOfferEmail from '@/emails/NewOfferEmail';
 import NewMessageEmail from '@/emails/NewMessageEmail';
 import NotificationEmail from '@/emails/NotificationEmail';
@@ -656,6 +657,38 @@ export async function sendBanNotificationEmail(
         return { success: false, error };
     }
         }
+
+export async function sendUnbanNotificationEmail(
+    to: string,
+    fullName?: string | null
+) {
+    const resend = getResend();
+    if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Email not sent.', { to });
+        return { success: false, error: 'API key missing' };
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: SENDER_EMAIL,
+            to,
+            subject: 'Your AuctionsGH account has been reinstated',
+            react: UnbanNotificationEmail({
+                fullName: fullName ?? undefined,
+            }),
+        });
+
+        if (error) {
+            console.error('Failed to send unban notification email:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error sending unban notification email:', error);
+        return { success: false, error };
+    }
+}
 
 function escapeHtml(value: string): string {
     return value
