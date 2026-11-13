@@ -7,10 +7,13 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PROFILE_IMAGES_BUCKET } from '@/lib/constants';
 import { validateImageFile } from '@/lib/validators';
-import { COVER_PRESETS, parseCover, type CoverPreset } from '@/lib/cover';
+import { parseCover, type CoverPreset } from '@/lib/cover';
 import { safeNextPath } from '@/lib/phone';
 import { validateSetupUsername } from '@/lib/profileSetup';
 import Avatar from '@/components/ui/Avatar';
+
+// Swatch order tracks the approved setup mockup: yellow first, black second, split last.
+const SETUP_COVER_PRESETS: CoverPreset[] = ['yellow', 'black', 'split'];
 
 const PRESET_SWATCH: Record<CoverPreset, string> = {
     yellow: 'bg-amber-400',
@@ -179,6 +182,7 @@ export default function SetupProfileForm() {
     const busy = saving !== null || avatarBusy || coverBusy;
 
     return (
+        <>
         <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.35)] sm:p-7">
             <div className="flex flex-col gap-7">
                 {/* Cover image */}
@@ -209,7 +213,7 @@ export default function SetupProfileForm() {
                         </button>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                        {COVER_PRESETS.map((preset) => {
+                        {SETUP_COVER_PRESETS.map((preset) => {
                             const selected = coverValue === `preset:${preset}` || (preset === 'split' && !coverValue);
                             return (
                                 <button
@@ -313,5 +317,10 @@ export default function SetupProfileForm() {
                 </div>
             </div>
         </div>
+
+        <p className="mt-6 text-center text-xs leading-5 text-gray-400">
+            Signed in as {typeof user.email === 'string' ? user.email : 'your new account'}. Everything here is editable anytime under Settings → Profile.
+        </p>
+        </>
     );
 }
