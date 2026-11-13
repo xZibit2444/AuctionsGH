@@ -10,7 +10,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect('/login');
     const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', user.id).single();
-    if (!profile?.is_super_admin) redirect('/');
+    if (!(profile as { is_super_admin?: boolean } | null)?.is_super_admin) redirect('/');
     const params = searchParams ? await searchParams : {};
     const today = new Date().toISOString().slice(0, 10);
     const defaultStart = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
