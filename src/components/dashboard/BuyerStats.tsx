@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
-import { Gavel, Trophy, Clock, TrendingDown, MessageCircle } from 'lucide-react';
+import { Gavel, Trophy, Clock, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface BuyerStats {
@@ -114,13 +114,12 @@ export default function BuyerStats() {
         { label: 'Total Bids', value: stats.totalBids.toString(), icon: Gavel },
         { label: 'Auctions Won', value: stats.auctionsWon.toString(), icon: Trophy },
         { label: 'Active Bids', value: stats.activeAuctions.toString(), icon: Clock },
-        { label: 'Winning bid value', value: formatCurrency(stats.totalSpent), icon: TrendingDown },
     ];
 
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {statCards.map(({ label, value, icon: Icon }) => (
                     <div key={label} className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
                         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/20 text-amber-700 mb-4">

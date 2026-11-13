@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { formatCurrency } from '@/lib/utils';
-import { Package, Zap, CheckSquare, TrendingUp } from 'lucide-react';
+import { Package, Zap } from 'lucide-react';
 
 interface Stats {
     totalListings: number;
@@ -24,19 +23,7 @@ const statCards = (stats: Stats) => [
         value: stats.activeListings.toString(),
         icon: Zap,
     },
-    {
-        label: 'Sold',
-        value: stats.totalSold.toString(),
-        icon: CheckSquare,
-    },
-    {
-        // Sum of listed prices on listings the seller marked sold - deals are
-        // arranged and paid directly, so this is sold listing value, not
-        // platform-processed revenue.
-        label: 'Sold value',
-        value: formatCurrency(stats.totalRevenue),
-        icon: TrendingUp,
-    },
+
 ];
 
 export default function SellerStats() {
@@ -82,7 +69,7 @@ export default function SellerStats() {
     const cards = statCards(stats);
 
     return (
-        <div><p className="text-xs text-gray-500 mb-3">Sold value is the listed price of items marked sold, not confirmed payments or platform revenue.</p><div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div><div className="grid grid-cols-2 gap-3">
             {cards.map(({ label, value, icon: Icon }, index) => (
                 <div
                     key={label}

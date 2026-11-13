@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper, Mail, LifeBuoy } from 'lucide-react';
 
 const adminShortcuts = [
-    { href: '/admin/analytics', title: 'Analytics', sub: 'Sales value, activity, seller performance, and trust alerts.', icon: BarChart3 },
+    { href: '/admin/analytics', title: 'Analytics', sub: 'Listings, bidding, offers, and chat activity.', icon: BarChart3 },
     { href: '/admin/applications', title: 'Seller Applications', sub: 'Review and approve pending seller applications.', icon: ClipboardList },
     { href: '/admin/orders', title: 'Order Monitor', sub: 'Past orders and their recorded outcomes (history only).', icon: Package },
     { href: '/admin/users', title: 'User Moderation', sub: 'Permanently ban abusive or fraudulent accounts.', icon: Ban },
