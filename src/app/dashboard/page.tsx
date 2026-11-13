@@ -10,9 +10,9 @@ import Link from 'next/link';
 import { Settings, Plus, ChevronRight, Store, ClipboardList, Package, BarChart3, Ban, Gavel, Newspaper, Mail, LifeBuoy } from 'lucide-react';
 
 const adminShortcuts = [
-    { href: '/admin/analytics', title: 'Analytics', sub: 'GMV, funnels, seller performance, and trust alerts.', icon: BarChart3 },
+    { href: '/admin/analytics', title: 'Analytics', sub: 'Sales value, activity, seller performance, and trust alerts.', icon: BarChart3 },
     { href: '/admin/applications', title: 'Seller Applications', sub: 'Review and approve pending seller applications.', icon: ClipboardList },
-    { href: '/admin/orders', title: 'Order Monitor', sub: 'See all orders, delivery codes, and live statuses.', icon: Package },
+    { href: '/admin/orders', title: 'Order Monitor', sub: 'Past orders and their recorded outcomes (history only).', icon: Package },
     { href: '/admin/users', title: 'User Moderation', sub: 'Permanently ban abusive or fraudulent accounts.', icon: Ban },
     { href: '/admin/auctions', title: 'Auction Management', sub: 'Edit, unpublish, force-end, or extend any listing.', icon: Gavel },
     { href: '/admin/support', title: 'Support Requests', sub: 'Read and resolve issues sent from Contact Support.', icon: LifeBuoy },
@@ -52,7 +52,7 @@ export default function DashboardPage() {
                             <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Account Center</p>
                             <h1 className="mt-2.5 text-3xl sm:text-4xl font-black tracking-tight text-black">Dashboard</h1>
                             <p className="mt-2.5 text-sm sm:text-[15px] text-gray-500 leading-6">
-                                Your activity overview - listings, offers, and orders in one place.
+                                Your activity overview - listings, offers, and chats in one place.
                             </p>
                         </div>
                         <div className="flex items-center gap-2.5 shrink-0">

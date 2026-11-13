@@ -30,7 +30,10 @@ const statCards = (stats: Stats) => [
         icon: CheckSquare,
     },
     {
-        label: 'Revenue',
+        // Sum of listed prices on listings the seller marked sold - deals are
+        // arranged and paid directly, so this is sold listing value, not
+        // platform-processed revenue.
+        label: 'Sold value',
         value: formatCurrency(stats.totalRevenue),
         icon: TrendingUp,
     },

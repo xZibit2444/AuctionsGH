@@ -289,7 +289,7 @@ function TrendChart({ data }: { data: DailyMetric[] }) {
     return (
         <div>
             <div className="mb-4 flex flex-wrap gap-4 text-xs font-semibold">
-                <span className="inline-flex items-center gap-2 text-black"><span className="h-2.5 w-2.5 bg-black" /> GMV</span>
+                <span className="inline-flex items-center gap-2 text-black"><span className="h-2.5 w-2.5 bg-black" /> Order value (history)</span>
                 <span className="inline-flex items-center gap-2 text-gray-600"><span className="h-2.5 w-2.5 bg-amber-400" /> Completed Orders</span>
                 <span className="inline-flex items-center gap-2 text-gray-600"><span className="h-2.5 w-2.5 bg-gray-300" /> Auctions Created</span>
             </div>
@@ -328,7 +328,7 @@ function TrendChart({ data }: { data: DailyMetric[] }) {
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
                 <div className="border border-gray-200 bg-gray-50 p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">GMV total</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Order value total (history)</p>
                     <p className="mt-2 text-lg font-black text-black">
                         {formatCurrency(gmvValues.reduce((sum, value) => sum + value, 0))}
                     </p>
@@ -555,6 +555,9 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-24 sm:pb-10">
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-900 leading-5">
+                Since 13 Nov 2026, buyers and sellers arrange payment and handover directly - the platform no longer creates orders, holds funds or tracks deliveries. Order, payment, GMV and delivery metrics below cover history up to that change; new deals are not tracked as orders.
+            </div>
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
                 <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-widest mb-3">
@@ -563,7 +566,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                     </div>
                     <h1 className="text-3xl font-black text-black tracking-tight">Marketplace Control Tower</h1>
                     <p className="text-sm text-gray-500 mt-2 max-w-3xl">
-                        Revenue, seller performance, order funnel, trust signals, and live marketplace health in one dashboard.
+                        Sold value, seller performance, activity, trust signals, and marketplace health in one dashboard.
                     </p>
                 </div>
 
