@@ -73,7 +73,7 @@ export async function finalizeAuction(auctionId: string) {
                 type: 'auction_won',
                 title: 'You Won the Auction!',
             skipEmail: true,
-                body: `Click here to proceed to checkout and arrange payment/delivery for "${auction.title}".`,
+                body: `Contact the seller to arrange payment and pickup for "${auction.title}".`,
                 auction_id: auctionId,
             });
 

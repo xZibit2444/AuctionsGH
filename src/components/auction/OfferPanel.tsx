@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { counterOfferAction, makeOfferAction, respondToCounterAction, respondToOfferAction } from '@/app/actions/offer';
-import { buyNowAction } from '@/app/actions/buyNow';
 import { formatCurrency } from '@/lib/utils';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Tag, CheckCircle2, XCircle, Loader2, Send, MessageCircle } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
@@ -45,10 +43,9 @@ interface OfferPanelProps {
     userId?: string | null;
     isActive?: boolean;
     listingPrice?: number;
-    buyNowEnabled?: boolean;
 }
 
-export default function OfferPanel({ auctionId, isSeller, userId, isActive = true, listingPrice, buyNowEnabled = true }: OfferPanelProps) {
+export default function OfferPanel({ auctionId, isSeller, userId, isActive = true, listingPrice }: OfferPanelProps) {
     const isLoggedIn = !!userId;
 
     const router = useRouter();
@@ -60,10 +57,8 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     const [amount, setAmount] = useState('');
 
     const [submitting, setSubmitting] = useState(false);
-    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const [formError, setFormError] = useState('');
-    const [buyError, setBuyError] = useState('');
 
     const [responding, setResponding] = useState<string | null>(null);
 
@@ -145,28 +140,6 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
     }, [auctionId, userId, fetchOffers]);
 
 
-
-    const handleBuyNow = () => {
-        if (!isLoggedIn) {
-            router.push(`/login?redirectTo=/auctions/${auctionId}`);
-            return;
-        }
-        if (!listingPrice || listingPrice <= 0) return;
-        setConfirmOpen(true);
-    };
-
-    const confirmBuyNow = async () => {
-        setSubmitting(true);
-        setBuyError('');
-        const result = await buyNowAction(auctionId);
-        if (!result.success) {
-            setSubmitting(false);
-            setConfirmOpen(false);
-            setBuyError(result.error ?? 'Could not complete the purchase');
-            return;
-        }
-        router.push(`/checkout/${auctionId}`);
-    };
 
     const handleSendOffer = async (e: React.FormEvent) => {
 
@@ -272,36 +245,6 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
     return (
         <>
-        {/* The primary purchase CTAs (and the enquiry-only note) are presented once in the
-            listing header and sticky bar. The real Buy now button stays mounted here, hidden,
-            so those CTAs click through to the same handler, confirm dialog and login redirect. */}
-        {!isSeller && isActive && listingPrice && buyNowEnabled ? (
-            <>
-                <button
-                    id="buy-now-button"
-                    type="button"
-                    onClick={handleBuyNow}
-                    disabled={submitting}
-                    hidden
-                    aria-hidden="true"
-                    tabIndex={-1}
-                >
-                    Buy now - {formatCurrency(listingPrice)}
-                </button>
-                {buyError && (
-                    <p role="alert" className="mt-4 text-xs font-semibold text-red-500">{buyError}</p>
-                )}
-                <ConfirmDialog
-                    open={confirmOpen}
-                    title="Buy this item?"
-                    message={`You are buying this item for ${formatCurrency(listingPrice)}. After this you and the seller agree how to pay and collect it. AuctionsGH does not take payment.`}
-                    confirmLabel={`Buy for ${formatCurrency(listingPrice)}`}
-                    busy={submitting}
-                    onConfirm={confirmBuyNow}
-                    onCancel={() => setConfirmOpen(false)}
-                />
-            </>
-        ) : null}
         <div id="offer-panel" className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-white">
 
             {/* Header */}
@@ -587,7 +530,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
 
 
-                                {/* Seller opens the order & chat page once an offer is accepted */}
+                                {/* Seller opens the deal & chat page once an offer is accepted */}
                                 {isSeller && o.status === 'accepted' && (
                                     <div className="flex justify-end">
                                         <Link
@@ -595,28 +538,21 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
                                             className="mt-1 px-4 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors flex items-center gap-1.5"
                                         >
                                             <MessageCircle className="h-3 w-3" />
-                                            Order &amp; Chat
+                                            Deal &amp; Chat
                                         </Link>
                                     </div>
                                 )}
 
-                                {/* Order & chat page + checkout CTAs for buyer on accepted offer */}
+                                {/* Deal & chat page for the buyer on an accepted offer */}
                                 {!isSeller && o.status === 'accepted' && (
                                     <div className="flex flex-wrap justify-end gap-1.5">
                                         <Link
                                             href={`/offers/${o.id}`}
-                                            className="mt-1 px-4 py-2 rounded-lg bg-white text-black border border-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors flex items-center gap-1.5"
-                                        >
-                                            <MessageCircle className="h-3 w-3" />
-                                            Order &amp; Chat
-                                        </Link>
-                                        <button
-                                            onClick={() => router.push(`/checkout/${auctionId}`)}
                                             className="mt-1 px-4 py-2 rounded-lg bg-amber-400 text-black text-[11px] font-bold uppercase tracking-widest hover:bg-amber-500 transition-colors flex items-center gap-1.5"
                                         >
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            Proceed to Checkout →
-                                        </button>
+                                            <MessageCircle className="h-3 w-3" />
+                                            Deal &amp; Chat
+                                        </Link>
                                     </div>
                                 )}
 
@@ -723,7 +659,7 @@ export default function OfferPanel({ auctionId, isSeller, userId, isActive = tru
 
                 <div className="border-t border-gray-100 px-4 py-2.5">
 
-                    <p className="text-[10px] text-gray-400 text-center">Respond Yes or No to each offer, or send a counter price. Open Order & Chat once accepted to arrange payment and pickup.</p>
+                    <p className="text-[10px] text-gray-400 text-center">Respond Yes or No to each offer, or send a counter price. Open Deal & Chat once accepted to arrange payment and pickup.</p>
 
                 </div>
 

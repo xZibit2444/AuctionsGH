@@ -204,7 +204,8 @@ async function finalizeAcceptedOffer(
                 auction.title,
                 agreedAmount,
                 offer.auction_id,
-                true
+                'offer',
+                `${process.env.NEXT_PUBLIC_SITE_URL}/offers/${offer.id}`
             );
 
             if (!buyerEmailResult.success) {
@@ -219,7 +220,7 @@ async function finalizeAcceptedOffer(
                 auction.title,
                 agreedAmount,
                 buyerName,
-                true
+                'offer'
             );
 
             if (!sellerEmailResult.success) {

@@ -227,7 +227,7 @@ export default async function AdminOrdersPage() {
                 <div className="border border-gray-200 bg-white p-12 text-center">
                     <Package className="h-10 w-10 text-gray-300 mx-auto mb-4" />
                     <h2 className="text-lg font-black text-black">No orders yet</h2>
-                    <p className="text-sm text-gray-400 mt-1">When buyers complete checkout, the orders will appear here.</p>
+                    <p className="text-sm text-gray-400 mt-1">Past orders are kept here as history. New deals are arranged directly between buyer and seller and no longer create orders.</p>
                 </div>
             ) : (
                 <div className="space-y-5">

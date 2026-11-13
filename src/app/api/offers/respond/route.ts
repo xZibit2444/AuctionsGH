@@ -120,10 +120,10 @@ export async function POST(request: NextRequest) {
         const buyerName = getDisplayName(buyerProfileRes.data, 'Buyer');
 
         if (buyerAuthResult.data.user?.email) {
-            await sendAuctionWonEmail(buyerAuthResult.data.user.email, buyerName, auction.title, Number(offer.amount), offer.auction_id, true);
+            await sendAuctionWonEmail(buyerAuthResult.data.user.email, buyerName, auction.title, Number(offer.amount), offer.auction_id, 'offer', `${process.env.NEXT_PUBLIC_SITE_URL}/offers/${offer.id}`);
         }
         if (sellerAuthResult.data.user?.email) {
-            await sendAuctionSoldEmail(sellerAuthResult.data.user.email, sellerName, auction.title, Number(offer.amount), buyerName, true);
+            await sendAuctionSoldEmail(sellerAuthResult.data.user.email, sellerName, auction.title, Number(offer.amount), buyerName, 'offer');
         }
     } else {
         const [auctionRes, buyerProfileRes2, buyerAuthResult] = await Promise.all([

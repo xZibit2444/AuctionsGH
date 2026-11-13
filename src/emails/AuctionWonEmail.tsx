@@ -32,8 +32,8 @@ interface AuctionWonEmailProps {
 
     winningBidAmount: number;
 
-    checkoutUrl: string;
-    buyNow?: boolean;
+    listingUrl: string;
+    kind?: 'auction' | 'offer';
 }
 
 
@@ -46,15 +46,15 @@ export const AuctionWonEmail = ({
 
     winningBidAmount,
 
-    checkoutUrl,
-    buyNow = false,
+    listingUrl,
+    kind = 'auction',
 }: AuctionWonEmailProps) => (
 
     <Html>
 
         <Head />
 
-        <Preview>{buyNow ? `Confirm your order for ${auctionTitle}` : `You won ${auctionTitle}!`}</Preview>
+        <Preview>{kind === 'offer' ? `Your offer for ${auctionTitle} was accepted` : `You won ${auctionTitle}!`}</Preview>
 
         <Body style={main}>
 
@@ -68,7 +68,7 @@ export const AuctionWonEmail = ({
 
 
 
-                <Heading style={h1}>{buyNow ? 'Confirm your order' : 'Congratulations, you won!'}</Heading>
+                <Heading style={h1}>{kind === 'offer' ? 'Your offer was accepted!' : 'Congratulations, you won!'}</Heading>
 
 
 
@@ -76,13 +76,13 @@ export const AuctionWonEmail = ({
 
                 <Text style={text}>
 
-                    {buyNow ? <>You bought <strong>{auctionTitle}</strong> at the listed price of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</> : <>You are the winning bidder for <strong>{auctionTitle}</strong> with your bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
+                    {kind === 'offer' ? <>The seller accepted your offer of <strong>GHS {winningBidAmount.toLocaleString()}</strong> for <strong>{auctionTitle}</strong>.</> : <>You are the winning bidder for <strong>{auctionTitle}</strong> with your bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
 
                 </Text>
 
                 <Text style={text}>
 
-                    The seller is waiting for you to confirm the order so they can arrange delivery or pickup.
+                    Contact the seller to arrange payment and pickup. Inspect the item before you pay.
 
                 </Text>
 
@@ -90,9 +90,9 @@ export const AuctionWonEmail = ({
 
                 <Section style={btnContainer}>
 
-                    <Link href={checkoutUrl} style={button}>
+                    <Link href={listingUrl} style={button}>
 
-                        Confirm Order
+                        {kind === 'offer' ? 'Open Deal & Chat' : 'Contact the Seller'}
 
                     </Link>
 
@@ -102,7 +102,7 @@ export const AuctionWonEmail = ({
 
                 <Text style={footer}>
 
-                    {buyNow ? 'Confirm your order when you are ready. You and the seller then agree how to pay and collect the item.' : 'This link will expire in 48 hours. If you do not check out in time, the item may be offered to the next highest bidder.'}
+                    {kind === 'offer' ? 'Chat with the seller to agree payment and handover. AuctionsGH does not take payment or deliver items.' : 'Payment and pickup are arranged directly with the seller. AuctionsGH does not take payment or deliver items.'}
 
                 </Text>
 

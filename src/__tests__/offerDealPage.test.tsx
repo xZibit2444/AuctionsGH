@@ -105,26 +105,27 @@ describe('Offer deal page (/offers/[id])', () => {
         document.body.innerHTML = '';
     });
 
-    it('seller sees the deal room with chat and the awaiting-confirmation note', async () => {
+    it('seller sees the deal room with chat and the arrange-handover note', async () => {
         h.userId = 'seller1';
         await render();
         const text = container!.textContent ?? '';
-        expect(text).toContain('Order & Chat');
-        expect(text).toContain('Awaiting Buyer Confirmation');
+        expect(text).toContain('Deal & Chat');
+        expect(text).toContain('Offer Accepted');
         expect(text).toContain('Reagan');
         expect(text).toContain('3,300');
         expect(container!.querySelector('input[placeholder="Message Reagan…"]')).not.toBeNull();
-        expect(text).toContain('collection code');
+        expect(text).toContain('Arrange the Handover');
+        expect(text).not.toContain('collection code');
     });
 
-    it('buyer sees the confirm-order step and seller chat', async () => {
+    it('buyer sees the arrange-handover step and seller chat, no checkout link', async () => {
         h.userId = 'buyer1';
         await render();
         const text = container!.textContent ?? '';
-        expect(text).toContain('Confirm Your Order');
-        const confirm = container!.querySelector('a[href="/checkout/a1"]');
-        expect(confirm).not.toBeNull();
-        expect(text).toContain('6-digit collection code');
+        expect(text).toContain('Deal & Chat');
+        expect(text).toContain('Arrange the Handover');
+        expect(container!.querySelector('a[href="/checkout/a1"]')).toBeNull();
+        expect(text).not.toContain('6-digit collection code');
         expect(container!.querySelector('input[placeholder="Message the seller…"]')).not.toBeNull();
     });
 
@@ -139,19 +140,12 @@ describe('Offer deal page (/offers/[id])', () => {
         expect(container!.textContent ?? '').toContain('Hello bro, when will you like to pick it up?');
     });
 
-    it('redirects to the order page once an open order exists', async () => {
+    it('stays on the deal page even if a historical order row exists', async () => {
         h.userId = 'seller1';
         h.order = { id: 'order9', status: 'pending_meetup' };
         await render();
-        expect(h.replacedTo).toBe('/orders/order9');
-    });
-
-    it('does not redirect for a failed order', async () => {
-        h.userId = 'seller1';
-        h.order = { id: 'order9', status: 'cancelled_by_buyer' };
-        await render();
         expect(h.replacedTo).toBeNull();
-        expect(container!.textContent ?? '').toContain('Order & Chat');
+        expect(container!.textContent ?? '').toContain('Deal & Chat');
     });
 
     it('blocks non-parties', async () => {

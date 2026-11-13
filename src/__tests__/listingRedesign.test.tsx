@@ -97,7 +97,6 @@ vi.mock('@/lib/supabase/client', () => {
 });
 
 vi.mock('@/app/actions/offer', () => ({ makeOfferAction: vi.fn(), respondToOfferAction: vi.fn() }));
-vi.mock('@/app/actions/buyNow', () => ({ buyNowAction: vi.fn() }));
 vi.mock('@/app/actions/finalizeAuction', () => ({ finalizeAuctionAction: vi.fn(async () => ({ success: true })) }));
 vi.mock('@/app/actions/deleteAuction', () => ({ deleteAuctionAction: vi.fn(async () => ({ success: true })) }));
 vi.mock('@/app/actions/relistAuction', () => ({ relistAuctionAction: vi.fn(async () => ({ success: true })) }));
@@ -185,35 +184,21 @@ afterEach(async () => {
 
 // ---------- eligibility / view coverage ----------
 describe('AuctionDetail eligibility by status, type and role', () => {
-    it('permanent active listing, buyer: Buy now + Make an offer in panel and sticky bar', async () => {
+    it('permanent active listing, buyer: Make an offer in panel and sticky bar, no Buy now', async () => {
         fx.state.auction = baseAuction();
         const el = await renderDetail();
         const texts = buttonTexts(el);
-        expect(texts).toContain('Buy now');
+        expect(texts).not.toContain('Buy now');
         expect(texts).toContain('Make an offer');
         expect(texts).not.toContain('Place a bid');
         const bar = stickyBar(el);
         expect(bar).toBeTruthy();
-        expect(bar!.textContent).toContain('Buy now');
+        expect(bar!.textContent).not.toContain('Buy now');
         // Real OfferPanel anchors exist for the proxies
-        expect(el.querySelector('#buy-now-button')).toBeTruthy();
+        expect(el.querySelector('#buy-now-button')).toBeFalsy();
         expect(el.querySelector('#offer-amount-input')).toBeTruthy();
         expect(el.querySelector('#offer-panel')).toBeTruthy();
-    });
-
-    it('enquiry-only permanent listing (buy now off): no Buy now anywhere, enquiry note shown', async () => {
-        fx.state.auction = baseAuction({ allow_buy_now: false });
-        const el = await renderDetail();
-        expect(buttonTexts(el)).not.toContain('Buy now');
-        expect(el.querySelector('#buy-now-button')).toBeFalsy();
         expect(el.textContent).toContain('Availability confirmed on enquiry');
-        expect(buttonTexts(el)).toContain('Make an offer');
-    });
-
-    it('permanent listing with zero price: no Buy now even when buy-now enabled', async () => {
-        fx.state.auction = baseAuction({ current_price: 0 });
-        const el = await renderDetail();
-        expect(buttonTexts(el)).not.toContain('Buy now');
     });
 
     it('timed active auction, buyer: Place a bid + bid form, no Buy now, countdown present', async () => {
@@ -285,7 +270,7 @@ describe('AuctionDetail eligibility by status, type and role', () => {
         fx.state.bids = [{ bidder_id: 'buyer-9', amount: 2000, created_at: new Date().toISOString(), profiles: null }];
         const el = await renderDetail();
         expect(el.textContent).toContain('Congratulations, you won!');
-        expect(el.textContent).toContain('Confirm Order');
+        expect(el.textContent).toContain('Contact Seller');
         const texts = buttonTexts(el);
         expect(texts).not.toContain('Buy now');
         expect(stickyBar(el)).toBeNull();
@@ -312,48 +297,6 @@ describe('sticky-bar proxies reach the real OfferPanel controls', () => {
         });
         expect(document.activeElement?.id).toBe('offer-amount-input');
         expect(panel).toBeTruthy();
-    });
-
-    it('Buy now proxy dispatches a real click on #buy-now-button (no duplicate transaction path)', async () => {
-        fx.state.auction = baseAuction();
-        const el = await renderDetail();
-        const real = el.querySelector('#buy-now-button') as HTMLElement;
-        const received = vi.fn();
-        real.addEventListener('click', received);
-        const bar = stickyBar(el)!;
-        const proxyBtn = Array.from(bar.querySelectorAll('button')).find((b) =>
-            b.textContent?.trim() === 'Buy now',
-        )!;
-        await act(async () => {
-            proxyBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
-        expect(received).toHaveBeenCalledTimes(1);
-    });
-
-    it('hidden real Buy now: signed-in click opens the confirm dialog and makes no purchase', async () => {
-        fx.state.auction = baseAuction();
-        fx.state.user = { id: 'buyer-1' };
-        fx.state.profile = { id: 'buyer-1', is_super_admin: false };
-        const { buyNowAction } = await import('@/app/actions/buyNow');
-        const el = await renderDetail();
-        const real = el.querySelector('#buy-now-button') as HTMLElement;
-        expect(real).toBeTruthy();
-        await act(async () => { real.click(); });
-        expect(document.body.textContent).toContain('Buy this item?');
-        expect(buyNowAction).not.toHaveBeenCalled();
-    });
-
-    it('hidden real Buy now: logged-out click redirects to login with no purchase', async () => {
-        fx.state.auction = baseAuction();
-        fx.state.user = null;
-        fx.state.profile = null;
-        fx.push.mockClear();
-        const { buyNowAction } = await import('@/app/actions/buyNow');
-        const el = await renderDetail();
-        await act(async () => { (el.querySelector('#buy-now-button') as HTMLElement).click(); });
-        expect(fx.push).toHaveBeenCalledWith(expect.stringContaining('/login?redirectTo=/auctions/'));
-        expect(document.body.textContent).not.toContain('Buy this item?');
-        expect(buyNowAction).not.toHaveBeenCalled();
     });
 
     it('Place a bid proxy scrolls to #bid-form on timed auctions', async () => {

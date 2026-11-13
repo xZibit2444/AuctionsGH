@@ -9,7 +9,6 @@ import { formatCurrency, getUserDisplayLabel } from '@/lib/utils';
 import { ShieldCheck, Package, MessageCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import OfferChatThread from '@/components/offer/OfferChatThread';
-import { FAILED_ORDER_STATUSES } from '@/lib/orderStatus';
 
 interface OfferDealPageProps {
     params: Promise<{ id: string }>;
@@ -44,9 +43,8 @@ type OfferDeal = {
 
 /**
  * Deal room for one accepted offer: chat with the other party in one place.
- * The order (with the buyer's collection code and the delivery steps) is only
- * created when the buyer confirms, so this page hands off to /orders/[id] as
- * soon as that order exists.
+ * Payment and handover are arranged directly between buyer and seller here;
+ * AuctionsGH does not create an order or collect payment.
  */
 export default function OfferDealPage({ params }: OfferDealPageProps) {
     const { id } = use(params);
@@ -88,22 +86,6 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
 
             const deal = data as OfferDeal;
             setOffer(deal);
-
-            // Once the buyer has confirmed, the order page is the home of the
-            // deal: collection code, delivery steps and the same chat history.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: order } = await (supabase.from('orders') as any)
-                .select('id, status')
-                .eq('auction_id', deal.auction_id)
-                .eq('buyer_id', deal.buyer_id)
-                .maybeSingle();
-
-            if (cancelled) return;
-            const existing = order as { id: string; status: string } | null;
-            if (existing && !FAILED_ORDER_STATUSES.includes(existing.status as typeof FAILED_ORDER_STATUSES[number])) {
-                router.replace(`/orders/${existing.id}`);
-                return;
-            }
             setLoading(false);
         };
 
@@ -113,26 +95,6 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
             cancelled = true;
         };
     }, [id, user, authLoading, router]);
-
-    // If the buyer confirms while this page is open, move straight to the order.
-    useEffect(() => {
-        if (!offer) return;
-        const supabase = createClient();
-        const channel = supabase
-            .channel(`offer-deal:${offer.id}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-                const row = (payload.new ?? {}) as { auction_id?: string; buyer_id?: string; id?: string; status?: string };
-                if (!row.id) return;
-                if (row.auction_id === offer.auction_id && row.buyer_id === offer.buyer_id
-                    && !FAILED_ORDER_STATUSES.includes(row.status as typeof FAILED_ORDER_STATUSES[number])) {
-                    router.replace(`/orders/${row.id}`);
-                }
-            })
-            .subscribe();
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [offer, router]);
 
     if (loading || authLoading) {
         return (
@@ -175,7 +137,7 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
                 <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h1 className="text-xl font-bold mb-2 text-black">Offer Not Accepted Yet</h1>
                 <p className="text-gray-500 mb-6 font-medium">
-                    The order and chat page opens once this offer is accepted.
+                    The deal chat opens once this offer is accepted.
                 </p>
                 <Link href={`/auctions/${offer.auction_id}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-400 text-black text-sm font-extrabold hover:bg-amber-500 transition-colors">
                     Back to Listing
@@ -195,9 +157,9 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
             </Link>
 
             <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">Order &amp; Chat</h1>
+                <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">Deal &amp; Chat</h1>
                 <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700">
-                    {isBuyer ? 'Confirm Your Order' : 'Awaiting Buyer Confirmation'}
+                    Offer Accepted
                 </span>
             </div>
             <p className="text-gray-500 text-sm font-medium mb-8">
@@ -230,7 +192,7 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
                             <div className="flex items-center gap-2">
                                 <p className="font-mono font-black text-black">{formatCurrency(agreedPrice)}</p>
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700">
-                                    Pay on Delivery
+                                    Agreed Price
                                 </span>
                             </div>
                         </div>
@@ -256,28 +218,12 @@ export default function OfferDealPage({ params }: OfferDealPageProps) {
                     </p>
                 </div>
 
-                {isBuyer ? (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-                        <h3 className="text-xs font-black text-amber-700 uppercase tracking-widest mb-2">Next Step: Confirm Your Order</h3>
-                        <p className="text-sm text-amber-900 leading-relaxed mb-4">
-                            Confirm to create the order and get your 6-digit collection code. Only share it with the seller after you have the item in hand.
-                        </p>
-                        <Link
-                            href={`/checkout/${offer.auction_id}`}
-                            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-400 text-black text-xs font-black uppercase tracking-widest hover:bg-amber-500 transition-colors"
-                        >
-                            <CheckCircle2 className="w-4 h-4" />
-                            Confirm Order
-                        </Link>
-                    </div>
-                ) : (
-                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Collection Code</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                            Once {otherFirstName} confirms the order, this page becomes the full order page: {otherFirstName}&apos;s collection code check and the delivery steps appear here.
-                        </p>
-                    </div>
-                )}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+                    <h3 className="text-xs font-black text-amber-700 uppercase tracking-widest mb-2">Next Step: Arrange the Handover</h3>
+                    <p className="text-sm text-amber-900 leading-relaxed">
+                        Agree payment and pickup with {otherFirstName} in the chat below. Inspect the item before you pay - AuctionsGH does not take payment or deliver items.
+                    </p>
+                </div>
 
                 <OfferChatThread
                     auctionId={offer.auction_id}

@@ -73,7 +73,7 @@ function rememberDismissed(userId: string, threadKey: string, notificationId: st
 /**
  * Popup that asks a signed-in user to come to their deal chat. Covers two
  * moments: when they OPEN the site with unread deal messages (order chats and
- * offer Order & Chat threads), and when a new message arrives while they
+ * offer Deal & Chat threads), and when a new message arrives while they
  * browse. Closing the popup with X (or opening the chat) is remembered per
  * thread, so it only comes back when a newer message arrives; the 3-minute
  * auto-hide alone does not dismiss it permanently.

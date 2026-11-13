@@ -106,12 +106,6 @@ vi.mock('@/lib/email/sender', () => ({
 }));
 
 import { counterOfferAction, respondToCounterAction, respondToOfferAction } from '@/app/actions/offer';
-import { createOrderAction } from '@/app/actions/createOrder';
-
-const checkout = (buyerId: string) => ({
-    auctionId: 'a1', buyerId, deliveryMethod: 'pickup' as const,
-    amount: 0, phone: '0240000000', name: 'Buyer',
-});
 
 beforeEach(() => {
     db.auction = { id: 'a1', title: 'iPhone', seller_id: 's1', status: 'active', winner_id: null, current_price: 9000, ends_at: PERM };
@@ -146,37 +140,6 @@ describe('identity and authorization', () => {
         expect(db.offers[0].status).toBe('countered');
     });
 
-    it('a buyer without an accepted offer cannot create an order when Buy now is off', async () => {
-        // With Buy now disabled there is no listed-price path, so b1's merely
-        // pending offer and b3's missing offer both block checkout.
-        db.auction!.allow_buy_now = false;
-        for (const buyer of ['b1', 'b3']) {
-            const r = await createOrderAction(checkout(buyer));
-            expect(r.success).toBe(false);
-            expect(r.error).toBe('Invalid auction state or unauthorized');
-        }
-        expect(db.orders).toHaveLength(0);
-    });
-
-    it('a buyer with only a countered (unanswered) offer cannot create an order when Buy now is off', async () => {
-        db.auction!.allow_buy_now = false;
-        db.offers[0].status = 'countered';
-        db.offers[0].counter_amount = 6000;
-        const r = await createOrderAction(checkout('b1'));
-        expect(r.success).toBe(false);
-        expect(db.orders).toHaveLength(0);
-    });
-
-    it('any non-seller can still Buy now at the listed price while offers are unanswered', async () => {
-        // Unanswered offers do not block the listed-price path: a countered or
-        // pending buyer (or any other buyer) can buy at full price instead.
-        db.offers[0].status = 'countered';
-        db.offers[0].counter_amount = 6000;
-        const r = await createOrderAction(checkout('b1'));
-        expect(r.success).toBe(true);
-        expect(db.orders[0].amount).toBe(9000);
-        expect(db.auction!.status).toBe('active');
-    });
 });
 
 describe('stale and repeated responses', () => {
@@ -228,60 +191,4 @@ describe('amount validation', () => {
     });
 });
 
-describe('concurrent acceptance and existing-order preservation', () => {
-    beforeEach(() => {
-        // Both buyers hold accepted offers (b2 accepted the seller's counter).
-        db.offers[0].status = 'accepted';
-        db.offers[1].status = 'accepted';
-        db.offers[1].counter_amount = 6000;
-    });
 
-    it('second buyer cannot open an order while the first deal is open; the agreed order is untouched', async () => {
-        const first = await createOrderAction(checkout('b1'));
-        expect(first.success).toBe(true);
-        const agreed = db.orders.find((o) => o.auction_id === 'a1')!;
-        expect(agreed.buyer_id).toBe('b1');
-        expect(agreed.amount).toBe(5000);
-
-        const second = await createOrderAction(checkout('b2'));
-        expect(second.success).toBe(false);
-        expect(second.error).toMatch(/already open with another buyer/);
-
-        const orders = db.orders.filter((o) => o.auction_id === 'a1');
-        expect(orders).toHaveLength(1);
-        expect(orders[0]).toMatchObject({ id: agreed.id, buyer_id: 'b1', seller_id: 's1', amount: 5000, status: 'pending_meetup' });
-        expect(db.notes.some((n) => n.user_id === 'b2' && n.title === 'Order Confirmed - View Your Delivery Code')).toBe(false);
-    });
-
-    it('the same buyer cannot stack a second order on their own open deal', async () => {
-        expect((await createOrderAction(checkout('b1'))).success).toBe(true);
-        const again = await createOrderAction(checkout('b1'));
-        expect(again.success).toBe(false);
-        expect(db.orders.filter((o) => o.auction_id === 'a1')).toHaveLength(1);
-    });
-
-    it('a losing insert race (unique auction_id) fails gracefully and preserves the first order', async () => {
-        expect((await createOrderAction(checkout('b1'))).success).toBe(true);
-        const agreed = db.orders.find((o) => o.auction_id === 'a1')!;
-
-        // Race window: b2's existence check sees no order, but the DB
-        // unique constraint rejects the competing insert.
-        db.ordersInvisible = true;
-        const second = await createOrderAction(checkout('b2'));
-        expect(second.success).toBe(false);
-        expect(second.error).toBe('Failed to create order. It may already exist.');
-
-        const orders = db.orders.filter((o) => o.auction_id === 'a1');
-        expect(orders).toHaveLength(1);
-        expect(orders[0]).toMatchObject({ id: agreed.id, buyer_id: 'b1', amount: 5000, status: 'pending_meetup' });
-    });
-
-    it('a terminal (cancelled) order releases the slot for the next accepted buyer', async () => {
-        db.orders.push({ id: 'old1', auction_id: 'a1', buyer_id: 'b1', seller_id: 's1', amount: 5000, status: 'cancelled_by_seller' });
-        const r = await createOrderAction(checkout('b2'));
-        expect(r.success).toBe(true);
-        const orders = db.orders.filter((o) => o.auction_id === 'a1');
-        expect(orders).toHaveLength(1);
-        expect(orders[0]).toMatchObject({ buyer_id: 'b2', amount: 6000, status: 'pending_meetup' });
-    });
-});

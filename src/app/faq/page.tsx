@@ -40,11 +40,11 @@ const sections: FAQSection[] = [
             },
             {
                 q: 'What happens when an auction ends?',
-                a: 'The highest bidder wins. The auction status changes to "Sold" and both buyer and seller are notified immediately. The buyer\'s dashboard will show a new Checkout button. If no bids were placed the auction simply closes with no sale.',
+                a: 'The highest bidder wins. The auction status changes to "Sold" and both buyer and seller are notified immediately. The winner then contacts the seller - by WhatsApp or the listing chat - to arrange payment and pickup. If no bids were placed the auction simply closes with no sale.',
             },
             {
                 q: 'Can I cancel my bid after placing it?',
-                a: 'Bids are final once placed. Before bidding, make sure you are ready to complete the purchase. If you win, you are expected to follow through with checkout and collection.',
+                a: 'Bids are final once placed. Before bidding, make sure you are ready to complete the purchase. If you win, you are expected to follow through and collect the item.',
             },
         ],
     },
@@ -97,7 +97,7 @@ const sections: FAQSection[] = [
         ],
     },
     {
-        title: 'Winning & Checkout',
+        title: 'Winning & Buying',
         items: [
             {
                 q: 'I won an auction — what happens next?',
@@ -106,23 +106,22 @@ const sections: FAQSection[] = [
                         <p>Congratulations! Follow these steps to complete your purchase:</p>
                         <ol className="space-y-1.5 mt-2 list-decimal list-inside">
                             <li>You will receive a notification when your win is confirmed.</li>
-                            <li>Go to your <span className="font-semibold text-black">Dashboard → Won Auctions</span> and click <span className="font-semibold text-black">Checkout</span>.</li>
-                            <li>Fill in your name, phone number, and preferred meetup method.</li>
-                            <li>Submit the form — this creates a secure order and opens an order page.</li>
+                            <li>Contact the seller from the listing - by WhatsApp or the on-site chat - to arrange payment and pickup.</li>
+                            <li>Meet the seller, inspect the item, and pay only when you are satisfied.</li>
                         </ol>
-                        <p className="mt-1">Complete checkout promptly. If you delay too long, the seller may report a ghost bid.</p>
+                        <p className="mt-1">Contact the seller promptly. If you go silent, the seller may report a ghost bid.</p>
                     </div>
                 ),
             },
             {
                 q: 'How does payment work?',
-                a: 'All transactions are Pay on Delivery / Meet & Inspect. You pay the seller in cash when you physically receive and inspect the item. There is no upfront online payment required. Only pay once you are satisfied with the item.',
+                a: 'All transactions are arranged directly between buyer and seller - typically cash on meetup after you inspect the item. There is no online payment through AuctionsGH, and AuctionsGH never holds or transfers money. Only pay once you are satisfied with the item.',
             },
             {
                 q: 'Can I buy an item without bidding?',
                 a: (
                     <div className="space-y-2">
-                        <p>Yes — some listings are <span className="font-semibold text-black">Permanent Listings</span> with a fixed price. On these you can make an offer directly at the listed price rather than competing in a timed auction. Permanent listings do not have a countdown timer and remain active until the seller sells the item or removes it.</p>
+                        <p>Yes — most listings are <span className="font-semibold text-black">Permanent Listings</span> with a fixed price. On these you make an offer or message the seller directly rather than competing in a timed auction. Permanent listings do not have a countdown timer and remain active until the seller marks the item sold or removes it.</p>
                         <p>Standard timed auctions still run through competitive bidding — the highest bidder at the end of the countdown wins.</p>
                     </div>
                 ),
@@ -134,44 +133,23 @@ const sections: FAQSection[] = [
         ],
     },
     {
-        title: 'Orders & Delivery',
+        title: 'Deals & Handover',
         items: [
             {
-                q: 'What is an order?',
-                a: 'An order is created when a winning buyer completes checkout. It is a shared record between buyer and seller that tracks the status of the handover — from pending meetup through to delivery confirmed.',
+                q: 'How do I buy on AuctionsGH?',
+                a: 'Find a listing, then make an offer or message the seller - in the on-site chat or on WhatsApp. Agree the price, payment method and pickup directly with the seller. AuctionsGH connects buyers and sellers but does not take payment or deliver items.',
             },
             {
-                q: 'What is the 6-digit delivery code?',
-                a: 'When your order is created, you (the buyer) are assigned a unique 6-digit delivery code. Keep it safe and only give it to the seller at the moment of handover — after you have inspected the item and are happy to complete the transaction. This code is how the seller confirms delivery on their end.',
+                q: 'What happens after my offer is accepted?',
+                a: 'A Deal & Chat page opens for you and the seller. Arrange payment and pickup there, inspect the item at handover, and pay only when satisfied. The seller marks the listing sold once the deal is complete.',
             },
             {
-                q: 'How does the seller confirm delivery?',
-                a: 'After the buyer hands over the delivery code, the seller enters it in the Order page under "Confirm Delivery". Once the code matches, the order is marked as Completed and the transaction is closed.',
+                q: 'Does AuctionsGH deliver items or hold payment?',
+                a: 'No. Delivery, pickup and payment are agreed directly between buyer and seller. Meet in a safe public place, inspect the item first, and only then pay.',
             },
             {
-                q: 'What order statuses will I see?',
-                a: (
-                    <div className="space-y-2">
-                        <ul className="space-y-1.5">
-                            <li><span className="font-bold text-black">Pending Meetup</span> — Order created, awaiting physical meetup or delivery arrangement</li>
-                            <li><span className="font-bold text-black">In Delivery</span> — Seller has marked the item as sent; awaiting your receipt</li>
-                            <li><span className="font-bold text-black">Pin Verified</span> — Your 6-digit delivery code was accepted; transaction closing</li>
-                            <li><span className="font-bold text-black">Completed</span> — Transaction fully closed and confirmed by both sides</li>
-                            <li><span className="font-bold text-black">Ghosted</span> — Buyer did not show up or respond; order flagged</li>
-                            <li><span className="font-bold text-black">Pin Refused</span> — Buyer rejected the delivery at handover</li>
-                            <li><span className="font-bold text-black">Returning</span> — Item is being returned to the seller</li>
-                            <li><span className="font-bold text-black">Refunded</span> — Transaction reversed and funds returned</li>
-                        </ul>
-                    </div>
-                ),
-            },
-            {
-                q: 'How do I access my order page?',
-                a: 'Once an order exists you can reach it from three places: the notification you received after checkout, your Dashboard (Seller or Buyer view) via the "Order" button next to the listing, or the "Won Auctions" section of your Buyer Dashboard.',
-            },
-            {
-                q: 'What if the seller won\'t confirm delivery?',
-                a: 'Do not hand over payment if the seller refuses to confirm delivery through the platform. The delivery code is your protection — only give it once you are satisfied and have the item in hand. Contact support if a seller is uncooperative.',
+                q: 'Where are my past orders?',
+                a: 'Orders completed before this change remain visible as history on your Orders pages. New deals are no longer tracked as orders - they are arranged in the chat and closed when the seller marks the item sold.',
             },
         ],
     },

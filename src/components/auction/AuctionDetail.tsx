@@ -214,7 +214,6 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     const myAcceptedOffer = (auctionData.auction_offers ?? []).find(
         (offer) => offer.status === 'accepted' && offer.buyer_id === user?.id
     );
-    const myOrder = order && (order as { buyer_id?: string }).buyer_id === user?.id ? order : null;
     const completedDeal = order?.status === 'completed' || order?.status === 'pin_verified';
     const canSellerDelete = !hasAcceptedOffer
         && (auction.status !== 'sold' || completedDeal);
@@ -233,16 +232,19 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
         username: auctionData.profiles?.username,
         fallbackId: auction.seller_id,
     });
-    const buyNowEnabled = (auction as { allow_buy_now?: boolean }).allow_buy_now !== false;
     const isActive = auction.status === 'active';
     const showBuyerCtas = !isSeller && isActive;
-    const canBuyNow = isPermanent && buyNowEnabled && auction.current_price > 0;
 
     // Seller WhatsApp contact: only when the seller opted in and has a phone saved.
     // Opens the buyer's WhatsApp with a prewritten message about this listing;
     // nothing is sent automatically.
     const sellerPhone = auctionData.profiles?.phone_number?.trim() || null;
     const sellerWhatsappUrl = showBuyerCtas && auctionData.profiles?.whatsapp_enabled && sellerPhone
+        ? whatsappChatLink(sellerPhone, whatsappEnquiryText(auction))
+        : null;
+    // Winner contact: the listing is no longer active once sold, so the winner
+    // gets the WhatsApp link independent of the live-listing CTA gating.
+    const winnerWhatsappUrl = !isSeller && auctionData.profiles?.whatsapp_enabled && sellerPhone
         ? whatsappChatLink(sellerPhone, whatsappEnquiryText(auction))
         : null;
 
@@ -252,10 +254,6 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
             const input = document.getElementById('offer-amount-input') as HTMLInputElement | null;
             input?.focus({ preventScroll: true });
         }, 450);
-    };
-
-    const clickBuyNow = () => {
-        document.getElementById('buy-now-button')?.click();
     };
 
     const scrollToBid = () => {
@@ -319,9 +317,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     const priceSubline = auction.price_on_request
         ? 'Price on request · message the seller to agree the amount'
         : isPermanent
-        ? buyNowEnabled
-            ? 'Fixed price · or make an offer · stays live unless the seller takes it down'
-            : 'Fixed price · make an offer or message us · stays live unless the seller takes it down'
+        ? 'Fixed price · make an offer or message the seller · stays live unless the seller takes it down'
         : `${auction.bid_count} bid${auction.bid_count !== 1 ? 's' : ''} · auction ends when the timer runs out`;
 
     const sellerCard = (
@@ -395,7 +391,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
     );
 
     const buyerCtas = showBuyerCtas && (
-        <div className={`space-y-3 sm:mt-[18px] ${isPermanent && !buyNowEnabled ? '' : 'hidden sm:block'}`}>
+        <div className={`space-y-3 sm:mt-[18px] ${isPermanent ? '' : 'hidden sm:block'}`}>
             <div className="hidden gap-2.5 sm:flex">
                 <button
                     type="button"
@@ -404,15 +400,6 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                 >
                     Make an offer
                 </button>
-                {canBuyNow && (
-                    <button
-                        type="button"
-                        onClick={clickBuyNow}
-                        className="flex-1 rounded-xl bg-amber-400 px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:bg-amber-500"
-                    >
-                        Buy now
-                    </button>
-                )}
                 {!isPermanent && (
                     <button
                         type="button"
@@ -423,9 +410,9 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                     </button>
                 )}
             </div>
-            {isPermanent && !buyNowEnabled && (
+            {isPermanent && (
                 <p className="text-xs text-stone-500">
-                    Availability confirmed on enquiry. Make an offer or message us and we confirm the item is still available before any sale.
+                    Availability confirmed on enquiry. Make an offer or message the seller and confirm the item is still available before you pay.
                 </p>
             )}
         </div>
@@ -555,11 +542,13 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                     auctionTitle={auction.title}
                     amount={auction.current_price}
                     orderId={order?.id}
+                    sellerId={auction.seller_id}
+                    whatsappUrl={winnerWhatsappUrl}
                 />
             )}
 
             {/* Accepted-offer banner: permanent listings stay live unless the seller
-                takes them down, so the accepted buyer confirms from here */}
+                takes them down; the accepted buyer arranges the deal in the chat */}
             {!isSeller && isPermanent && auction.status === 'active' && myAcceptedOffer && (
                 <div className="mb-6 p-6 rounded-2xl bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -567,16 +556,14 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                         <p className="text-gray-300">
                             The seller accepted your offer of <strong>{formatCurrency(Number(myAcceptedOffer.amount))}</strong> for{' '}
                             <strong>&quot;{auction.title}&quot;</strong>.{' '}
-                            {myOrder
-                                ? 'Your order is confirmed - track its progress below.'
-                                : 'Confirm your order to secure it - this listing stays live unless the seller takes it down.'}
+                            Chat with the seller to arrange payment and pickup - this listing stays live unless the seller takes it down.
                         </p>
                     </div>
                     <Link
-                        href={myOrder ? `/orders/${myOrder.id}` : `/checkout/${auction.id}`}
+                        href={`/offers/${myAcceptedOffer.id}`}
                         className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
                     >
-                        {myOrder ? 'Track Your Order' : 'Confirm Order'}
+                        Open Deal &amp; Chat
                         <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
@@ -647,7 +634,6 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             userId={user?.id}
                             isActive={isActive}
                             listingPrice={isPermanent && !auction.price_on_request ? auction.current_price : undefined}
-                            buyNowEnabled={buyNowEnabled}
                         />
                     </>
                 )}
@@ -708,15 +694,6 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                     >
                         Make an offer
                     </button>
-                    {canBuyNow && (
-                        <button
-                            type="button"
-                            onClick={clickBuyNow}
-                            className="shrink-0 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-500"
-                        >
-                            Buy now
-                        </button>
-                    )}
                     {!isPermanent && (
                         <button
                             type="button"
@@ -767,7 +744,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             <div className="mb-6">
                                 <h2 className="text-3xl font-black tracking-tight text-black sm:text-4xl">You won this auction.</h2>
                                 <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                                    Your bid came out on top. Confirm the order within <span className="font-black text-black">30 minutes</span> to secure the item before the reservation window closes.
+                                    Your bid came out on top. Contact the seller to arrange payment and pickup.
                                 </p>
                             </div>
 
@@ -785,18 +762,30 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             <div className="mb-6 flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                                 <Clock3 className="h-4 w-4 shrink-0" />
                                 <p className="leading-relaxed">
-                                    After you confirm, you&apos;ll get the seller&apos;s handoff details and delivery instructions.
+                                    Inspect the item before you pay. Payment and handover are arranged directly with the seller.
                                 </p>
                             </div>
 
                             <div className="flex flex-col gap-3 sm:flex-row">
-                                <button
-                                    onClick={() => router.push(`/checkout/${auction.id}`)}
-                                    className="inline-flex w-full items-center justify-center gap-2 bg-amber-400 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-amber-500"
-                                >
-                                    Confirm Order
-                                    <ArrowRight className="h-4 w-4" />
-                                </button>
+                                {winnerWhatsappUrl ? (
+                                    <a
+                                        href={winnerWhatsappUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex w-full items-center justify-center gap-2 bg-[#25D366] px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#1fb857]"
+                                    >
+                                        <WhatsAppIcon className="h-4 w-4" />
+                                        WhatsApp Seller
+                                    </a>
+                                ) : (
+                                    <Link
+                                        href={`/users/${auction.seller_id}`}
+                                        className="inline-flex w-full items-center justify-center gap-2 bg-amber-400 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-amber-500"
+                                    >
+                                        Contact Seller
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Link>
+                                )}
                                 <button
                                     onClick={() => setShowCongrats(false)}
                                     className="inline-flex w-full items-center justify-center border border-gray-200 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:border-black"

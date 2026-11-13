@@ -91,7 +91,8 @@ export async function sendAuctionWonEmail(
     auctionTitle: string,
     winningBidAmount: number,
     auctionId: string,
-    buyNow = false
+    kind: 'auction' | 'offer' = 'auction',
+    dealUrl?: string
 ) {
     if (!resend) {
         console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
@@ -102,13 +103,13 @@ export async function sendAuctionWonEmail(
         const { data, error } = await resend.emails.send({
             from: SENDER_EMAIL,
             to,
-            subject: buyNow ? `Confirm your order: ${auctionTitle}` : `You won ${auctionTitle}!`,
+            subject: `You won ${auctionTitle}!`,
             react: AuctionWonEmail({
                 userName,
                 auctionTitle,
                 winningBidAmount,
-                checkoutUrl: `${SITE_URL}/checkout/${auctionId}`,
-                buyNow,
+                listingUrl: dealUrl ?? `${SITE_URL}/auctions/${auctionId}`,
+                kind,
             }),
         });
 
@@ -130,7 +131,7 @@ export async function sendAuctionSoldEmail(
     auctionTitle: string,
     winningBidAmount: number,
     winnerName: string,
-    buyNow = false
+    kind: 'auction' | 'offer' = 'auction'
 ) {
     if (!resend) {
         console.warn('RESEND_API_KEY is not set. Email not sent.', { to, auctionTitle });
@@ -147,7 +148,7 @@ export async function sendAuctionSoldEmail(
                 auctionTitle,
                 winningBidAmount,
                 winnerName,
-                buyNow,
+                kind,
             }),
 
         });

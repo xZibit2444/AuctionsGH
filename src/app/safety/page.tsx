@@ -32,12 +32,12 @@ const safetyTips = [
     },
     {
         title: 'Inspect before you pay',
-        body: 'Buyers should test the item and confirm it matches the listing description before handing over cash or sharing the delivery code.',
+        body: 'Buyers should test the item and confirm it matches the listing description before handing over any money.',
         icon: ScanSearch,
     },
     {
-        title: 'Keep the delivery code private',
-        body: 'Never send the code in chat ahead of the meetup. Share it only after you are satisfied with the item in person.',
+        title: 'Pay only at handover',
+        body: 'Never pay in advance or send a deposit to "reserve" an item. Pay only when the item is in your hands and you are satisfied with it.',
         icon: LockKeyhole,
     },
     {
@@ -83,7 +83,7 @@ export default function SafetyPage() {
                         </h2>
                         <ul className="mt-4 space-y-2 text-sm text-gray-700 leading-relaxed">
                             <li>The seller refuses inspection before payment.</li>
-                            <li>The buyer asks for the delivery code before meeting.</li>
+                            <li>The other party asks for payment or a deposit before you have seen the item.</li>
                             <li>The item serial number, condition, or accessories do not match the listing.</li>
                             <li>The other party tries to move communication off-platform too early.</li>
                         </ul>

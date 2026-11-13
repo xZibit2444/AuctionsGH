@@ -33,7 +33,7 @@ interface AuctionSoldEmailProps {
     winningBidAmount: number;
 
     winnerName: string;
-    buyNow?: boolean;
+    kind?: 'auction' | 'offer';
 }
 
 
@@ -47,14 +47,14 @@ export const AuctionSoldEmail = ({
     winningBidAmount,
 
     winnerName,
-    buyNow = false,
+    kind = 'auction',
 }: AuctionSoldEmailProps) => (
 
     <Html>
 
         <Head />
 
-        <Preview>{buyNow ? `${auctionTitle} was bought at your listed price` : `Your auction for ${auctionTitle} has sold!`}</Preview>
+        <Preview>{kind === 'offer' ? `You accepted an offer for ${auctionTitle}` : `Your auction for ${auctionTitle} has sold!`}</Preview>
 
         <Body style={main}>
 
@@ -76,13 +76,13 @@ export const AuctionSoldEmail = ({
 
                 <Text style={text}>
 
-                    {buyNow ? <>Good news! <strong>{auctionTitle}</strong> was bought at your listed price.</> : <>Congratulations! Your auction for <strong>{auctionTitle}</strong> has successfully ended.</>}
+                    {kind === 'offer' ? <>Good news! You accepted an offer for <strong>{auctionTitle}</strong>.</> : <>Congratulations! Your auction for <strong>{auctionTitle}</strong> has successfully ended.</>}
 
                 </Text>
 
                 <Text style={text}>
 
-                    {buyNow ? <><strong>{winnerName}</strong> bought it for <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</> : <>The winning bidder, <strong>{winnerName}</strong>, secured the item with a bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
+                    {kind === 'offer' ? <><strong>{winnerName}</strong>&apos;s offer of <strong>GHS {winningBidAmount.toLocaleString()}</strong> is agreed.</> : <>The winning bidder, <strong>{winnerName}</strong>, secured the item with a bid of <strong>GHS {winningBidAmount.toLocaleString()}</strong>.</>}
 
                 </Text>
 
@@ -94,13 +94,13 @@ export const AuctionSoldEmail = ({
 
                     <Text style={text}>
 
-                        {buyNow ? 'The buyer will confirm the order. Then contact them to arrange delivery or pickup and agree how to pay.' : 'The buyer has exactly 30 minutes to confirm the order. Once confirmed, contact them to arrange delivery or pickup and collect payment on delivery.'}
+                        {kind === 'offer' ? 'Chat with the buyer on the Deal & Chat page to arrange payment and pickup, then mark the listing sold when the deal is done.' : 'The buyer has been asked to contact you to arrange payment and pickup. Mark the listing sold once the deal is done.'}
 
                     </Text>
 
                     <Text style={text}>
 
-                        {buyNow ? 'There is no deadline for the buyer to confirm a fixed-price order. If the buyer never confirms, you can relist the item.' : 'If the buyer fails to confirm within the 30-minute window, the auction can be offered to the next highest bidder.'}
+                        {'Payment and handover are arranged directly between you and the buyer. AuctionsGH does not take payment or deliver items.'}
 
                     </Text>
 

@@ -228,10 +228,10 @@ export default function BuyerStats() {
                                                 </span>
                                             ) : status === 'sold' && isWinner ? (
                                                 <Link
-                                                    href={`/checkout/${bid.auctions?.id}`}
+                                                    href={`/auctions/${bid.auctions?.id}`}
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                                                 >
-                                                    Confirm Order
+                                                    Contact Seller
                                                 </Link>
                                             ) : (
                                                 <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${badgeColor}`}>

@@ -91,22 +91,23 @@ describe('OfferPanel counter-offer UI', () => {
         expect(buttons).toContain('Counter');
     });
 
-    it('seller sees an Order & Chat link on an accepted offer, no inline composer', async () => {
+    it('seller sees a Deal & Chat link on an accepted offer, no inline composer', async () => {
         h.offers = [{ ...h.offers[0], status: 'accepted' }];
         await render({ isSeller: true });
         const link = container!.querySelector('a[href="/offers/offer1"]');
         expect(link).not.toBeNull();
-        expect(link!.textContent).toContain('Order & Chat');
+        expect(link!.textContent).toContain('Deal & Chat');
         expect(container!.querySelector('input[placeholder^="Message"]')).toBeNull();
     });
 
-    it('buyer sees Order & Chat and Proceed to Checkout on an accepted offer', async () => {
+    it('buyer sees Deal & Chat on an accepted offer, no checkout CTA', async () => {
         h.offers = [{ ...h.offers[0], status: 'accepted' }];
         await render({ isSeller: false });
         const link = container!.querySelector('a[href="/offers/offer1"]');
         expect(link).not.toBeNull();
+        expect(link!.textContent).toContain('Deal & Chat');
         const text = container!.textContent ?? '';
-        expect(text).toContain('Proceed to Checkout');
+        expect(text).not.toContain('Proceed to Checkout');
         expect(container!.querySelector('input[placeholder^="Message"]')).toBeNull();
     });
 
