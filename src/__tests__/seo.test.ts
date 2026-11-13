@@ -10,23 +10,27 @@ const listing = {
 } as AuctionFull;
 
 describe('listing SEO accuracy', () => {
-    it('uses the displayed GHS fixed price and ordered images', () => {
+    it('describes the listing as an item page with ordered images and no purchase offer', () => {
         const data = listingStructuredData(listing, 'https://auctionsgh.com');
-        expect(data.offers).toMatchObject({ price: 11200, priceCurrency: 'GHS', availability: 'https://schema.org/InStock' });
+        expect(data['@type']).toBe('ItemPage');
+        expect(data).not.toHaveProperty('offers');
         expect(data.image?.[0]).toBe('https://example.com/first.jpg');
         expect(data).not.toHaveProperty('itemCondition');
         expect(data).not.toHaveProperty('aggregateRating');
         expect(data).not.toHaveProperty('brand'); // category column is not reliably a manufacturer
     });
-    it('marks sold items sold out and maps only known conditions', () => {
-        const data = listingStructuredData({ ...listing, status: 'sold', condition: 'brand_new' }, 'https://auctionsgh.com');
-        expect(data.offers?.availability).toBe('https://schema.org/SoldOut');
-        expect(data.itemCondition).toBe('https://schema.org/NewCondition');
-    });
-    it('does not claim a purchase offer for enquiry-only or timed auction listings', () => {
-        expect(listingStructuredData({ ...listing, allow_buy_now: false }, 'https://auctionsgh.com')).not.toHaveProperty('offers');
-        expect(listingStructuredData({ ...listing, ends_at: '2026-11-05T00:00:00Z' }, 'https://auctionsgh.com')).not.toHaveProperty('offers');
-        expect(listingStructuredData({ ...listing, status: 'cancelled' } as AuctionFull, 'https://auctionsgh.com')).not.toHaveProperty('offers');
+    it('never claims a purchase offer, even for sold, fixed-price or new-condition listings', () => {
+        for (const variant of [
+            { ...listing, status: 'sold', condition: 'brand_new' },
+            { ...listing, allow_buy_now: false },
+            { ...listing, ends_at: '2026-11-05T00:00:00Z' },
+            { ...listing, status: 'cancelled' },
+        ] as AuctionFull[]) {
+            const data = listingStructuredData(variant, 'https://auctionsgh.com');
+            expect(data['@type']).toBe('ItemPage');
+            expect(data).not.toHaveProperty('offers');
+            expect(data).not.toHaveProperty('itemCondition');
+        }
     });
     it('escapes seller-supplied script closing tags without corrupting JSON', () => {
         const payload = { description: '</script><script>alert(1)</script>' };

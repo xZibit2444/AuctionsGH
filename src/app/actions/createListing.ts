@@ -18,7 +18,6 @@ export type CreateListingPayload = {
     form: unknown; // validated here with createAuctionSchema
     specs: { storage: string; battery: string; sim: string; lock: string; faults: string; year?: string; mileage?: string; transmission?: string; fuel?: string };
     isPermanent: boolean;
-    allowBuyNow: boolean;
 };
 
 function numOrNull(raw: string): number | null {
@@ -42,7 +41,7 @@ export async function createListingAction(
         return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid listing details' };
     }
     const formData = parsed.data;
-    const { specs, isPermanent, allowBuyNow } = payload;
+    const { specs, isPermanent } = payload;
     const specFields = specFieldsForCategory(formData.brand);
 
     const vehicle = vehicleSpecsSchema.safeParse(specFields.year ? {
@@ -91,7 +90,9 @@ export async function createListingAction(
             meetup_area: formData.meetup_area,
             delivery_available: formData.delivery_available,
             inspection_available: formData.inspection_available,
-            allow_buy_now: isPermanent ? allowBuyNow : true,
+            // Buy now is retired: every listing is enquiry/offer-only, so no
+            // listing may be recorded as directly purchasable.
+            allow_buy_now: false,
         })
         .select()
         .single();

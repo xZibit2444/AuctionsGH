@@ -47,42 +47,42 @@ beforeEach(() => { db.inserted = null; db.notes = []; db.failInsert = false; cur
 describe('createListingAction', () => {
     it('rejects when the account has no phone number, before any insert', async () => {
         mayWrite = false;
-        const r = await createListingAction({ form: baseForm, specs, isPermanent: true, allowBuyNow: true });
+        const r = await createListingAction({ form: baseForm, specs, isPermanent: true });
         expect(r.success).toBe(false);
         expect(r.error).toMatch(/phone number/);
         expect(db.inserted).toBeNull();
     });
     it('rejects logged-out and invalid payloads', async () => {
         currentUser = null;
-        expect((await createListingAction({ form: baseForm, specs, isPermanent: true, allowBuyNow: true })).error).toBe('Not authenticated');
+        expect((await createListingAction({ form: baseForm, specs, isPermanent: true })).error).toBe('Not authenticated');
         currentUser = { id: 'u1' };
-        const r = await createListingAction({ form: { ...baseForm, title: 'no' }, specs, isPermanent: true, allowBuyNow: true });
+        const r = await createListingAction({ form: { ...baseForm, title: 'no' }, specs, isPermanent: true });
         expect(r.success).toBe(false);
         expect(db.inserted).toBeNull();
     });
     it('inserts a permanent listing owned by the caller', async () => {
-        const r = await createListingAction({ form: baseForm, specs, isPermanent: true, allowBuyNow: false });
+        const r = await createListingAction({ form: baseForm, specs, isPermanent: true });
         expect(r).toEqual({ success: true, auctionId: 'a1' });
         expect(db.inserted).toMatchObject({
             seller_id: 'u1', title: 'Apple iPhone 13 Pro Max',
             ends_at: '2099-12-31T23:59:59.000Z', current_price: 5000, allow_buy_now: false,
         });
     });
-    it('computes ends_at from duration for timed auctions and forces buy-now on', async () => {
-        const r = await createListingAction({ form: { ...baseForm, duration_hours: 24 }, specs, isPermanent: false, allowBuyNow: false });
+    it('computes ends_at from duration for timed auctions and keeps buy-now retired', async () => {
+        const r = await createListingAction({ form: { ...baseForm, duration_hours: 24 }, specs, isPermanent: false });
         expect(r.success).toBe(true);
-        expect(db.inserted.allow_buy_now).toBe(true);
+        expect(db.inserted.allow_buy_now).toBe(false);
         expect(new Date(db.inserted.ends_at).getTime()).toBeGreaterThan(Date.now() + 23 * 3600 * 1000);
     });
     it('rejects a timed auction with zero duration', async () => {
-        const r = await createListingAction({ form: baseForm, specs, isPermanent: false, allowBuyNow: true });
+        const r = await createListingAction({ form: baseForm, specs, isPermanent: false });
         expect(r.success).toBe(false);
         expect(r.error).toMatch(/duration/);
     });
     it('saves vehicle spec fields for vehicle listings and nulls phone fields', async () => {
         const vehicleForm = { ...baseForm, brand: 'Vehicles', model: 'Toyota Corolla', storage_gb: undefined };
         const vehicleSpecs = { storage: '', battery: '', sim: '', lock: '', faults: '', year: '2016', mileage: '85000', transmission: 'automatic', fuel: 'petrol' };
-        const r = await createListingAction({ form: vehicleForm, specs: vehicleSpecs, isPermanent: true, allowBuyNow: true });
+        const r = await createListingAction({ form: vehicleForm, specs: vehicleSpecs, isPermanent: true });
         expect(r.success).toBe(true);
         expect(db.inserted).toMatchObject({
             vehicle_year: 2016, vehicle_mileage_km: 85000, vehicle_transmission: 'automatic', vehicle_fuel: 'petrol',
@@ -92,19 +92,19 @@ describe('createListingAction', () => {
     it('rejects invalid vehicle specs on the server before insert', async () => {
         for (const invalid of [{ year: '0' }, { mileage: '-1' }, { mileage: '1.5' }, { transmission: 'robot' }, { fuel: 'unknown' }]) {
             db.inserted = null;
-            const r = await createListingAction({ form: { ...baseForm, brand: 'Vehicles' }, specs: { ...specs, ...invalid }, isPermanent: true, allowBuyNow: true });
+            const r = await createListingAction({ form: { ...baseForm, brand: 'Vehicles' }, specs: { ...specs, ...invalid }, isPermanent: true });
             expect(r.success).toBe(false);
             expect(db.inserted).toBeNull();
         }
     });
     it('nulls vehicle fields for phone listings', async () => {
-        const r = await createListingAction({ form: baseForm, specs: { ...specs, year: '2016', mileage: '100', transmission: 'automatic', fuel: 'petrol' }, isPermanent: true, allowBuyNow: true });
+        const r = await createListingAction({ form: baseForm, specs: { ...specs, year: '2016', mileage: '100', transmission: 'automatic', fuel: 'petrol' }, isPermanent: true });
         expect(r.success).toBe(true);
         expect(db.inserted).toMatchObject({ vehicle_year: null, vehicle_mileage_km: null, vehicle_transmission: null, vehicle_fuel: null });
     });
     it('surfaces insert failures', async () => {
         db.failInsert = true;
-        const r = await createListingAction({ form: baseForm, specs, isPermanent: true, allowBuyNow: true });
+        const r = await createListingAction({ form: baseForm, specs, isPermanent: true });
         expect(r).toEqual({ success: false, error: 'db down' });
     });
 });

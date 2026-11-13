@@ -117,7 +117,6 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, profile, whatsappOptIn]);
     const [isPermanent, setIsPermanent] = useState(true);
-    const [allowBuyNow, setAllowBuyNow] = useState(true);
     const [isCustomDuration, setIsCustomDuration] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
@@ -323,7 +322,6 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
             form: formData,
             specs,
             isPermanent,
-            allowBuyNow,
         });
         if (!result2.success || !result2.auctionId) {
             if (result2.error === PHONE_REQUIRED_MESSAGE) {
@@ -963,15 +961,6 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                             </span>
                         </label>
                         {isPermanent && <p className="text-[11px] text-gray-500 mt-1">Buyers see this as the listing price and can send you offers.</p>}
-                        {isPermanent && (
-                            <label className="flex items-start gap-2 mt-3 text-sm text-gray-800 cursor-pointer">
-                                <input type="checkbox" checked={allowBuyNow} onChange={(e) => setAllowBuyNow(e.target.checked)} className="mt-1" />
-                                <span>
-                                    <span className="font-semibold">Allow Buy now</span>
-                                    <span className="block text-[11px] text-gray-500">Turn this off if you want to confirm availability first. Buyers can still send offers and enquiries.</span>
-                                </span>
-                            </label>
-                        )}
                         {errors.starting_price && <p className="text-[11px] text-red-500 mt-1">{errors.starting_price}</p>}
                     </div>
 
