@@ -10,6 +10,7 @@ import FloatingOfferToast from '@/components/layout/FloatingOfferToast';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import SignupTracker from '@/components/analytics/SignupTracker';
 import PhoneRequiredGate from '@/components/auth/PhoneRequiredGate';
+import ProfileSetupGate from '@/components/auth/ProfileSetupGate';
 import Script from 'next/script';
 
 // All pages use Supabase at runtime â prevent static prerender at build time
@@ -73,6 +74,7 @@ export default function RootLayout({
         <Providers>
           <SignupTracker />
           <PhoneRequiredGate />
+          <ProfileSetupGate />
           <ConditionalNav />
           <MainContent>
             <FloatingChatToast />
