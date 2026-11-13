@@ -82,8 +82,8 @@ export default function ContactPage() {
                         </h2>
                         <p className="mt-3 text-sm text-gray-500 leading-relaxed">
                             If a buyer or seller behaves suspiciously, keep all communication on-platform,
-                            do not share the delivery code early, and contact support with the order or
-                            auction link so the team can investigate quickly.
+                            agree handover details in your chat, and contact support with the listing or
+                            chat link so the team can investigate quickly.
                         </p>
                         <div className="flex flex-wrap gap-3 mt-5">
                             <Link

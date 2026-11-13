@@ -23,8 +23,8 @@ const sections = [
             <>
                 <p>
                     AuctionsGH is an online marketplace where users create listings, place bids, make offers,
-                    chat about orders, and complete pay-on-delivery transactions. This Privacy Policy explains
-                    how we handle personal information when you use our website and mobile app.
+                    chat with each other, and arrange payment and handover directly with each other. This Privacy
+                    Policy explains how we handle personal information when you use our website and mobile app.
                 </p>
                 <p className="mt-3">
                     If you have privacy questions, contact us at <a href="mailto:hello@auctionsgh.com" className="text-black underline">hello@auctionsgh.com</a>{' '}
@@ -39,8 +39,8 @@ const sections = [
             <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Account and profile data:</strong> email address, username, full name, phone number, location, avatar, and account settings.</li>
                 <li><strong>Listing and marketplace data:</strong> auction titles, descriptions, photos, pricing, bid history, offers, saved auctions, and seller application details.</li>
-                <li><strong>Order and delivery data:</strong> buyer and seller IDs, contact details needed for fulfillment, meetup or address information, delivery status, and the delivery-code workflow used to confirm handover.</li>
-                <li><strong>Messages and support data:</strong> order chat messages, notifications, contact requests, and support-related information you send us.</li>
+                <li><strong>Order and delivery data (history):</strong> for orders completed before checkout was retired, buyer and seller IDs, contact details needed for fulfillment, meetup or address information, and delivery status.</li>
+                <li><strong>Messages and support data:</strong> listing chat messages, notifications, contact requests, and support-related information you send us.</li>
                 <li><strong>Trust and community data:</strong> reviews, ratings, seller verification or admin-review information, and fraud or abuse-prevention signals.</li>
                 <li><strong>Technical data:</strong> device push-notification tokens, basic app or browser usage information, security logs, and analytics events used to operate and improve the service.</li>
             </ul>
@@ -52,7 +52,7 @@ const sections = [
             <ul className="list-disc pl-5 space-y-2">
                 <li>To create and manage accounts.</li>
                 <li>To publish listings and let buyers browse, bid, save, and make offers.</li>
-                <li>To create orders, enable buyer-seller communication, and support pay-on-delivery handover.</li>
+                <li>To enable buyer-seller communication and keep records of past completed orders.</li>
                 <li>To send in-app, email, or push notifications about bids, offers, orders, chats, and account activity.</li>
                 <li>To review seller applications, moderate misuse, resolve disputes, and keep the marketplace safe.</li>
                 <li>To maintain platform performance, diagnose bugs, and improve product features.</li>
@@ -79,12 +79,13 @@ const sections = [
         body: (
             <>
                 <p>
-                    AuctionsGH currently supports pay-on-delivery and meet-and-inspect flows. Based on the current
-                    product flow, this policy does not claim that AuctionsGH stores card details.
+                    AuctionsGH does not process payments or deliver items. Buyers and sellers agree payment,
+                    pickup or delivery directly with each other, usually in the on-site chat or on WhatsApp.
+                    This policy does not claim that AuctionsGH stores card details.
                 </p>
                 <p className="mt-3">
-                    To help buyers and sellers complete orders safely, we store order records, fulfillment details,
-                    delivery status, and the delivery-code verification workflow used to confirm handover.
+                    For orders completed before checkout was retired, we keep order records, fulfillment details
+                    and delivery status as history.
                 </p>
             </>
         ),

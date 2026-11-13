@@ -235,7 +235,7 @@ const sections: FAQSection[] = [
                             <li><span className="font-semibold text-black">Outbid</span> — email when someone places a higher bid on an auction you are in</li>
                             <li><span className="font-semibold text-black">Auction Won</span> — email and in-app alert when you win</li>
                             <li><span className="font-semibold text-black">Item Sold</span> — email and in-app alert when your listing sells</li>
-                            <li><span className="font-semibold text-black">Order Confirmed</span> — in-app notification with a link to your delivery code</li>
+                            <li><span className="font-semibold text-black">New Offer</span> - in-app alert when a buyer makes an offer on your listing</li>
                             <li><span className="font-semibold text-black">New Message</span> — real-time toast and bell notification when your chat partner writes</li>
                         </ul>
                     </div>

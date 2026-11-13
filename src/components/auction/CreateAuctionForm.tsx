@@ -674,7 +674,7 @@ export default function CreateAuctionForm({ copyFromId }: { copyFromId?: string 
                                 <div>
                                     <p className="text-sm font-bold">Delivery Available</p>
                                     <p className={`text-xs mt-0.5 ${formData.delivery_available ? 'text-white/70' : 'text-gray-400'}`}>
-                                        {formData.delivery_available ? 'ON — buyer can request delivery' : 'OFF — tap to enable'}
+                                        {formData.delivery_available ? 'ON - you arrange delivery with the buyer in chat' : 'OFF - tap to enable'}
                                     </p>
                                 </div>
                             </button>

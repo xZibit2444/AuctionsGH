@@ -479,7 +479,7 @@ export default function EditListingForm({ auctionId }: { auctionId: string }) {
                             checked={form.delivery_available}
                             onChange={(e) => set('delivery_available', e.target.checked)}
                         />
-                        Delivery available
+                        Delivery available - I arrange it with the buyer in chat
                     </label>
                     <label className="flex items-center gap-2 border border-gray-200 px-4 py-3 text-sm cursor-pointer">
                         <input
