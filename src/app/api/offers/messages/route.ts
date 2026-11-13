@@ -99,16 +99,6 @@ export async function POST(request: Request) {
     const { buyerId, errorMsg } = await resolveBuyerId(auction.seller_id, user.id, requestedBuyerId);
     if (!buyerId) return NextResponse.json({ error: errorMsg }, { status: 400 });
 
-    // Buyers must have an existing offer before chatting
-    if (!isSeller) {
-        const { data: existingOffer } = await supabaseAdmin
-            .from('auction_offers')
-            .select('id').eq('auction_id', auction_id).eq('buyer_id', buyerId)
-            .limit(1).maybeSingle();
-        if (!existingOffer)
-            return NextResponse.json({ error: 'Send an offer first before messaging.' }, { status: 422 });
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: inserted, error: insertErr } = await (supabaseAdmin.from('auction_offer_messages') as any)
         .insert({
@@ -150,7 +140,7 @@ export async function POST(request: Request) {
         senderId: user.id,
         auctionTitle: auction.title,
         messageBody: text,
-        chatUrl: acceptedOffer ? offerChatUrl(acceptedOffer.id) : auctionChatUrl(auction_id),
+        chatUrl: acceptedOffer ? offerChatUrl(acceptedOffer.id) : auctionChatUrl(auction_id, buyerId),
     });
 
     return NextResponse.json({ success: true, message: inserted }, { status: 201 });

@@ -26,10 +26,10 @@ interface OfferChatThreadProps {
 }
 
 /**
- * Chat thread for one (auction, buyer) offer pair, backed by
- * auction_offer_messages. Used on the /offers/[id] deal page. Once the buyer
- * confirms the order, this history is copied onto the order and the deal page
- * hands off to the order page.
+ * Chat thread for one (auction, buyer) pair, backed by
+ * auction_offer_messages. Used on the /offers/[id] Deal & Chat page and on
+ * the /chat/[auctionId] listing chat, so a conversation that starts before an
+ * offer carries over into the deal room unchanged.
  */
 export default function OfferChatThread({ auctionId, buyerId, userId, isSeller, otherPartyName }: OfferChatThreadProps) {
     const [messages, setMessages] = useState<OfferMessage[]>([]);

@@ -187,9 +187,9 @@ export default function FloatingChatToast() {
         pendingToastsRef.current = [...pendingToastsRef.current, toast];
     }, [isUserAvailable, scheduleDismiss]);
 
-    // Order chats link to the order page; offer threads link to the Order &
-    // Chat deal page for that (listing, buyer) thread when an accepted offer
-    // exists (fallback: the listing page).
+    // Order chats link to the order page; offer threads link to the Deal &
+    // Chat page for that (listing, buyer) thread when an accepted offer
+    // exists (fallback: the in-house listing chat for that buyer thread).
     const resolveHref = useCallback(async (notification: MessageNotification): Promise<string | null> => {
         if (notification.order_id) return `/orders/${notification.order_id}`;
         if (!notification.auction_id || !userId) return null;
@@ -207,7 +207,9 @@ export default function FloatingChatToast() {
         if (notification.offer_buyer_id) query = query.eq('buyer_id', notification.offer_buyer_id);
         const { data: offer } = await query.maybeSingle();
 
-        return offer?.id ? `/offers/${offer.id}` : `/auctions/${notification.auction_id}`;
+        if (offer?.id) return `/offers/${offer.id}`;
+        const threadBuyer = notification.offer_buyer_id;
+        return threadBuyer ? `/chat/${notification.auction_id}?buyer=${threadBuyer}` : `/chat/${notification.auction_id}`;
     }, [userId]);
 
     useEffect(() => {

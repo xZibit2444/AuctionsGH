@@ -155,14 +155,14 @@ describe('FloatingChatToast unread-messages popup', () => {
         expect(container.querySelector('a')?.getAttribute('href')).toBe('/offers/offer1');
     });
 
-    it('falls back to the listing page when no accepted offer exists', async () => {
+    it('falls back to the in-house listing chat thread when no accepted offer exists', async () => {
         h.notifications = [offerNotif('n3', 'still available?')];
         h.acceptedOffer = null;
         await act(async () => { root.render(<FloatingChatToast />); });
         await flush();
         await flush();
 
-        expect(container.querySelector('a')?.getAttribute('href')).toBe('/auctions/a1');
+        expect(container.querySelector('a')?.getAttribute('href')).toBe('/chat/a1?buyer=buyer1');
     });
 
     it('stays quiet for a dismissed thread until a newer message arrives', async () => {

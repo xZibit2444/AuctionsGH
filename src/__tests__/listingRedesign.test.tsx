@@ -270,7 +270,7 @@ describe('AuctionDetail eligibility by status, type and role', () => {
         fx.state.bids = [{ bidder_id: 'buyer-9', amount: 2000, created_at: new Date().toISOString(), profiles: null }];
         const el = await renderDetail();
         expect(el.textContent).toContain('Congratulations, you won!');
-        expect(el.textContent).toContain('Contact Seller');
+        expect(el.textContent).toContain('Message Seller');
         const texts = buttonTexts(el);
         expect(texts).not.toContain('Buy now');
         expect(stickyBar(el)).toBeNull();

@@ -31,7 +31,7 @@ import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import ReportListingButton from '@/components/auction/ReportListingButton';
 import OfferPanel from './OfferPanel';
 import AuctionComments from './AuctionComments';
-import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X, ChevronRight } from 'lucide-react';
+import { Heart, Pencil, CheckCircle2, Trash2, Sparkles, Trophy, Clock3, ArrowRight, X, ChevronRight, MessageCircle } from 'lucide-react';
 import type { AuctionFull } from '@/types/auction';
 import type { BidWithBidder } from '@/types/bid';
 import Link from 'next/link';
@@ -375,7 +375,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
         { label: 'Region', value: auction.listing_city ?? 'Greater Accra' },
         { label: 'Location', value: auction.meetup_area ?? 'Accra Central' },
         ...(typeof auction.delivery_available === 'boolean'
-            ? [{ label: 'Delivery', value: auction.delivery_available ? 'Available' : 'Not available' }]
+            ? [{ label: 'Delivery', value: auction.delivery_available ? 'Available (arranged by the seller)' : 'Not available' }]
             : []),
     ];
 
@@ -409,6 +409,12 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                         Place a bid
                     </button>
                 )}
+                <Link
+                    href={`/chat/${auction.id}`}
+                    className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:border-black text-center"
+                >
+                    Message seller
+                </Link>
             </div>
             {isPermanent && (
                 <p className="text-xs text-stone-500">
@@ -703,6 +709,13 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             Bid
                         </button>
                     )}
+                    <Link
+                        href={`/chat/${auction.id}`}
+                        aria-label="Message the seller"
+                        className="shrink-0 rounded-xl border border-stone-200 bg-white p-3 text-black transition-colors hover:border-black"
+                    >
+                        <MessageCircle className="h-5 w-5" />
+                    </Link>
                     {sellerWhatsappUrl && (
                         <a
                             href={sellerWhatsappUrl}
@@ -779,10 +792,10 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                                     </a>
                                 ) : (
                                     <Link
-                                        href={`/users/${auction.seller_id}`}
+                                        href={`/chat/${auction.id}`}
                                         className="inline-flex w-full items-center justify-center gap-2 bg-amber-400 px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-amber-500"
                                     >
-                                        Contact Seller
+                                        Message Seller
                                         <ArrowRight className="h-4 w-4" />
                                     </Link>
                                 )}

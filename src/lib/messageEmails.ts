@@ -79,6 +79,7 @@ export function offerChatUrl(offerId: string) {
     return `${SITE_URL}/offers/${offerId}`;
 }
 
-export function auctionChatUrl(auctionId: string) {
-    return `${SITE_URL}/auctions/${auctionId}`;
+export function auctionChatUrl(auctionId: string, buyerId?: string) {
+    // The in-house listing chat; the seller views a specific buyer thread.
+    return buyerId ? `${SITE_URL}/chat/${auctionId}?buyer=${buyerId}` : `${SITE_URL}/chat/${auctionId}`;
 }

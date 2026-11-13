@@ -8,12 +8,12 @@ interface WinnerBannerProps {
     auctionTitle: string;
     amount: number;
     orderId?: string;
-    sellerId?: string;
+    sellerId?: string; // kept for caller compatibility; in-house chat needs only the listing id
     whatsappUrl?: string | null;
 }
 
-export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId, sellerId, whatsappUrl }: WinnerBannerProps) {
-    const contactHref = whatsappUrl ?? (sellerId ? `/users/${sellerId}` : `/auctions/${auctionId}`);
+export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId, whatsappUrl }: WinnerBannerProps) {
+    const contactHref = whatsappUrl ?? `/chat/${auctionId}`;
     const contactExternal = Boolean(whatsappUrl);
     return (
         <div className="mb-6 rounded-2xl p-6 bg-black text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -57,7 +57,7 @@ export default function WinnerBanner({ auctionId, auctionTitle, amount, orderId,
                     href={contactHref}
                     className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
                 >
-                    Contact Seller
+                    Message Seller
                     <ArrowRight className="w-4 h-4" />
                 </Link>
             )}
