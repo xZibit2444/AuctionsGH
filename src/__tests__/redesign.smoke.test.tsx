@@ -161,7 +161,7 @@ describe('redesign smoke', () => {
         await render(React.createElement(DashboardPage));
         const text = container.textContent ?? '';
         for (const needle of ['Dashboard', 'Selling', 'Buying', 'Store management', 'Live Listings Control',
-            'Total Listings', 'Revenue', 'Total Bids', 'Auctions Won', 'New listing', 'Analytics', 'Order Monitor']) {
+            'Total Listings', 'Sold value', 'Total Bids', 'Auctions Won', 'New listing', 'Analytics', 'Order Monitor']) {
             expect(text).toContain(needle);
         }
         // no hidden tab switcher anymore
