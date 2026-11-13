@@ -82,7 +82,7 @@ export default function SellerStats() {
     const cards = statCards(stats);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div><p className="text-xs text-gray-500 mb-3">Sold value is the listed price of items marked sold, not confirmed payments or platform revenue.</p><div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {cards.map(({ label, value, icon: Icon }, index) => (
                 <div
                     key={label}
@@ -95,6 +95,6 @@ export default function SellerStats() {
                     <p className={`text-[11px] font-bold uppercase tracking-widest ${index === 0 ? 'text-gray-400' : 'text-gray-400'}`}>{label}</p>
                 </div>
             ))}
-        </div>
+        </div></div>
     );
 }

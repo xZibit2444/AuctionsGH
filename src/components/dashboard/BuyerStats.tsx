@@ -114,7 +114,7 @@ export default function BuyerStats() {
         { label: 'Total Bids', value: stats.totalBids.toString(), icon: Gavel },
         { label: 'Auctions Won', value: stats.auctionsWon.toString(), icon: Trophy },
         { label: 'Active Bids', value: stats.activeAuctions.toString(), icon: Clock },
-        { label: 'Total Spent', value: formatCurrency(stats.totalSpent), icon: TrendingDown },
+        { label: 'Winning bid value', value: formatCurrency(stats.totalSpent), icon: TrendingDown },
     ];
 
     return (

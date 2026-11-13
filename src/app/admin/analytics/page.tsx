@@ -550,6 +550,19 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
         .sort((a, b) => a.localeCompare(b))
         .map((value) => ({ value, label: value }));
 
+    // Direct-contact activity is separate from historical order revenue.
+    // No message, offer or winning bid is counted as a payment.
+    const activityQuery = (table: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let query = (admin.from(table) as any).select('id', { count: 'exact', head: true })
+            .gte('created_at', `${startDate}T00:00:00Z`).lte('created_at', `${endDate}T23:59:59.999Z`);
+        if (sellerId) query = query.eq('seller_id', sellerId);
+        return query;
+    };
+    const [chatActivity, offerActivity] = await Promise.all([
+        activityQuery('auction_offer_messages'), activityQuery('auction_offers'),
+    ]);
+
     const data = analytics;
     const kpis = data.kpis;
 
@@ -588,6 +601,15 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                 </div>
             </div>
 
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 mb-6">
+                <h2 className="text-sm font-black text-black">Direct-contact activity</h2>
+                <p className="text-xs text-gray-500 mt-2">Selected dates and seller. Region and historical order filters do not apply here. Counts show activity, not completed sales or revenue.</p>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div><p className="text-2xl font-black text-black">{chatActivity.error ? 'Unavailable' : formatCompactNumber(chatActivity.count ?? 0)}</p><p className="text-xs text-gray-500">In-house messages sent</p></div>
+                    <div><p className="text-2xl font-black text-black">{offerActivity.error ? 'Unavailable' : formatCompactNumber(offerActivity.count ?? 0)}</p><p className="text-xs text-gray-500">Offers created</p></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">WhatsApp conversations and direct payments happen outside AuctionsGH and are not measured here.</p>
+            </section>
             <section className="border border-gray-200 bg-white mb-8">
                 <div className="border-b border-gray-100 px-5 py-4">
                     <h2 className="text-xs font-black uppercase tracking-widest text-gray-400">Filters</h2>
@@ -616,7 +638,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                         </select>
                     </label>
                     <label className="block">
-                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Fulfillment</span>
+                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Historical fulfillment</span>
                         <select name="fulfillment" defaultValue={fulfillmentType} className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             <option value="">All types</option>
                             <option value="meet_and_inspect">Meet & Inspect</option>
@@ -624,7 +646,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                         </select>
                     </label>
                     <label className="block">
-                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Order status</span>
+                        <span className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-gray-400">Historical order status</span>
                         <select name="status" defaultValue={status} className="w-full border border-gray-200 px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             <option value="">All statuses</option>
                             {['pending_meetup', 'pending_payment', 'funds_held', 'in_delivery', 'completed', 'pin_verified', 'ghosted', 'pin_refused', 'refunded', 'cancelled_by_buyer', 'cancelled_by_seller', 'cancelled_unpaid', 'cancelled_admin'].map((value) => (
@@ -645,21 +667,21 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
             </section>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                <KpiCard label="GMV" value={formatCurrency(kpis.gmv)} help="Completed cash value in the selected range." icon={DollarSign} />
+                <KpiCard label="Historical order value" value={formatCurrency(kpis.gmv)} help="Recorded completed orders only, not verified direct payments." icon={DollarSign} />
                 <KpiCard label="Completed Orders" value={formatCompactNumber(kpis.completed_orders)} help="Orders that reached completed or pin verified." icon={Package} />
-                <KpiCard label="Live Auctions" value={formatCompactNumber(kpis.live_auctions)} help="Active listings currently competing for bids." icon={Store} />
-                <KpiCard label="Sell-through Rate" value={formatPercent(kpis.sell_through_rate)} help="Share of ended listings that actually sold." icon={Activity} />
-                <KpiCard label="Average Final Price" value={formatCurrency(kpis.avg_final_price)} help="Average closed sale price." icon={ArrowUpRight} />
+                <KpiCard label="Active listings" value={formatCompactNumber(kpis.live_auctions)} help="Active listings, including fixed-price listings and timed auctions." icon={Store} />
+                <KpiCard label="Marked-sold rate" value={formatPercent(kpis.sell_through_rate)} help="Listings marked sold, not independently verified payments." icon={Activity} />
+                <KpiCard label="Average sold listing price" value={formatCurrency(kpis.avg_final_price)} help="Recorded listing prices, not verified direct payment amounts." icon={ArrowUpRight} />
                 <KpiCard label="Bid Volume" value={formatCompactNumber(kpis.bid_volume)} help="Total bids placed in the selected period." icon={Gavel} />
-                <KpiCard label="Delivery Issues" value={formatCompactNumber(kpis.delivery_issues)} help="Delivery records still pending, sent, or waiting confirmation." icon={Truck} />
+                <KpiCard label="Historical delivery records" value={formatCompactNumber(kpis.delivery_issues)} help="Delivery records still pending, sent, or waiting confirmation." icon={Truck} />
                 <KpiCard label="Push Opt-in Rate" value={formatPercent(kpis.push_opt_in_rate)} help="Profiles with device notification tokens saved." icon={BellRing} />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 mb-8">
-                <Section title="GMV / Orders / Listings Trend" eyebrow="Overview" className="xl:col-span-8">
+                <Section title="Historical Orders / Listings Trend" eyebrow="Overview" className="xl:col-span-8">
                     <TrendChart data={data.daily} />
                 </Section>
-                <Section title="Order Funnel" eyebrow="Conversion" className="xl:col-span-4">
+                <Section title="Historical Order Funnel" eyebrow="History" className="xl:col-span-4">
                     <FunnelChart funnel={data.funnel} />
                 </Section>
             </div>
@@ -826,7 +848,7 @@ export default async function AdminAnalyticsPage({ searchParams }: DashboardPage
                     <div className="mt-4 space-y-3 text-sm text-white/80">
                         <p className="flex items-start gap-2"><BadgeAlert className="h-4 w-4 text-amber-300 shrink-0 mt-0.5" /> Add notification delivery/open event tracking for deeper push analytics.</p>
                         <p className="flex items-start gap-2"><Users className="h-4 w-4 text-emerald-300 shrink-0 mt-0.5" /> Move seller favorites from local storage into Supabase for real seller-follow analytics.</p>
-                        <p className="flex items-start gap-2"><Store className="h-4 w-4 text-sky-300 shrink-0 mt-0.5" /> Add listing impressions/clicks to measure browse-to-order conversion by category.</p>
+                        <p className="flex items-start gap-2"><Store className="h-4 w-4 text-sky-300 shrink-0 mt-0.5" /> Add listing impressions/clicks to measure browse-to-contact conversion by category.</p>
                     </div>
                 </div>
             </div>

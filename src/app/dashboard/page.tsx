@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import RecentChats from '@/components/dashboard/RecentChats';
 import SellerStats from '@/components/dashboard/SellerStats';
 import ListingTable from '@/components/dashboard/ListingTable';
 import BuyerStats from '@/components/dashboard/BuyerStats';
@@ -113,6 +114,8 @@ export default function DashboardPage() {
                         </div>
                     </section>
                 )}
+
+                <RecentChats />
 
                 {/* Selling */}
                 <section className="mb-8 sm:mb-10">
