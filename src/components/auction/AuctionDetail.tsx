@@ -7,6 +7,7 @@ import { useRealtimeBids } from '@/hooks/useRealtimeBids';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedAuctions } from '@/hooks/useSavedAuctions';
 import { formatCurrency, formatAuctionLocation, getUserDisplayLabel, whatsappChatLink, whatsappEnquiryText } from '@/lib/utils';
+import { trackContactSeller } from '@/lib/analytics';
 import { CONDITION_LABELS } from '@/lib/constants';
 import OwnerStatusControls from '@/components/auction/OwnerStatusControls';
 import { SIM_TYPE_OPTIONS, NETWORK_LOCK_OPTIONS, specFieldsForCategory, TRANSMISSION_OPTIONS, FUEL_TYPE_OPTIONS } from '@/lib/listingEdit';
@@ -411,6 +412,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                 )}
                 <Link
                     href={`/chat/${auction.id}`}
+                    onClick={() => trackContactSeller(auction.id, auction.brand, 'chat')}
                     className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-3.5 text-sm font-bold sm:text-[15px] text-black transition-colors hover:border-black text-center"
                 >
                     Message seller
@@ -510,6 +512,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                     href={sellerWhatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackContactSeller(auction.id, auction.brand, 'whatsapp')}
                     className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#1fb857] sm:mt-3"
                 >
                     <WhatsAppIcon className="h-5 w-5" />
@@ -712,6 +715,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                     <Link
                         href={`/chat/${auction.id}`}
                         aria-label="Message the seller"
+                        onClick={() => trackContactSeller(auction.id, auction.brand, 'chat')}
                         className="shrink-0 rounded-xl border border-stone-200 bg-white p-3 text-black transition-colors hover:border-black"
                     >
                         <MessageCircle className="h-5 w-5" />
@@ -722,6 +726,7 @@ export default function AuctionDetail({ auctionId, initialAuction }: AuctionDeta
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Chat with the seller on WhatsApp"
+                            onClick={() => trackContactSeller(auction.id, auction.brand, 'whatsapp')}
                             className="shrink-0 rounded-xl bg-[#25D366] p-3 text-white transition-colors hover:bg-[#1fb857]"
                         >
                             <WhatsAppIcon className="h-5 w-5" />
