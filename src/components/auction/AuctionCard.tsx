@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useListingImpression } from '@/hooks/useListingImpression';
+import { trackEvent } from '@/lib/analytics';
 import { formatCurrency } from '@/lib/utils';
 import { CONDITION_LABELS } from '@/lib/constants';
 import { getListingType } from '@/lib/listings';
@@ -29,6 +31,7 @@ function sellerDisplayName(profile: SellerPreview | null | undefined): string | 
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
+    const impressionRef = useListingImpression(auction.id, auction.brand);
     const thumbnail = auction.auction_images?.sort(
         (a, b) => a.position - b.position
     )[0];
@@ -37,8 +40,8 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     const conditionLabel = CONDITION_LABELS[auction.condition] ?? auction.condition;
     const sellerName = sellerDisplayName(auction.profiles);
     return (
-        <article className="group overflow-hidden rounded-[14px] border border-[#E9E6E0] bg-white transition-shadow duration-200 hover:shadow-md">
-        <Link href={`/auctions/${auction.id}`} className="block">
+        <article ref={impressionRef} className="group overflow-hidden rounded-[14px] border border-[#E9E6E0] bg-white transition-shadow duration-200 hover:shadow-md">
+        <Link href={`/auctions/${auction.id}`} onClick={() => trackEvent('listing_open', { listing_id: auction.id, listing_category: auction.brand })} className="block">
                 {/* Photo */}
                 <div className="relative aspect-[4/3] bg-stone-100">
                     {thumbnail ? (

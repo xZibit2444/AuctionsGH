@@ -21,7 +21,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
     async function count(table: string, ranged = true, active = false) {
         // Tables not yet included in generated database types are still counted server-side.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let query = (admin.from(table as any) as any).select('id', { count: 'exact', head: true });
+        let query = (admin.from(table as any) as any).select('*', { count: 'exact', head: true });
         if (ranged) query = query.gte('created_at', `${start}T00:00:00Z`).lte('created_at', `${end}T23:59:59.999Z`);
         if (active) query = query.eq('status', 'active');
         const result = await query;
