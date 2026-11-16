@@ -1,5 +1,6 @@
 'use client';
 
+import { buildSearchFilter } from '@/lib/searchAliases';
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getListingType, PERMANENT_LISTING_ENDS_AT_THRESHOLD } from '@/lib/listings';
@@ -178,10 +179,8 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
                 }
                 // Full-text search across title, brand and model
                 if (debouncedSearch && debouncedSearch.trim()) {
-                    const q = debouncedSearch.trim();
-                    query = query.or(
-                        `title.ilike.%${q}%,brand.ilike.%${q}%,model.ilike.%${q}%`
-                    );
+                    const searchFilter = buildSearchFilter(debouncedSearch);
+                    if (searchFilter) query = query.or(searchFilter);
                 }
 
                 // Apply ordering AFTER filters. Pinned listings come first so a
