@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { Suspense, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Clock, Search, SlidersHorizontal, X } from 'lucide-react';
 import { CONDITION_LABELS, ITEM_CATEGORIES } from '@/lib/constants';
 import { useAuctions } from '@/hooks/useAuctions';
 import { shuffled } from '@/lib/rotation';
-import { buildBrowseSearch, normalizePriceRange } from '@/lib/browseParams';
+import { buildBrowseSearch, normalizePriceRange, DEFAULT_BROWSE_SORT } from '@/lib/browseParams';
 import type { Auction } from '@/types/auction';
 import type { ListingType } from '@/lib/listings';
 import AuctionGrid from '@/components/auction/AuctionGrid';
@@ -16,7 +16,7 @@ const CATEGORIES = ['All', ...ITEM_CATEGORIES];
 const SORT_OPTIONS = [
     { label: 'Shuffled', value: 'shuffled' },
     { label: 'Ending Soon', value: 'ends_at:asc' },
-    { label: 'Newest', value: 'created_at:desc' },
+    { label: 'Most recent', value: 'created_at:desc' },
     { label: 'Price: Low to High', value: 'current_price:asc' },
     { label: 'Price: High to Low', value: 'current_price:desc' },
 ];
@@ -256,6 +256,19 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                     {query && <span className="ml-1">for <span className="font-semibold text-black">&quot;{query}&quot;</span></span>}
                 </p>
                 <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        aria-pressed={sort === 'created_at:desc'}
+                        onClick={() => handleSort(sort === 'created_at:desc' ? DEFAULT_BROWSE_SORT : 'created_at:desc')}
+                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
+                            sort === 'created_at:desc'
+                                ? 'bg-black border-black text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
+                        }`}
+                    >
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        Most recent
+                    </button>
                     <button
                         type="button"
                         onClick={() => setShowFilters((v) => !v)}
