@@ -250,7 +250,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                 ))}
             </div>
 
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
                 <p className="text-xs text-gray-400 font-medium">
                     {loading ? 'Loading...' : `${visibleAuctions.length} listing${visibleAuctions.length !== 1 ? 's' : ''}`}
                     {query && <span className="ml-1">for <span className="font-semibold text-black">&quot;{query}&quot;</span></span>}
