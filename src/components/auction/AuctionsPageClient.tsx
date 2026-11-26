@@ -255,12 +255,12 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                     {loading ? 'Loading...' : `${visibleAuctions.length} listing${visibleAuctions.length !== 1 ? 's' : ''}`}
                     {query && <span className="ml-1">for <span className="font-semibold text-black">&quot;{query}&quot;</span></span>}
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                     <button
                         type="button"
                         aria-pressed={sort === 'created_at:desc'}
                         onClick={() => handleSort(sort === 'created_at:desc' ? DEFAULT_BROWSE_SORT : 'created_at:desc')}
-                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
+                        className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
                             sort === 'created_at:desc'
                                 ? 'bg-black border-black text-white'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
@@ -272,7 +272,7 @@ function AuctionsContent({ listingType, initialAuctions }: { listingType: Listin
                     <button
                         type="button"
                         onClick={() => setShowFilters((v) => !v)}
-                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
+                        className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-bold border transition-colors ${
                             showFilters || activeFilterCount > 0
                                 ? 'bg-amber-400/15 border-amber-400/60 text-amber-700'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
